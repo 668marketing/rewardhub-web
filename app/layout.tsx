@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import PWARegister from "./components/PWARegister";
+import PWARegister from "../components/pwa/PWARegister";
 import "./globals.css";
 import SplashScreen from "@/components/pwa/SplashScreen";
 
