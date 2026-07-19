@@ -1,38 +1,53 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import {
+  Suspense,
+  useEffect,
+  useState,
+} from "react";
 import { useSearchParams } from "next/navigation";
 
 import Header from "@/components/layout/Header";
 import { memberRegister } from "@/lib/api";
 
-export default function RegisterPage() {
+function RegisterContent() {
   const searchParams = useSearchParams();
   const queryRef = searchParams.get("ref") || "";
 
-  const [referredByMember, setReferredByMember] = useState("");
+  const [referredByMember, setReferredByMember] =
+    useState("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<any>(null);
 
   useEffect(() => {
     if (queryRef) {
-      localStorage.setItem("rewardhub_ref", queryRef);
+      localStorage.setItem(
+        "rewardhub_ref",
+        queryRef
+      );
       setReferredByMember(queryRef);
       return;
     }
 
-    const savedRef = localStorage.getItem("rewardhub_ref") || "";
+    const savedRef =
+      localStorage.getItem("rewardhub_ref") || "";
+
     setReferredByMember(savedRef);
   }, [queryRef]);
 
-  async function handleRegister(e: React.FormEvent<HTMLFormElement>) {
+  async function handleRegister(
+    e: React.FormEvent<HTMLFormElement>
+  ) {
     e.preventDefault();
     setLoading(true);
 
     try {
       const form = new FormData(e.currentTarget);
 
-      const phoneNumber = String(form.get("phone") || "").replace(/\D/g, "");
+      const phoneNumber = String(
+        form.get("phone") || ""
+      ).replace(/\D/g, "");
+
       const phone = `60${phoneNumber}`;
 
       const birthday = [
@@ -42,12 +57,18 @@ export default function RegisterPage() {
       ].join("-");
 
       const res = await memberRegister({
-        fullName: String(form.get("fullName") || ""),
+        fullName: String(
+          form.get("fullName") || ""
+        ),
         email: String(form.get("email") || ""),
         phone,
         birthday,
-        gender: String(form.get("gender") || ""),
-        password: String(form.get("password") || ""),
+        gender: String(
+          form.get("gender") || ""
+        ),
+        password: String(
+          form.get("password") || ""
+        ),
         referredByMember,
       });
 
@@ -57,20 +78,31 @@ export default function RegisterPage() {
         res?.result ||
         res;
 
-      if (data?.success === false || data?.error) {
-        alert(data?.message || data?.error || "Registration failed");
+      if (
+        data?.success === false ||
+        data?.error
+      ) {
+        alert(
+          data?.message ||
+            data?.error ||
+            "Registration failed"
+        );
         return;
       }
 
       if (!data?.memberId) {
-        alert(data?.message || "Registration failed");
+        alert(
+          data?.message ||
+            "Registration failed"
+        );
         return;
       }
 
       setResult(data);
 
-      // 注册成功后清除暂存推荐码，避免下次其他人注册时误用
-      localStorage.removeItem("rewardhub_ref");
+      localStorage.removeItem(
+        "rewardhub_ref"
+      );
     } catch (err: any) {
       console.error("REGISTER ERROR:", err);
 
@@ -85,18 +117,24 @@ export default function RegisterPage() {
     }
   }
 
-  const currentYear = new Date().getFullYear();
+  const currentYear =
+    new Date().getFullYear();
 
-  const years = Array.from({ length: 100 }, (_, i) =>
-    String(currentYear - i)
+  const years = Array.from(
+    { length: 100 },
+    (_, i) => String(currentYear - i)
   );
 
-  const months = Array.from({ length: 12 }, (_, i) =>
-    String(i + 1).padStart(2, "0")
+  const months = Array.from(
+    { length: 12 },
+    (_, i) =>
+      String(i + 1).padStart(2, "0")
   );
 
-  const days = Array.from({ length: 31 }, (_, i) =>
-    String(i + 1).padStart(2, "0")
+  const days = Array.from(
+    { length: 31 },
+    (_, i) =>
+      String(i + 1).padStart(2, "0")
   );
 
   return (
@@ -123,13 +161,17 @@ export default function RegisterPage() {
 
               {referredByMember && (
                 <p className="mt-3 text-xs font-bold text-emerald-700">
-                  Referred by: {referredByMember}
+                  Referred by:{" "}
+                  {referredByMember}
                 </p>
               )}
             </div>
 
             {!result ? (
-              <form onSubmit={handleRegister} className="mt-8 space-y-4">
+              <form
+                onSubmit={handleRegister}
+                className="mt-8 space-y-4"
+              >
                 <input
                   name="fullName"
                   required
@@ -170,10 +212,15 @@ export default function RegisterPage() {
                       required
                       className="rounded-2xl border border-slate-200 px-4 py-4 font-semibold outline-none focus:border-slate-950"
                     >
-                      <option value="">Year</option>
+                      <option value="">
+                        Year
+                      </option>
 
                       {years.map((year) => (
-                        <option key={year} value={year}>
+                        <option
+                          key={year}
+                          value={year}
+                        >
                           {year}
                         </option>
                       ))}
@@ -184,10 +231,15 @@ export default function RegisterPage() {
                       required
                       className="rounded-2xl border border-slate-200 px-4 py-4 font-semibold outline-none focus:border-slate-950"
                     >
-                      <option value="">Month</option>
+                      <option value="">
+                        Month
+                      </option>
 
                       {months.map((month) => (
-                        <option key={month} value={month}>
+                        <option
+                          key={month}
+                          value={month}
+                        >
                           {month}
                         </option>
                       ))}
@@ -198,10 +250,15 @@ export default function RegisterPage() {
                       required
                       className="rounded-2xl border border-slate-200 px-4 py-4 font-semibold outline-none focus:border-slate-950"
                     >
-                      <option value="">Day</option>
+                      <option value="">
+                        Day
+                      </option>
 
                       {days.map((day) => (
-                        <option key={day} value={day}>
+                        <option
+                          key={day}
+                          value={day}
+                        >
                           {day}
                         </option>
                       ))}
@@ -214,9 +271,15 @@ export default function RegisterPage() {
                   required
                   className="w-full rounded-2xl border border-slate-200 px-5 py-4 font-semibold outline-none focus:border-slate-950"
                 >
-                  <option value="">Select Gender</option>
-                  <option value="Male">Male</option>
-                  <option value="Female">Female</option>
+                  <option value="">
+                    Select Gender
+                  </option>
+                  <option value="Male">
+                    Male
+                  </option>
+                  <option value="Female">
+                    Female
+                  </option>
                 </select>
 
                 <input
@@ -232,7 +295,9 @@ export default function RegisterPage() {
                   disabled={loading}
                   className="w-full rounded-2xl bg-slate-950 py-4 text-sm font-black text-white disabled:opacity-50"
                 >
-                  {loading ? "Creating Account..." : "Create Account"}
+                  {loading
+                    ? "Creating Account..."
+                    : "Create Account"}
                 </button>
               </form>
             ) : (
@@ -246,7 +311,8 @@ export default function RegisterPage() {
                 </h2>
 
                 <p className="mt-2 text-sm font-semibold text-emerald-700">
-                  Tier: {result.tier || "Silver"}
+                  Tier:{" "}
+                  {result.tier || "Silver"}
                 </p>
 
                 <a
@@ -261,5 +327,29 @@ export default function RegisterPage() {
         </section>
       </main>
     </>
+  );
+}
+
+function RegisterLoading() {
+  return (
+    <main className="flex min-h-screen items-center justify-center bg-[#f8fafc]">
+      <div className="text-center">
+        <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-slate-950" />
+
+        <p className="mt-4 text-sm font-semibold text-slate-500">
+          Loading RewardHub...
+        </p>
+      </div>
+    </main>
+  );
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense
+      fallback={<RegisterLoading />}
+    >
+      <RegisterContent />
+    </Suspense>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import Link from "next/link";
 import Header from "@/components/layout/Header";
 import {
@@ -8,10 +8,10 @@ import {
   resetMemberPassword,
 } from "@/lib/api";
 
-export default function ForgotPasswordPage() {
-  const [step, setStep] = useState<"email" | "reset" | "success">(
-    "email"
-  );
+function ForgotPasswordContent() {
+  const [step, setStep] = useState<
+    "email" | "reset" | "success"
+  >("email");
 
   const [email, setEmail] = useState("");
   const [otp, setOtp] = useState("");
@@ -58,12 +58,14 @@ export default function ForgotPasswordPage() {
   }
 
   async function handleResetPassword() {
-    if (!otp.trim()) {
+    const cleanOtp = otp.trim();
+
+    if (!cleanOtp) {
       alert("Please enter the verification code");
       return;
     }
 
-    if (otp.trim().length !== 6) {
+    if (cleanOtp.length !== 6) {
       alert("Verification code must be 6 digits");
       return;
     }
@@ -85,7 +87,7 @@ export default function ForgotPasswordPage() {
 
       await resetMemberPassword({
         email,
-        otp: otp.trim(),
+        otp: cleanOtp,
         newPassword,
       });
 
@@ -145,7 +147,7 @@ export default function ForgotPasswordPage() {
               <form
                 onSubmit={(event) => {
                   event.preventDefault();
-                  handleSendCode();
+                  void handleSendCode();
                 }}
                 className="mt-7 space-y-4 sm:mt-8"
               >
@@ -164,7 +166,7 @@ export default function ForgotPasswordPage() {
                 <button
                   type="submit"
                   disabled={sending}
-                  className="w-full rounded-xl bg-slate-950 py-4 text-sm font-black text-white shadow-xl disabled:opacity-50 sm:rounded-2xl"
+                  className="w-full rounded-xl bg-slate-950 py-4 text-sm font-black text-white shadow-xl disabled:cursor-not-allowed disabled:opacity-50 sm:rounded-2xl"
                 >
                   {sending
                     ? "Sending Code..."
@@ -177,7 +179,7 @@ export default function ForgotPasswordPage() {
               <form
                 onSubmit={(event) => {
                   event.preventDefault();
-                  handleResetPassword();
+                  void handleResetPassword();
                 }}
                 className="mt-7 space-y-4 sm:mt-8"
               >
@@ -212,6 +214,7 @@ export default function ForgotPasswordPage() {
                     }
                     required
                     minLength={6}
+                    autoComplete="new-password"
                     className="w-full rounded-xl border border-slate-200 px-4 py-4 pr-20 text-sm font-semibold outline-none transition focus:border-slate-950 focus:ring-2 focus:ring-slate-950/10 sm:rounded-2xl sm:px-5"
                     placeholder="New Password"
                   />
@@ -241,6 +244,7 @@ export default function ForgotPasswordPage() {
                   }
                   required
                   minLength={6}
+                  autoComplete="new-password"
                   className="w-full rounded-xl border border-slate-200 px-4 py-4 text-sm font-semibold outline-none transition focus:border-slate-950 focus:ring-2 focus:ring-slate-950/10 sm:rounded-2xl sm:px-5"
                   placeholder="Confirm New Password"
                 />
@@ -248,7 +252,7 @@ export default function ForgotPasswordPage() {
                 <button
                   type="submit"
                   disabled={resetting}
-                  className="w-full rounded-xl bg-slate-950 py-4 text-sm font-black text-white shadow-xl disabled:opacity-50 sm:rounded-2xl"
+                  className="w-full rounded-xl bg-slate-950 py-4 text-sm font-black text-white shadow-xl disabled:cursor-not-allowed disabled:opacity-50 sm:rounded-2xl"
                 >
                   {resetting
                     ? "Resetting Password..."
@@ -257,9 +261,11 @@ export default function ForgotPasswordPage() {
 
                 <button
                   type="button"
-                  onClick={handleSendCode}
+                  onClick={() => {
+                    void handleSendCode();
+                  }}
                   disabled={sending}
-                  className="w-full rounded-xl bg-slate-100 py-4 text-xs font-black text-slate-700 disabled:opacity-50 sm:rounded-2xl"
+                  className="w-full rounded-xl bg-slate-100 py-4 text-xs font-black text-slate-700 disabled:cursor-not-allowed disabled:opacity-50 sm:rounded-2xl"
                 >
                   {sending
                     ? "Sending..."
@@ -299,5 +305,27 @@ export default function ForgotPasswordPage() {
         </section>
       </main>
     </>
+  );
+}
+
+function ForgotPasswordLoading() {
+  return (
+    <main className="flex min-h-screen items-center justify-center bg-[#f8fafc]">
+      <div className="text-center">
+        <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-slate-950" />
+
+        <p className="mt-4 text-sm font-semibold text-slate-500">
+          Loading RewardHub...
+        </p>
+      </div>
+    </main>
+  );
+}
+
+export default function ForgotPasswordPage() {
+  return (
+    <Suspense fallback={<ForgotPasswordLoading />}>
+      <ForgotPasswordContent />
+    </Suspense>
   );
 }

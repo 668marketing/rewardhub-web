@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import Header from "@/components/layout/Header";
 import { merchantRegister } from "@/lib/api";
 
@@ -289,7 +289,7 @@ const areaOptions: Record<string, string[]> = {
     "Labuan",
   ],
 };
-export default function MerchantRegisterPage() {
+function MerchantRegisterContent() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<any>(null);
   const [category, setCategory] = useState("");
@@ -627,5 +627,27 @@ referredByMerchant,
         </section>
       </main>
     </>
+  );
+}
+
+function MerchantRegisterLoading() {
+  return (
+    <main className="flex min-h-screen items-center justify-center bg-[#f8fafc]">
+      <div className="text-center">
+        <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-slate-950" />
+
+        <p className="mt-4 text-sm font-semibold text-slate-500">
+          Loading RewardHub...
+        </p>
+      </div>
+    </main>
+  );
+}
+
+export default function MerchantRegisterPage() {
+  return (
+    <Suspense fallback={<MerchantRegisterLoading />}>
+      <MerchantRegisterContent />
+    </Suspense>
   );
 }

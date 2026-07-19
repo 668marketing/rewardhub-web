@@ -1,27 +1,39 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import {
+  Suspense,
+  useEffect,
+  useState,
+} from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import Header from "@/components/layout/Header";
 import { memberLogin } from "@/lib/api";
 
-export default function LoginPage() {
+function LoginContent() {
   const router = useRouter();
 
   const [referralId, setReferralId] = useState("");
   const [loginId, setLoginId] = useState("");
   const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
+  const [showPassword, setShowPassword] =
+    useState(false);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
+    const params = new URLSearchParams(
+      window.location.search
+    );
+
     const queryRef = params.get("ref") || "";
 
     if (queryRef) {
-      localStorage.setItem("rewardhub_ref", queryRef);
+      localStorage.setItem(
+        "rewardhub_ref",
+        queryRef
+      );
+
       setReferralId(queryRef);
       return;
     }
@@ -33,14 +45,18 @@ export default function LoginPage() {
   }, []);
 
   const registerHref = referralId
-    ? `/register?ref=${encodeURIComponent(referralId)}`
+    ? `/register?ref=${encodeURIComponent(
+        referralId
+      )}`
     : "/register";
 
   async function handleLogin() {
     const cleanLoginId = loginId.trim();
 
     if (!cleanLoginId) {
-      alert("Please enter your email or Member ID");
+      alert(
+        "Please enter your email or Member ID"
+      );
       return;
     }
 
@@ -58,7 +74,9 @@ export default function LoginPage() {
       });
 
       if (!result?.success) {
-        alert(result?.message || "Login failed");
+        alert(
+          result?.message || "Login failed"
+        );
         return;
       }
 
@@ -84,7 +102,11 @@ export default function LoginPage() {
 
       router.push("/member/dashboard");
     } catch (error: any) {
-      console.error("MEMBER LOGIN ERROR:", error);
+      console.error(
+        "MEMBER LOGIN ERROR:",
+        error
+      );
+
       alert(
         error?.message ||
           "Unable to login."
@@ -126,14 +148,16 @@ export default function LoginPage() {
             <form
               onSubmit={(event) => {
                 event.preventDefault();
-                handleLogin();
+                void handleLogin();
               }}
               className="mt-7 space-y-4 sm:mt-8"
             >
               <input
                 value={loginId}
                 onChange={(event) =>
-                  setLoginId(event.target.value)
+                  setLoginId(
+                    event.target.value
+                  )
                 }
                 required
                 autoComplete="username"
@@ -150,7 +174,9 @@ export default function LoginPage() {
                   }
                   value={password}
                   onChange={(event) =>
-                    setPassword(event.target.value)
+                    setPassword(
+                      event.target.value
+                    )
                   }
                   required
                   autoComplete="current-password"
@@ -206,5 +232,27 @@ export default function LoginPage() {
         </section>
       </main>
     </>
+  );
+}
+
+function LoginLoading() {
+  return (
+    <main className="flex min-h-screen items-center justify-center bg-[#f8fafc]">
+      <div className="text-center">
+        <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-slate-950" />
+
+        <p className="mt-4 text-sm font-semibold text-slate-500">
+          Loading RewardHub...
+        </p>
+      </div>
+    </main>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<LoginLoading />}>
+      <LoginContent />
+    </Suspense>
   );
 }

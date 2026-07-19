@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  Suspense,
   useState,
 } from "react";
 import Link from "next/link";
@@ -15,7 +16,7 @@ type Step =
   | "reset"
   | "success";
 
-export default function MerchantForgotPasswordPage() {
+function MerchantForgotPasswordContent() {
   const [step, setStep] =
     useState<Step>("email");
 
@@ -350,5 +351,27 @@ export default function MerchantForgotPasswordPage() {
         </section>
       </main>
     </>
+  );
+}
+
+function MerchantForgotPasswordLoading() {
+  return (
+    <main className="flex min-h-screen items-center justify-center bg-[#f8fafc]">
+      <div className="text-center">
+        <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-slate-950" />
+
+        <p className="mt-4 text-sm font-semibold text-slate-500">
+          Loading RewardHub...
+        </p>
+      </div>
+    </main>
+  );
+}
+
+export default function MerchantForgotPasswordPage() {
+  return (
+    <Suspense fallback={<MerchantForgotPasswordLoading />}>
+      <MerchantForgotPasswordContent />
+    </Suspense>
   );
 }

@@ -24,6 +24,25 @@ const restDayOptions = [
 const fieldClass =
   "mt-3 w-full rounded-xl border border-slate-200 bg-white px-3 py-3 text-xs font-black text-slate-950 outline-none transition placeholder:text-slate-300 focus:border-slate-950 focus:ring-2 focus:ring-slate-950/10 sm:px-4 sm:text-sm";
 
+  function toText(value: any) {
+  if (value === null || value === undefined) {
+    return "";
+  }
+
+  if (typeof value === "string") {
+    return value;
+  }
+
+  if (
+    typeof value === "number" ||
+    typeof value === "boolean"
+  ) {
+    return String(value);
+  }
+
+  return "";
+}
+
 export default function MerchantProfilePage() {
   const router = useRouter();
 
@@ -70,22 +89,68 @@ export default function MerchantProfilePage() {
         const data = getApiData(detailRes) || {};
         const mergedMerchant = { ...stored, ...data };
 
-        setMerchant(mergedMerchant);
-        setBusinessName(data?.businessName || data?.BUSINESS_NAME || stored?.businessName || stored?.BUSINESS_NAME || "");
-        setPhone(data?.phone || data?.PHONE || stored?.phone || stored?.PHONE || "");
-        setAddress(data?.address || data?.ADDRESS || stored?.address || stored?.ADDRESS || "");
-        setOpenTime(data?.openTime || data?.OPEN_TIME || stored?.openTime || stored?.OPEN_TIME || "");
-        setCloseTime(data?.closeTime || data?.CLOSE_TIME || stored?.closeTime || stored?.CLOSE_TIME || "");
-        setRestDay(data?.restDay || data?.REST_DAY || stored?.restDay || stored?.REST_DAY || "");
-        setdescription(
-          data?.description ||
-            data?.DESCRIPTION ||
-            data?.description ||
-            data?.DESCRIPTION ||
-            stored?.description ||
-            stored?.DESCRIPTION ||
-            ""
-        );
+        setBusinessName(
+  toText(
+    data?.businessName ||
+    data?.BUSINESS_NAME ||
+    stored?.businessName ||
+    stored?.BUSINESS_NAME
+  )
+);
+
+setPhone(
+  toText(
+    data?.phone ||
+    data?.PHONE ||
+    stored?.phone ||
+    stored?.PHONE
+  )
+);
+
+setAddress(
+  toText(
+    data?.address ||
+    data?.ADDRESS ||
+    stored?.address ||
+    stored?.ADDRESS
+  )
+);
+
+setOpenTime(
+  toText(
+    data?.openTime ||
+    data?.OPEN_TIME ||
+    stored?.openTime ||
+    stored?.OPEN_TIME
+  )
+);
+
+setCloseTime(
+  toText(
+    data?.closeTime ||
+    data?.CLOSE_TIME ||
+    stored?.closeTime ||
+    stored?.CLOSE_TIME
+  )
+);
+
+setRestDay(
+  toText(
+    data?.restDay ||
+    data?.REST_DAY ||
+    stored?.restDay ||
+    stored?.REST_DAY
+  )
+);
+
+setdescription(
+  toText(
+    data?.description ||
+    data?.DESCRIPTION ||
+    stored?.description ||
+    stored?.DESCRIPTION
+  )
+);
 
         const marketingRes = await getMerchantMarketingSummary(storedMerchantId);
         const marketingData = marketingRes?.data?.data || marketingRes?.data || marketingRes;
@@ -180,65 +245,105 @@ export default function MerchantProfilePage() {
   }
 
   async function handleSaveProfile() {
-    const cleanBusinessName = businessName.trim();
-    const cleanPhone = phone.trim();
-    const cleanAddress =
-  typeof address === "string"
-    ? address.trim()
-    : "";
-    const cleandescription = description.trim();
+  const cleanBusinessName = toText(
+    businessName
+  ).trim();
 
-    if (!cleanBusinessName) return alert("Business Name is required");
-    if (!cleanPhone) return alert("Phone is required");
-    if (!cleanAddress) return alert("Address is required");
-    if ((openTime && !closeTime) || (!openTime && closeTime)) {
-      return alert("Please select both open and close time");
-    }
+  const cleanPhone = toText(phone).trim();
+  const cleanAddress = toText(address).trim();
 
-    try {
-      setSaving(true);
-      await updateMerchantProfile({
-        merchantId,
-        businessName: cleanBusinessName,
-        phone: cleanPhone,
-        address: cleanAddress,
-        openTime,
-        closeTime,
-        restDay,
-        DESCRIPTION: cleandescription,
-      });
+  const cleanDescription = toText(
+    description
+  ).trim();
 
-      const nextMerchant = {
-        ...merchant,
-        businessName: cleanBusinessName,
-        BUSINESS_NAME: cleanBusinessName,
-        displayName: cleanBusinessName,
-        DISPLAY_NAME: cleanBusinessName,
-        phone: cleanPhone,
-        PHONE: cleanPhone,
-        address: cleanAddress,
-        ADDRESS: cleanAddress,
-        openTime,
-        OPEN_TIME: openTime,
-        closeTime,
-        CLOSE_TIME: closeTime,
-        restDay,
-        REST_DAY: restDay,
-        description,
-        DESCRIPTION: cleandescription,
-        
-      };
+  const cleanOpenTime = toText(openTime).trim();
+  const cleanCloseTime = toText(closeTime).trim();
+  const cleanRestDay = toText(restDay).trim();
 
-      setMerchant(nextMerchant);
-      const stored = JSON.parse(localStorage.getItem("merchant") || "{}");
-      localStorage.setItem("merchant", JSON.stringify({ ...stored, ...nextMerchant }));
-      alert("Profile updated successfully");
-    } catch (error: any) {
-      alert(error?.message || "Update failed");
-    } finally {
-      setSaving(false);
-    }
+  if (!cleanBusinessName) {
+    return alert("Business Name is required");
   }
+
+  if (!cleanPhone) {
+    return alert("Phone is required");
+  }
+
+  if (!cleanAddress) {
+    return alert("Address is required");
+  }
+
+  if (
+    (cleanOpenTime && !cleanCloseTime) ||
+    (!cleanOpenTime && cleanCloseTime)
+  ) {
+    return alert(
+      "Please select both open and close time"
+    );
+  }
+
+  try {
+    setSaving(true);
+
+    await updateMerchantProfile({
+      merchantId,
+      businessName: cleanBusinessName,
+      phone: cleanPhone,
+      address: cleanAddress,
+      openTime: cleanOpenTime,
+      closeTime: cleanCloseTime,
+      restDay: cleanRestDay,
+      description: cleanDescription,
+    });
+
+    const nextMerchant = {
+      ...merchant,
+
+      businessName: cleanBusinessName,
+      BUSINESS_NAME: cleanBusinessName,
+
+      displayName: cleanBusinessName,
+      DISPLAY_NAME: cleanBusinessName,
+
+      phone: cleanPhone,
+      PHONE: cleanPhone,
+
+      address: cleanAddress,
+      ADDRESS: cleanAddress,
+
+      openTime: cleanOpenTime,
+      OPEN_TIME: cleanOpenTime,
+
+      closeTime: cleanCloseTime,
+      CLOSE_TIME: cleanCloseTime,
+
+      restDay: cleanRestDay,
+      REST_DAY: cleanRestDay,
+
+      description: cleanDescription,
+      
+    };
+
+    setMerchant(nextMerchant);
+
+    const stored = JSON.parse(
+      localStorage.getItem("merchant") || "{}"
+    );
+
+    localStorage.setItem(
+      "merchant",
+      JSON.stringify({
+        ...stored,
+        ...nextMerchant,
+      })
+    );
+
+    alert("Profile updated successfully");
+  } catch (error: any) {
+    alert(error?.message || "Update failed");
+  } finally {
+    setSaving(false);
+  }
+}
 
   function handleLogout() {
     localStorage.removeItem("merchant");

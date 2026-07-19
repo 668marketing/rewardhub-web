@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  Suspense,
   useEffect,
   useState,
 } from "react";
@@ -8,7 +9,7 @@ import Link from "next/link";
 import Header from "@/components/layout/Header";
 import { merchantLogin } from "@/lib/api";
 
-export default function MerchantLoginPage() {
+function MerchantLoginContent() {
   const [loading, setLoading] =
     useState(false);
 
@@ -257,5 +258,27 @@ export default function MerchantLoginPage() {
         </section>
       </main>
     </>
+  );
+}
+
+function MerchantLoginLoading() {
+  return (
+    <main className="flex min-h-screen items-center justify-center bg-[#f8fafc]">
+      <div className="text-center">
+        <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-slate-950" />
+
+        <p className="mt-4 text-sm font-semibold text-slate-500">
+          Loading RewardHub...
+        </p>
+      </div>
+    </main>
+  );
+}
+
+export default function MerchantLoginPage() {
+  return (
+    <Suspense fallback={<MerchantLoginLoading />}>
+      <MerchantLoginContent />
+    </Suspense>
   );
 }
