@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import PWARegister from "./components/PWARegister";
 import "./globals.css";
+import SplashScreen from "@/components/pwa/SplashScreen";
 
 export const metadata: Metadata = {
   title: {
@@ -36,6 +37,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
+        <SplashScreen />
         <PWARegister />
         {children}
       </body>
