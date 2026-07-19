@@ -1,10 +1,16 @@
 const API_URL =
   "https://script.google.com/macros/s/AKfycbwZukKlv976yMLEA3Ap-_h6z4pyD8fTHzgpwHZlxAPGjfAjFYxRB6VdJXDK_zTJZmLs/exec";
 
-export async function apiPost(action: string, data: any = {}) {
-  const baseUrl = typeof window === "undefined" ? "http://localhost:3000" : "";
+export async function apiPost(
+  action: string,
+  data: any = {}
+) {
+  const endpoint =
+    typeof window === "undefined"
+      ? API_URL
+      : "/api/rewardhub";
 
-  const response = await fetch(baseUrl + "/api/rewardhub", {
+  const response = await fetch(endpoint, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -18,22 +24,29 @@ export async function apiPost(action: string, data: any = {}) {
 
   const text = await response.text();
 
-console.log("LOCAL API RAW RESPONSE:", text);
+  console.log("API RAW RESPONSE:", text);
 
-let result: any;
+  let result: any;
 
-try {
-  result = JSON.parse(text);
-} catch (err) {
-  throw new Error("Backend returned non-JSON: " + text.slice(0, 300));
-}
+  try {
+    result = JSON.parse(text);
+  } catch {
+    throw new Error(
+      "Backend returned non-JSON: " +
+        text.slice(0, 300)
+    );
+  }
 
-  if (!response.ok || result?.success === false || result?.error) {
+  if (
+    !response.ok ||
+    result?.success === false ||
+    result?.error
+  ) {
     throw new Error(
       result?.message ||
-      result?.error ||
-      result?.data?.message ||
-      "Server error"
+        result?.error ||
+        result?.data?.message ||
+        "Server error"
     );
   }
 
