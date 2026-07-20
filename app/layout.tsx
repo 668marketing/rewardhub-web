@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
-import PWARegister from "../components/pwa/PWARegister";
-import "./globals.css";
+import PWARegister from "@/components/pwa/PWARegister";
 import SplashScreen from "@/components/pwa/SplashScreen";
+import "./globals.css";
 
 export const metadata: Metadata = {
   title: {
