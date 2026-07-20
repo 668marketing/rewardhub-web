@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import MemberLayout from "@/components/layout/MemberLayout";
+import PushNotificationManager from "@/components/pwa/PushNotificationManager";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -33,6 +34,8 @@ export default function ProfilePage() {
   const phone = member?.phone || "-";
   const gender = member?.gender || member?.GENDER || "-";
   const status = member?.status || "Active";
+
+  const pushUserId = memberId === "-" ? "" : memberId;
 
   return (
     <MemberLayout>
@@ -115,6 +118,13 @@ export default function ProfilePage() {
             </div>
           </div>
 
+          <div className="mt-5 sm:mt-6">
+            <PushNotificationManager
+              userType="MEMBER"
+              userId={pushUserId}
+            />
+          </div>
+
           <div className="mt-5 rounded-[1.75rem] bg-white p-4 shadow-sm sm:mt-6 sm:rounded-[2.5rem] sm:p-7">
             <h2 className="text-xl font-black text-slate-950 sm:text-2xl">
               Security
@@ -164,18 +174,19 @@ export default function ProfilePage() {
 function StatCard({ title, value }: { title: string; value: any }) {
   return (
     <div className="min-w-0 rounded-xl bg-white/10 p-3 text-white sm:rounded-[2rem] sm:p-6">
-      <p className="truncate text-[9px] font-black text-slate-300= sm:text-sm">
+      <p className="truncate text-[9px] font-black text-slate-300 sm:text-sm">
         {title}
       </p>
+
       <h3
-  className={`mt-1 break-words font-black leading-tight sm:mt-3 ${
-    title === "Member ID"
-      ? "text-[12px] sm:text-xl lg:text-2xl"
-      : "text-sm sm:text-3xl"
-  }`}
->
-  {value}
-</h3>
+        className={`mt-1 break-words font-black leading-tight sm:mt-3 ${
+          title === "Member ID"
+            ? "text-[12px] sm:text-xl lg:text-2xl"
+            : "text-sm sm:text-3xl"
+        }`}
+      >
+        {value}
+      </h3>
     </div>
   );
 }

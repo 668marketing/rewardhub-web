@@ -413,3 +413,24 @@ export async function deleteMerchantGallery(data: {
 }) {
   return apiPost("deleteMerchantGallery", data);
 }
+
+export type SavePushSubscriptionPayload = {
+  userType: "MEMBER" | "MERCHANT" | "ADMIN";
+  userId: string;
+  endpoint: string;
+  p256dh: string;
+  auth: string;
+  userAgent?: string;
+};
+
+export async function savePushSubscription(
+  data: SavePushSubscriptionPayload
+) {
+  return apiPost("savePushSubscription", data);
+}
+
+export async function disablePushSubscription(data: {
+  endpoint: string;
+}) {
+  return apiPost("disablePushSubscription", data);
+}
