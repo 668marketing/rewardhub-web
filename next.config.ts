@@ -5,6 +5,10 @@ const nextConfig: NextConfig = {
     "192.168.0.*",
     "192.168.1.*",
   ],
+
+  turbopack: {
+    root: process.cwd(),
+  },
 };
 
 export default nextConfig;

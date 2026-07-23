@@ -165,31 +165,24 @@ export default function PayPage() {
     ctx.fill();
     ctx.drawImage(logo, 480, 910, 120, 120);
 
-    drawInfo(ctx, 145, 1440, "ID", "Member ID", memberId);
-    drawInfo(ctx, 145, 1520, "NM", "Member Name", memberName);
-    drawInfo(ctx, 145, 1600, "TR", "Member Tier", memberTier);
-    drawInfo(
-      ctx,
-      145,
-      1680,
-      "RC",
-      "Reward Credits",
-      `RM${money(rewardCredits)}`
-    );
+    drawInfo(ctx, 145, 1440, "🪪", "Member ID", memberId);
+    drawInfo(ctx, 145, 1520, "👤", "Member Name", memberName);
+    drawInfo(ctx, 145, 1600, "👑", "Member Tier", memberTier);
+    
 
-    const gold = ctx.createLinearGradient(145, 1775, 935, 1870);
-    gold.addColorStop(0, "#f59e0b");
-    gold.addColorStop(0.5, "#fde047");
-    gold.addColorStop(1, "#f59e0b");
+    const gold = ctx.createLinearGradient(145, 1740, 935, 1835);
+gold.addColorStop(0, "#f59e0b");
+gold.addColorStop(0.5, "#fde047");
+gold.addColorStop(1, "#f59e0b");
 
-    ctx.fillStyle = gold;
-    roundRect(ctx, 145, 1775, 790, 95, 28);
-    ctx.fill();
+ctx.fillStyle = gold;
+roundRect(ctx, 145, 1740, 790, 95, 28);
+ctx.fill();
 
-    ctx.fillStyle = "#020617";
-    ctx.font = "bold 30px Arial";
-    ctx.textAlign = "center";
-    ctx.fillText("Secure • Fast • Rewarding", 540, 1822);
+ctx.fillStyle = "#020617";
+ctx.font = "bold 30px Arial";
+ctx.textAlign = "center";
+ctx.fillText("Secure • Fast • Rewarding", 540, 1787);
 
     const link = document.createElement("a");
     link.download = `rewardhub-${cardId}-pay-qr.png`;

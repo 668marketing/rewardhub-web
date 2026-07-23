@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import MerchantNav from "@/components/layout/MerchantNav";
+import SmartImage from "@/components/ui/SmartImage";
 import {
   getMerchantGallery,
   uploadMerchantGallery,
@@ -387,16 +388,23 @@ export default function MerchantGalleryPage() {
                       key={item.galleryId}
                       className="overflow-hidden rounded-[1.5rem] border border-slate-100 bg-slate-50 shadow-sm sm:rounded-[2rem]"
                     >
-                      <img
-                        src={getDisplayImageUrl(
-                          item.imageUrl
-                        )}
-                        alt={
-                          item.title ||
-                          "Merchant gallery"
-                        }
-                        className="aspect-square w-full object-cover sm:aspect-[4/3]"
-                      />
+                      <div className="aspect-square w-full overflow-hidden bg-slate-100 sm:aspect-[4/3]">
+                        <SmartImage
+                          src={
+                            item.imageUrl ||
+                            item.IMAGE_URL ||
+                            ""
+                          }
+                          alt={
+                            item.title ||
+                            "Merchant gallery"
+                          }
+                          fallbackLabel="🖼️"
+                          width={1200}
+                          className="h-full w-full object-cover"
+                          fallbackClassName="text-4xl"
+                        />
+                      </div>
 
                       <div className="p-3 sm:p-5">
                         {isEditing ? (
@@ -520,46 +528,3 @@ export default function MerchantGalleryPage() {
   );
 }
 
-function getDriveFileId(url: string) {
-  if (!url) return "";
-
-  const idFromQuery = url.match(
-    /[?&]id=([^&]+)/
-  );
-
-  if (idFromQuery?.[1]) {
-    return idFromQuery[1];
-  }
-
-  const idFromPath = url.match(
-    /\/d\/([^/]+)/
-  );
-
-  if (idFromPath?.[1]) {
-    return idFromPath[1];
-  }
-
-  return "";
-}
-
-function getDisplayImageUrl(url: string) {
-  if (!url) return "";
-
-  if (!url.includes("drive.google.com")) {
-    return url;
-  }
-
-  if (url.includes("drive.google.com/thumbnail")) {
-    return url;
-  }
-
-  const fileId = getDriveFileId(url);
-
-  if (!fileId) {
-    return url;
-  }
-
-  return `https://drive.google.com/thumbnail?id=${encodeURIComponent(
-    fileId
-  )}&sz=w1600`;
-}

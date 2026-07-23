@@ -6,46 +6,237 @@ import {
   useState,
 } from "react";
 import Link from "next/link";
+
 import Header from "@/components/layout/Header";
-import { merchantLogin } from "@/lib/api";
+import {
+  merchantLogin,
+} from "@/lib/api";
+
+/* ============================================================
+ * Merchant Login Error Message
+ * ============================================================
+ */
+
+function getMerchantLoginErrorMessage(
+  error: unknown
+) {
+  let message = "";
+
+  if (error instanceof Error) {
+    message =
+      error.message || "";
+  } else if (
+    typeof error === "string"
+  ) {
+    message = error;
+  } else if (
+    error &&
+    typeof error === "object"
+  ) {
+    const objectError =
+      error as {
+        message?: unknown;
+        error?: unknown;
+      };
+
+    message = String(
+      objectError.message ||
+        objectError.error ||
+        ""
+    );
+  }
+
+  const normalized =
+    message
+      .replace(/\s+/g, " ")
+      .trim()
+      .toLowerCase();
+
+  if (
+    normalized.includes(
+      "invalid password"
+    ) ||
+    normalized.includes(
+      "incorrect password"
+    ) ||
+    normalized.includes(
+      "wrong password"
+    )
+  ) {
+    return "Incorrect password. Please try again.";
+  }
+
+  if (
+    normalized.includes(
+      "merchant not found"
+    ) ||
+    normalized.includes(
+      "account not found"
+    ) ||
+    normalized.includes(
+      "email not found"
+    ) ||
+    normalized.includes(
+      "user not found"
+    )
+  ) {
+    return "Merchant account not found. Please check your login email.";
+  }
+
+  if (
+    normalized.includes(
+      "account suspended"
+    ) ||
+    normalized.includes(
+      "merchant suspended"
+    ) ||
+    normalized.includes(
+      "account blocked"
+    )
+  ) {
+    return "Your merchant account has been suspended. Please contact RewardHub Support.";
+  }
+
+  if (
+    normalized.includes(
+      "account inactive"
+    ) ||
+    normalized.includes(
+      "merchant inactive"
+    ) ||
+    normalized.includes(
+      "inactive account"
+    )
+  ) {
+    return "Your merchant account is inactive. Please contact RewardHub Support.";
+  }
+
+  if (
+    normalized.includes(
+      "pending approval"
+    ) ||
+    normalized.includes(
+      "account pending"
+    ) ||
+    normalized.includes(
+      "merchant pending"
+    )
+  ) {
+    return "Your merchant account is still pending approval.";
+  }
+
+  if (
+    normalized.includes(
+      "missing email"
+    ) ||
+    normalized.includes(
+      "missing login email"
+    )
+  ) {
+    return "Please enter your login email.";
+  }
+
+  if (
+    normalized.includes(
+      "missing password"
+    )
+  ) {
+    return "Please enter your password.";
+  }
+
+  if (
+    normalized.includes(
+      "failed to fetch"
+    ) ||
+    normalized.includes(
+      "network"
+    ) ||
+    normalized.includes(
+      "fetch failed"
+    )
+  ) {
+    return "Network connection failed. Please try again.";
+  }
+
+  if (
+    normalized.includes(
+      "page not found"
+    ) ||
+    normalized.includes(
+      "<!doctype html"
+    )
+  ) {
+    return "The service is temporarily unavailable. Please try again later.";
+  }
+
+  return "Unable to sign in. Please try again later.";
+}
+
+/* ============================================================
+ * Merchant Login Content
+ * ============================================================
+ */
 
 function MerchantLoginContent() {
-  const [loading, setLoading] =
+  const [
+    loading,
+    setLoading,
+  ] =
     useState(false);
 
-  const [email, setEmail] =
+  const [
+    email,
+    setEmail,
+  ] =
     useState("");
 
-  const [password, setPassword] =
+  const [
+    password,
+    setPassword,
+  ] =
     useState("");
 
   const [
     showPassword,
     setShowPassword,
-  ] = useState(false);
+  ] =
+    useState(false);
 
   const [
     referralId,
     setReferralId,
-  ] = useState("");
+  ] =
+    useState("");
+
+  const [
+    errorMessage,
+    setErrorMessage,
+  ] =
+    useState("");
 
   useEffect(() => {
-    const storedMerchant =
-      JSON.parse(
-        localStorage.getItem(
-          "merchant"
-        ) || "{}"
-      );
+    try {
+      const storedMerchant =
+        JSON.parse(
+          localStorage.getItem(
+            "merchant"
+          ) || "{}"
+        );
 
-    if (
-      storedMerchant?.merchantId ||
-      storedMerchant?.MERCHANT_ID
-    ) {
-      window.location.replace(
-        "/merchant/dashboard"
-      );
+      if (
+        storedMerchant?.merchantId ||
+        storedMerchant?.MERCHANT_ID
+      ) {
+        window.location.replace(
+          "/merchant/dashboard"
+        );
 
-      return;
+        return;
+      }
+    } catch {
+      localStorage.removeItem(
+        "merchant"
+      );
     }
 
     const savedRef =
@@ -53,7 +244,9 @@ function MerchantLoginContent() {
         "rewardhub_ref"
       ) || "";
 
-    setReferralId(savedRef);
+    setReferralId(
+      savedRef
+    );
   }, []);
 
   async function handleLogin(
@@ -61,48 +254,66 @@ function MerchantLoginContent() {
   ) {
     event.preventDefault();
 
-    if (loading) return;
+    if (loading) {
+      return;
+    }
+
+    setErrorMessage("");
 
     const cleanEmail =
-      email.trim().toLowerCase();
+      email
+        .trim()
+        .toLowerCase();
 
     if (!cleanEmail) {
-      alert(
-        "Please enter your login email"
+      setErrorMessage(
+        "Please enter your login email."
       );
+
       return;
     }
 
     if (!password) {
-      alert(
-        "Please enter your password"
+      setErrorMessage(
+        "Please enter your password."
       );
+
       return;
     }
 
     try {
       setLoading(true);
 
-      const res =
+      const response =
         await merchantLogin({
-          email: cleanEmail,
-          password,
+          email:
+            cleanEmail,
+
+          password:
+            password,
         });
 
-      if (!res?.success) {
-        alert(
-          res?.message ||
-            "Merchant login failed"
+      if (!response?.success) {
+        const responseMessage =
+          response?.message ||
+          response?.error ||
+          "Merchant login failed";
+
+        setErrorMessage(
+          getMerchantLoginErrorMessage(
+            responseMessage
+          )
         );
+
         return;
       }
 
       const merchantData =
-        res?.data?.data ||
-        res?.data ||
-        res?.result?.data ||
-        res?.result ||
-        res;
+        response?.data?.data ||
+        response?.data ||
+        response?.result?.data ||
+        response?.result ||
+        response;
 
       const merchantId =
         merchantData?.merchantId ||
@@ -110,9 +321,10 @@ function MerchantLoginContent() {
         "";
 
       if (!merchantId) {
-        alert(
-          "Merchant data missing"
+        setErrorMessage(
+          "Unable to load merchant information. Please try again."
         );
+
         return;
       }
 
@@ -126,10 +338,11 @@ function MerchantLoginContent() {
       window.location.replace(
         "/merchant/dashboard"
       );
-    } catch (error: any) {
-      alert(
-        error?.message ||
-          "Unable to login"
+    } catch (error: unknown) {
+      setErrorMessage(
+        getMerchantLoginErrorMessage(
+          error
+        )
       );
     } finally {
       setLoading(false);
@@ -168,19 +381,87 @@ function MerchantLoginContent() {
               Login to your merchant account
             </p>
 
+            {errorMessage ? (
+              <div
+                role="alert"
+                aria-live="polite"
+                className="mt-6 flex items-start gap-3 rounded-2xl border border-red-200 bg-red-50 px-4 py-4 text-left shadow-sm"
+              >
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-red-100 text-red-600">
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    className="h-5 w-5"
+                    aria-hidden="true"
+                  >
+                    <path
+                      d="M12 9v4m0 4h.01M10.29 3.86 2.82 17a2 2 0 0 0 1.74 3h14.88a2 2 0 0 0 1.74-3L13.71 3.86a2 2 0 0 0-3.42 0Z"
+                      stroke="currentColor"
+                      strokeWidth="1.8"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </div>
+
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-black text-red-700">
+                    Unable to sign in
+                  </p>
+
+                  <p className="mt-1 text-sm font-semibold leading-6 text-red-600">
+                    {errorMessage}
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    setErrorMessage("")
+                  }
+                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-xl font-medium leading-none text-red-400 transition hover:bg-red-100 hover:text-red-600"
+                  aria-label="Dismiss error"
+                >
+                  ×
+                </button>
+              </div>
+            ) : null}
+
             <form
-              onSubmit={handleLogin}
-              className="mt-7 space-y-4 text-left sm:mt-8"
+              onSubmit={
+                handleLogin
+              }
+              className={[
+                errorMessage
+                  ? "mt-5"
+                  : "mt-7 sm:mt-8",
+                "space-y-4 text-left",
+              ].join(" ")}
             >
               <input
                 name="email"
                 type="email"
                 required
                 autoComplete="email"
-                value={email}
-                onChange={(event) =>
+                value={
+                  email
+                }
+                onChange={(
+                  event
+                ) => {
                   setEmail(
                     event.target.value
+                  );
+
+                  if (
+                    errorMessage
+                  ) {
+                    setErrorMessage("");
+                  }
+                }}
+                aria-invalid={
+                  Boolean(
+                    errorMessage
                   )
                 }
                 placeholder="Login Email"
@@ -197,10 +478,25 @@ function MerchantLoginContent() {
                   }
                   required
                   autoComplete="current-password"
-                  value={password}
-                  onChange={(event) =>
+                  value={
+                    password
+                  }
+                  onChange={(
+                    event
+                  ) => {
                     setPassword(
                       event.target.value
+                    );
+
+                    if (
+                      errorMessage
+                    ) {
+                      setErrorMessage("");
+                    }
+                  }}
+                  aria-invalid={
+                    Boolean(
+                      errorMessage
                     )
                   }
                   placeholder="Password"
@@ -211,7 +507,9 @@ function MerchantLoginContent() {
                   type="button"
                   onClick={() =>
                     setShowPassword(
-                      (current) =>
+                      (
+                        current
+                      ) =>
                         !current
                     )
                   }
@@ -234,7 +532,9 @@ function MerchantLoginContent() {
 
               <button
                 type="submit"
-                disabled={loading}
+                disabled={
+                  loading
+                }
                 className="w-full rounded-xl bg-slate-950 py-4 text-sm font-black text-white shadow-xl transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50 sm:rounded-2xl"
               >
                 {loading
@@ -261,6 +561,11 @@ function MerchantLoginContent() {
   );
 }
 
+/* ============================================================
+ * Merchant Login Loading
+ * ============================================================
+ */
+
 function MerchantLoginLoading() {
   return (
     <main className="flex min-h-screen items-center justify-center bg-[#f8fafc]">
@@ -275,9 +580,18 @@ function MerchantLoginLoading() {
   );
 }
 
+/* ============================================================
+ * Merchant Login Page
+ * ============================================================
+ */
+
 export default function MerchantLoginPage() {
   return (
-    <Suspense fallback={<MerchantLoginLoading />}>
+    <Suspense
+      fallback={
+        <MerchantLoginLoading />
+      }
+    >
       <MerchantLoginContent />
     </Suspense>
   );

@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import MerchantNav from "@/components/layout/MerchantNav";
+import PushNotificationManager from "@/components/pwa/PushNotificationManager";
+import SmartImage from "@/components/ui/SmartImage";
 import {
   getMerchantDetail,
   getMerchantMarketingSummary,
@@ -88,6 +90,8 @@ export default function MerchantProfilePage() {
         const detailRes = await getMerchantDetail(storedMerchantId);
         const data = getApiData(detailRes) || {};
         const mergedMerchant = { ...stored, ...data };
+
+        setMerchant(mergedMerchant);
 
         setBusinessName(
   toText(
@@ -209,7 +213,7 @@ setdescription(
       setMerchant((old: any) => ({ ...old, logoUrl: imageUrl, LOGO_URL: imageUrl }));
       const stored = JSON.parse(localStorage.getItem("merchant") || "{}");
       localStorage.setItem("merchant", JSON.stringify({ ...stored, logoUrl: imageUrl, LOGO_URL: imageUrl }));
-      setLogoPreview(getDisplayImageUrl(imageUrl));
+      setLogoPreview(imageUrl);
       setLogoFile(null);
       alert("Logo uploaded successfully");
     } catch (error: any) {
@@ -234,7 +238,7 @@ setdescription(
       setMerchant((old: any) => ({ ...old, bannerUrl: imageUrl, BANNER_URL: imageUrl }));
       const stored = JSON.parse(localStorage.getItem("merchant") || "{}");
       localStorage.setItem("merchant", JSON.stringify({ ...stored, bannerUrl: imageUrl, BANNER_URL: imageUrl }));
-      setBannerPreview(getDisplayImageUrl(imageUrl));
+      setBannerPreview(imageUrl);
       setBannerFile(null);
       alert("Banner uploaded successfully");
     } catch (error: any) {
@@ -390,10 +394,18 @@ setdescription(
               <BrandingCard title="Logo" description="Square image, PNG, JPG or WebP, under 2MB.">
                 <div className="flex h-24 w-24 items-center justify-center overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm sm:h-32 sm:w-32 sm:rounded-3xl">
                   {logoPreview || merchant?.logoUrl || merchant?.LOGO_URL ? (
-                    <img
-                      src={logoPreview || getDisplayImageUrl(merchant?.logoUrl || merchant?.LOGO_URL || "")}
+                    <SmartImage
+                      src={
+                        logoPreview ||
+                        merchant?.logoUrl ||
+                        merchant?.LOGO_URL ||
+                        ""
+                      }
                       alt="Merchant Logo"
+                      fallbackLabel="LOGO"
+                      width={600}
                       className="h-full w-full object-contain p-2"
+                      fallbackClassName="text-xl sm:text-3xl"
                     />
                   ) : (
                     <span className="text-xl font-black text-slate-300 sm:text-3xl">LOGO</span>
@@ -429,10 +441,18 @@ setdescription(
               <BrandingCard title="Banner" description="Wide image, PNG, JPG or WebP, under 3MB.">
                 <div className="flex h-24 w-full items-center justify-center overflow-hidden rounded-2xl border border-slate-800 bg-slate-950 shadow-sm sm:h-40 sm:rounded-3xl">
                   {bannerPreview || merchant?.bannerUrl || merchant?.BANNER_URL ? (
-                    <img
-                      src={bannerPreview || getDisplayImageUrl(merchant?.bannerUrl || merchant?.BANNER_URL || "")}
+                    <SmartImage
+                      src={
+                        bannerPreview ||
+                        merchant?.bannerUrl ||
+                        merchant?.BANNER_URL ||
+                        ""
+                      }
                       alt="Merchant Banner"
+                      fallbackLabel="BANNER"
+                      width={1800}
                       className="h-full w-full object-cover"
+                      fallbackClassName="bg-slate-950 text-xl text-slate-600 sm:text-3xl"
                     />
                   ) : (
                     <span className="text-xl font-black text-slate-600 sm:text-3xl">BANNER</span>
@@ -542,6 +562,15 @@ setdescription(
             </div>
           </SectionCard>
 
+          {merchantId && merchantId !== "-" ? (
+            <div className="mt-5 sm:mt-6">
+              <PushNotificationManager
+                userType="MERCHANT"
+                userId={merchantId}
+              />
+            </div>
+          ) : null}
+
           <SectionCard title="Security" description="Manage your merchant account password.">
             <button
               type="button"
@@ -603,20 +632,3 @@ function InfoFieldCard({ label, value }: { label: string; value: any }) {
   );
 }
 
-function getDriveFileId(url: string) {
-  if (!url) return "";
-  const idFromQuery = url.match(/[?&]id=([^&]+)/);
-  if (idFromQuery?.[1]) return idFromQuery[1];
-  const idFromPath = url.match(/\/d\/([^/]+)/);
-  if (idFromPath?.[1]) return idFromPath[1];
-  return "";
-}
-
-function getDisplayImageUrl(url: string) {
-  if (!url) return "";
-  if (!url.includes("drive.google.com")) return url;
-  if (url.includes("drive.google.com/thumbnail") || url.includes("drive.google.com/uc")) return url;
-  const fileId = getDriveFileId(url);
-  if (!fileId) return url;
-  return `https://drive.google.com/thumbnail?id=${encodeURIComponent(fileId)}&sz=w1600`;
-}

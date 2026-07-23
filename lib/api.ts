@@ -434,3 +434,164 @@ export async function disablePushSubscription(data: {
 }) {
   return apiPost("disablePushSubscription", data);
 }
+
+/* ============================================================
+ * Merchant Product Management
+ * ============================================================
+ */
+
+export async function getMerchantProductManagement(
+  data: {
+    merchantId: string;
+    search?: string;
+    status?: string;
+    productType?: string;
+    category?: string;
+  }
+) {
+  return apiPost(
+    "getMerchantProductManagement",
+    data
+  );
+}
+
+export async function getMerchantProductDetail(
+  data: {
+    merchantId: string;
+    productId: string;
+  }
+) {
+  return apiPost(
+    "getMerchantProductDetail",
+    data
+  );
+}
+
+export async function createMerchantProduct(
+  data: any
+) {
+  return apiPost(
+    "createMerchantProduct",
+    data
+  );
+}
+
+export async function updateMerchantProduct(
+  data: any
+) {
+  return apiPost(
+    "updateMerchantProduct",
+    data
+  );
+}
+
+export async function updateMerchantProductStatus(
+  data: {
+    merchantId: string;
+    productId: string;
+    status: "DRAFT" | "ACTIVE" | "INACTIVE";
+  }
+) {
+  return apiPost(
+    "updateMerchantProductStatus",
+    data
+  );
+}
+
+export async function deleteMerchantProduct(
+  data: {
+    merchantId: string;
+    productId: string;
+  }
+) {
+  return apiPost(
+    "deleteMerchantProduct",
+    data
+  );
+}
+
+export async function uploadMerchantProductImage(
+  data: {
+    merchantId: string;
+    productId?: string;
+    fileName: string;
+    mimeType: string;
+    base64: string;
+    imageType: "COVER" | "GALLERY";
+  }
+) {
+  return apiPost(
+    "uploadMerchantProductImage",
+    data
+  );
+}
+
+
+/* ============================================================
+ * Merchant In-App Notifications
+ * ============================================================
+ */
+
+export type MerchantNotificationItem = {
+  userNotificationId: string;
+  notificationId: string;
+  userType: "MERCHANT";
+  userId: string;
+  title: string;
+  message: string;
+  targetUrl: string;
+  imageUrl: string;
+  status: "UNREAD" | "READ";
+  isRead: boolean;
+  createdAt: string;
+  readAt: string;
+};
+
+export type MerchantNotificationsResult = {
+  userType: "MERCHANT";
+  userId: string;
+  total: number;
+  count: number;
+  unreadCount: number;
+  items: MerchantNotificationItem[];
+};
+
+export async function getMerchantNotifications(data: {
+  merchantId: string;
+  status?: "UNREAD" | "READ" | "";
+  limit?: number;
+}) {
+  return apiPost("getMerchantNotifications", data);
+}
+
+export async function getMerchantUnreadNotificationCount(data: {
+  merchantId: string;
+}) {
+  return apiPost("getUnreadNotificationCount", {
+    userType: "MERCHANT",
+    userId: data.merchantId,
+    merchantId: data.merchantId,
+  });
+}
+
+export async function markMerchantNotificationRead(data: {
+  merchantId: string;
+  userNotificationId: string;
+}) {
+  return apiPost("markNotificationRead", {
+    userType: "MERCHANT",
+    userId: data.merchantId,
+    merchantId: data.merchantId,
+    userNotificationId: data.userNotificationId,
+  });
+}
+
+export async function markAllMerchantNotificationsRead(data: {
+  merchantId: string;
+}) {
+  return apiPost("markAllNotificationsRead", {
+    userType: "MERCHANT",
+    userId: data.merchantId,
+    merchantId: data.merchantId,
+  });
+}
