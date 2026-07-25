@@ -256,6 +256,11 @@ export default function VoucherManagement() {
               }
             );
 
+            console.log(
+  "Voucher API result:",
+  result
+);  
+
           setVouchers(
             result.vouchers || []
           );
