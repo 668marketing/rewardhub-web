@@ -40,7 +40,12 @@ export default function MemberBottomNav() {
   const pathname = usePathname();
 
   function isActive(href: string) {
-    return pathname === href || pathname.startsWith(`${href}/`);
+    return (
+      pathname === href ||
+      pathname.startsWith(
+        `${href}/`
+      )
+    );
   }
 
   return (
@@ -69,37 +74,54 @@ export default function MemberBottomNav() {
       "
     >
       <div className="grid w-full grid-cols-6 gap-1 lg:gap-2">
-        {navItems.map((item) => {
-          const active = isActive(item.href);
+        {navItems.map(
+          (item) => {
+            const active =
+              isActive(
+                item.href
+              );
 
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              aria-current={active ? "page" : undefined}
-              className={`
-                flex min-w-0 flex-col items-center justify-center
-                rounded-2xl px-1 py-2
-                text-center no-underline
-                transition active:scale-95
-                lg:px-2 lg:py-3
-                ${
-                  active
-                    ? "bg-slate-950 text-white"
-                    : "text-slate-500 hover:bg-slate-100 hover:text-slate-950"
+            return (
+              <Link
+                key={
+                  item.href
                 }
-              `}
-            >
-              <span className="text-lg leading-none sm:text-xl lg:text-2xl">
-                {item.icon}
-              </span>
+                href={
+                  item.href
+                }
+                aria-current={
+                  active
+                    ? "page"
+                    : undefined
+                }
+                className={`
+                  flex min-w-0 flex-col items-center justify-center
+                  rounded-2xl px-1 py-2
+                  text-center no-underline
+                  transition active:scale-95
+                  lg:px-2 lg:py-3
+                  ${
+                    active
+                      ? "bg-slate-950 text-white"
+                      : "text-slate-500 hover:bg-slate-100 hover:text-slate-950"
+                  }
+                `}
+              >
+                <span className="text-lg leading-none sm:text-xl lg:text-2xl">
+                  {
+                    item.icon
+                  }
+                </span>
 
-              <span className="mt-1 block w-full truncate text-[9px] font-black leading-none sm:text-[10px] lg:text-[11px]">
-                {item.label}
-              </span>
-            </Link>
-          );
-        })}
+                <span className="mt-1 block w-full truncate text-[9px] font-black leading-none sm:text-[10px] lg:text-[11px]">
+                  {
+                    item.label
+                  }
+                </span>
+              </Link>
+            );
+          }
+        )}
       </div>
     </nav>
   );

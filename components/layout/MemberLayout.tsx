@@ -1,15 +1,188 @@
 "use client";
 
+import {
+  useCallback,
+  useEffect,
+  useState,
+} from "react";
 import Link from "next/link";
+import {
+  Bell,
+} from "lucide-react";
+
 import MemberBottomNav from "@/components/layout/MemberBottomNav";
 import MemberGuard from "@/components/auth/MemberGuard";
 import SessionTimeout from "@/components/auth/SessionTimeout";
+import {
+  getMemberUnreadNotificationCount,
+} from "@/lib/api";
+
+type StoredMember = {
+  memberId?: string;
+  MEMBER_ID?: string;
+  id?: string;
+};
+
+function getMemberIdFromStorage() {
+  if (typeof window === "undefined") {
+    return "";
+  }
+
+  try {
+    const raw =
+      window.localStorage.getItem(
+        "member"
+      );
+
+    if (!raw) {
+      return "";
+    }
+
+    const parsed: any =
+      JSON.parse(raw);
+
+    const candidate =
+      parsed?.member ??
+      parsed?.data ??
+      parsed;
+
+    return String(
+      candidate?.memberId ??
+        candidate?.MEMBER_ID ??
+        candidate?.id ??
+        ""
+    ).trim();
+  } catch {
+    return "";
+  }
+}
+
+function unwrapData(
+  result: unknown
+): Record<string, unknown> {
+  if (
+    !result ||
+    typeof result !== "object"
+  ) {
+    return {};
+  }
+
+  const root =
+    result as Record<
+      string,
+      unknown
+    >;
+
+  const first =
+    root.data &&
+    typeof root.data === "object"
+      ? (root.data as Record<
+          string,
+          unknown
+        >)
+      : root;
+
+  return first.data &&
+    typeof first.data === "object"
+    ? (first.data as Record<
+        string,
+        unknown
+      >)
+    : first;
+}
 
 export default function MemberLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const [
+    unreadCount,
+    setUnreadCount,
+  ] = useState(0);
+
+  const loadUnreadCount =
+    useCallback(async () => {
+      const memberId =
+        getMemberIdFromStorage();
+
+      if (!memberId) {
+        setUnreadCount(0);
+        return;
+      }
+
+      try {
+        const result =
+          await getMemberUnreadNotificationCount(
+            {
+              memberId,
+            }
+          );
+
+        const data =
+          unwrapData(result);
+
+        setUnreadCount(
+          Number(
+            data.unreadCount ??
+              data.count ??
+              0
+          )
+        );
+      } catch {
+        /*
+         * Notification count should never block the member portal.
+         * Keep the current value when a refresh fails.
+         */
+      }
+    }, []);
+
+  useEffect(() => {
+    void loadUnreadCount();
+
+    const handleNotificationUpdate =
+      () => {
+        void loadUnreadCount();
+      };
+
+    window.addEventListener(
+      "rewardhub-notifications-updated",
+      handleNotificationUpdate
+    );
+
+    window.addEventListener(
+      "focus",
+      handleNotificationUpdate
+    );
+
+    const interval =
+      window.setInterval(
+        handleNotificationUpdate,
+        60000
+      );
+
+    return () => {
+      window.removeEventListener(
+        "rewardhub-notifications-updated",
+        handleNotificationUpdate
+      );
+
+      window.removeEventListener(
+        "focus",
+        handleNotificationUpdate
+      );
+
+      window.clearInterval(
+        interval
+      );
+    };
+  }, [loadUnreadCount]);
+
+  const badgeText =
+    unreadCount > 99
+      ? "99+"
+      : String(unreadCount);
+
   return (
     <MemberGuard>
       <SessionTimeout
@@ -30,6 +203,30 @@ export default function MemberLayout({
                 className="block h-10 w-auto max-w-[170px] object-contain sm:h-12 sm:max-w-[210px] lg:h-16 lg:max-w-[280px]"
               />
             </Link>
+
+            <div className="flex items-center gap-2 sm:gap-3">
+              {/*
+               * Keep this right-side area separate from the bottom navigation.
+               * A customer-service button can be added beside the bell later.
+               */}
+              <Link
+                href="/member/notifications"
+                aria-label={
+                  unreadCount > 0
+                    ? `${unreadCount} unread notifications`
+                    : "Notifications"
+                }
+                className="relative inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-950 active:scale-95 sm:h-12 sm:w-12"
+              >
+                <Bell className="h-5 w-5 sm:h-6 sm:w-6" />
+
+                {unreadCount > 0 ? (
+                  <span className="absolute -right-1.5 -top-1.5 inline-flex min-h-5 min-w-5 items-center justify-center rounded-full border-2 border-white bg-red-600 px-1 text-[9px] font-black leading-none text-white shadow-sm sm:min-h-6 sm:min-w-6 sm:text-[10px]">
+                    {badgeText}
+                  </span>
+                ) : null}
+              </Link>
+            </div>
           </div>
         </header>
 

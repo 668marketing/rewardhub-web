@@ -147,6 +147,13 @@ const navigationGroups: NavigationGroup[] =
           available: false,
         },
         {
+  label: "Rewards",
+  href: "/admin/rewards",
+  icon: Gift,
+  permission: "rewards.view",
+  available: true,
+},
+        {
           label: "Products",
           href: "/admin/products",
           icon: Package,
@@ -169,7 +176,7 @@ const navigationGroups: NavigationGroup[] =
           icon: Bell,
           permission:
             "notifications.view",
-          available: false,
+          available: true,
         },
         {
           label: "Campaigns",

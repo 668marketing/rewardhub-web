@@ -4,17 +4,26 @@ import {
 } from "next/server";
 
 export const runtime = "nodejs";
-export const dynamic = "force-dynamic";
+export const dynamic =
+  "force-dynamic";
 
 function extractDriveFileId(
   value: string
 ): string {
-  const url = String(
+  const source = String(
     value || ""
   ).trim();
 
-  if (!url) {
+  if (!source) {
     return "";
+  }
+
+  if (
+    /^[a-zA-Z0-9_-]{10,}$/.test(
+      source
+    )
+  ) {
+    return source;
   }
 
   const patterns = [
@@ -23,25 +32,17 @@ function extractDriveFileId(
     /googleusercontent\.com\/d\/([^/?#]+)/i,
   ];
 
-  for (const pattern of patterns) {
+  for (
+    const pattern of patterns
+  ) {
     const match =
-      url.match(pattern);
+      source.match(pattern);
 
-    if (
-      match?.[1]
-    ) {
+    if (match?.[1]) {
       return decodeURIComponent(
         match[1]
       );
     }
-  }
-
-  if (
-    /^[a-zA-Z0-9_-]{20,}$/.test(
-      url
-    )
-  ) {
-    return url;
   }
 
   return "";
@@ -51,12 +52,22 @@ export async function GET(
   request: NextRequest
 ) {
   try {
+    const directId =
+      String(
+        request.nextUrl.searchParams.get(
+          "id"
+        ) || ""
+      ).trim();
+
     const source =
-      request.nextUrl.searchParams.get(
-        "src"
-      ) || "";
+      String(
+        request.nextUrl.searchParams.get(
+          "src"
+        ) || ""
+      ).trim();
 
     const fileId =
+      directId ||
       extractDriveFileId(
         source
       );
@@ -66,7 +77,7 @@ export async function GET(
         {
           success: false,
           error:
-            "Invalid Google Drive image URL.",
+            "Google Drive file ID is required.",
         },
         {
           status: 400,
@@ -74,89 +85,110 @@ export async function GET(
       );
     }
 
-    const downloadUrl =
-      `https://drive.google.com/uc?export=download&id=${encodeURIComponent(
-        fileId
-      )}`;
-
-    const driveResponse =
-      await fetch(
-        downloadUrl,
-        {
-          method: "GET",
-          cache: "no-store",
-          redirect: "follow",
-          headers: {
-            "User-Agent":
-              "Mozilla/5.0",
-          },
-        }
-      );
-
-    if (!driveResponse.ok) {
-      return NextResponse.json(
-        {
-          success: false,
-          error:
-            `Unable to load Drive image (${driveResponse.status}).`,
-        },
-        {
-          status: 502,
-        }
-      );
-    }
-
-    const contentType =
-      driveResponse.headers.get(
-        "content-type"
-      ) || "";
-
     if (
-      !contentType.startsWith(
-        "image/"
+      !/^[a-zA-Z0-9_-]+$/.test(
+        fileId
       )
     ) {
-      const responseText =
-        await driveResponse.text();
-
-      console.error(
-        "Drive returned non-image:",
-        responseText.slice(
-          0,
-          500
-        )
-      );
-
       return NextResponse.json(
         {
           success: false,
           error:
-            "Google Drive did not return an image. Check the file sharing permission.",
+            "Invalid Google Drive file ID.",
         },
         {
-          status: 502,
+          status: 400,
         }
       );
     }
 
-    const imageBuffer =
-      await driveResponse.arrayBuffer();
+    const candidateUrls = [
+      `https://drive.google.com/uc?export=view&id=${encodeURIComponent(
+        fileId
+      )}`,
+      `https://drive.google.com/uc?export=download&id=${encodeURIComponent(
+        fileId
+      )}`,
+      `https://drive.google.com/thumbnail?id=${encodeURIComponent(
+        fileId
+      )}&sz=w1600`,
+    ];
 
-    return new NextResponse(
-      imageBuffer,
-      {
-        status: 200,
-        headers: {
-          "Content-Type":
-            contentType,
+    let lastError =
+      "Unable to load Drive image.";
 
-          "Cache-Control":
-            "public, max-age=3600, stale-while-revalidate=86400",
+    for (
+      const candidateUrl of
+      candidateUrls
+    ) {
+      try {
+        const driveResponse =
+          await fetch(
+            candidateUrl,
+            {
+              method: "GET",
+              cache: "no-store",
+              redirect:
+                "follow",
+              headers: {
+                "User-Agent":
+                  "Mozilla/5.0",
+              },
+            }
+          );
 
-          "Content-Disposition":
-            "inline",
-        },
+        if (
+          !driveResponse.ok
+        ) {
+          lastError =
+            `Google Drive returned ${driveResponse.status}.`;
+          continue;
+        }
+
+        const contentType =
+          driveResponse.headers.get(
+            "content-type"
+          ) || "";
+
+        if (
+          !contentType.startsWith(
+            "image/"
+          )
+        ) {
+          lastError =
+            "Google Drive did not return an image.";
+          continue;
+        }
+
+        const imageBuffer =
+          await driveResponse.arrayBuffer();
+
+        return new NextResponse(
+          imageBuffer,
+          {
+            status: 200,
+            headers: {
+              "Content-Type":
+                contentType,
+
+              "Cache-Control":
+                "public, max-age=3600, stale-while-revalidate=86400",
+
+              "Content-Disposition":
+                "inline",
+            },
+          }
+        );
+      } catch (candidateError) {
+        lastError =
+          candidateError instanceof Error
+            ? candidateError.message
+            : "Unable to load Drive image.";
       }
+    }
+
+    throw new Error(
+      lastError
     );
   } catch (error) {
     console.error(
@@ -173,7 +205,7 @@ export async function GET(
             : "Unable to load image.",
       },
       {
-        status: 500,
+        status: 502,
       }
     );
   }

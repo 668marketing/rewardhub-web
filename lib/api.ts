@@ -295,6 +295,163 @@ export async function healthCheck() {
   return apiPost("healthCheck");
 }
 
+/* ============================================================
+ * Member Rewards Center
+ * ============================================================
+ */
+
+export type MemberRewardItem = {
+  rewardId: string;
+  title: string;
+  category: string;
+  description: string;
+  imageUrl: string;
+  thumbnailUrl: string;
+  brand: string;
+
+  pointsRequired: number;
+
+  stock: number;
+  unlimitedStock: boolean;
+  stockAvailable: boolean;
+  stockLabel: string;
+
+  featured: boolean;
+  isNew: boolean;
+  isHot: boolean;
+  isRecommended: boolean;
+
+  maxPerMember: number;
+  memberRedeemedQuantity: number;
+  remainingMemberLimit: number | null;
+
+  status: string;
+  rewardType: string;
+  shippingRequired: boolean;
+  deliveryMethod: string;
+
+  sortOrder: number;
+  createdAt: string;
+  updatedAt: string;
+  newUntil: string;
+
+  currentPoints: number;
+  hasEnoughPoints: boolean;
+  pointsShort: number;
+
+  reachedMemberLimit: boolean;
+  canRedeem: boolean;
+
+  unavailableReason:
+    | ""
+    | "OUT_OF_STOCK"
+    | "MEMBER_LIMIT_REACHED"
+    | "INSUFFICIENT_POINTS";
+};
+
+export type RewardCategoryItem = {
+  categoryId: string;
+  categoryName: string;
+  icon: string;
+  description: string;
+  sortOrder: number;
+  rewardCount: number;
+  isSystem?: boolean;
+};
+
+export type RewardRedemptionItem = {
+  redemptionId: string;
+  memberId: string;
+  rewardId: string;
+  rewardTitle: string;
+  pointsUsed: number;
+  quantity: number;
+  status: string;
+  voucherCode: string;
+  recipientName: string;
+  phone: string;
+  address: string;
+  trackingNo: string;
+  deliveryMethod: string;
+  redemptionSource: string;
+  adminNote: string;
+  redeemedAt: string;
+  processedAt: string;
+  completedAt: string;
+  updatedAt: string;
+};
+
+export async function getMemberRewards(data: {
+  memberId?: string;
+  keyword?: string;
+  category?: string;
+  filter?:
+    | "ALL"
+    | "NEW"
+    | "FEATURED"
+    | "HOT"
+    | "RECOMMENDED";
+  sort?:
+    | "DEFAULT"
+    | "NEWEST"
+    | "POINTS_LOW"
+    | "POINTS_HIGH";
+  limit?: number;
+}) {
+  return apiPost(
+    "getMemberRewards",
+    data
+  );
+}
+
+export async function getRewardCategories() {
+  return apiPost(
+    "getRewardCategories",
+    {}
+  );
+}
+
+export async function getRewardDetail(data: {
+  memberId?: string;
+  rewardId: string;
+}) {
+  return apiPost(
+    "getRewardDetail",
+    data
+  );
+}
+
+export async function getRewardRedemptionHistory(
+  data: {
+    memberId: string;
+    status?: string;
+    limit?: number;
+  }
+) {
+  return apiPost(
+    "getRewardRedemptionHistory",
+    data
+  );
+}
+
+export type RedeemMemberRewardPayload = {
+  memberId: string;
+  rewardId: string;
+  quantity?: number;
+  recipientName?: string;
+  phone?: string;
+  address?: string;
+};
+
+export async function redeemMemberReward(
+  data: RedeemMemberRewardPayload
+) {
+  return apiPost(
+    "redeemMemberReward",
+    data
+  );
+}
+
 export async function bindMemberCard(data: any) {
   return apiPost("bindMemberCard", data);
 }
@@ -595,3 +752,73 @@ export async function markAllMerchantNotificationsRead(data: {
     merchantId: data.merchantId,
   });
 }
+
+/* ============================================================
+ * Member In-App Notifications
+ * ============================================================
+ */
+
+export type MemberNotificationItem = {
+  userNotificationId: string;
+  notificationId: string;
+  userType: "MEMBER";
+  userId: string;
+  title: string;
+  message: string;
+  targetUrl: string;
+  imageUrl: string;
+  status: "UNREAD" | "READ";
+  isRead: boolean;
+  createdAt: string;
+  readAt: string;
+};
+
+export type MemberNotificationsResult = {
+  userType: "MEMBER";
+  userId: string;
+  total: number;
+  count: number;
+  unreadCount: number;
+  items: MemberNotificationItem[];
+};
+
+export async function getMemberNotifications(data: {
+  memberId: string;
+  status?: "UNREAD" | "READ" | "";
+  limit?: number;
+}) {
+  return apiPost("getMemberNotifications", data);
+}
+
+export async function getMemberUnreadNotificationCount(data: {
+  memberId: string;
+}) {
+  return apiPost("getUnreadNotificationCount", {
+    userType: "MEMBER",
+    userId: data.memberId,
+    memberId: data.memberId,
+  });
+}
+
+export async function markMemberNotificationRead(data: {
+  memberId: string;
+  userNotificationId: string;
+}) {
+  return apiPost("markNotificationRead", {
+    userType: "MEMBER",
+    userId: data.memberId,
+    memberId: data.memberId,
+    userNotificationId: data.userNotificationId,
+  });
+}
+
+export async function markAllMemberNotificationsRead(data: {
+  memberId: string;
+}) {
+  return apiPost("markAllNotificationsRead", {
+    userType: "MEMBER",
+    userId: data.memberId,
+    memberId: data.memberId,
+  });
+}
+

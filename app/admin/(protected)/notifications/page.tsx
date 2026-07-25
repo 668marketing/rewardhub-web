@@ -11,6 +11,7 @@ import {
 import {
   Bell,
   CheckCircle2,
+  Eye,
   History,
   Megaphone,
   RefreshCw,
@@ -61,6 +62,94 @@ const TARGET_OPTIONS: Array<{
     label: "Specific Merchant",
   },
 ];
+
+type RelatedPageOption = {
+  label: string;
+  value: string;
+};
+
+const MEMBER_RELATED_PAGES: RelatedPageOption[] = [
+  {
+    label: "No Related Page",
+    value: "",
+  },
+  {
+    label: "Dashboard",
+    value: "/member/dashboard",
+  },
+  {
+    label: "Pay",
+    value: "/member/pay",
+  },
+  {
+    label: "Transactions",
+    value: "/member/transactions",
+  },
+  {
+    label: "Reward Credits",
+    value: "/member/reward-credits",
+  },
+  {
+    label: "Points",
+    value: "/member/points",
+  },
+  {
+    label: "Referral",
+    value: "/member/referral",
+  },
+  {
+    label: "Marketplace",
+    value: "/member/marketplace",
+  },
+  {
+    label: "Profile",
+    value: "/member/profile",
+  },
+];
+
+const MERCHANT_RELATED_PAGES: RelatedPageOption[] = [
+  {
+    label: "No Related Page",
+    value: "",
+  },
+  {
+    label: "Dashboard",
+    value: "/merchant/dashboard",
+  },
+  {
+    label: "Collect",
+    value: "/merchant/collect",
+  },
+  {
+    label: "Products",
+    value: "/merchant/products",
+  },
+  {
+    label: "Transactions",
+    value: "/merchant/transactions",
+  },
+  {
+    label: "Settlement",
+    value: "/merchant/settlement",
+  },
+  {
+    label: "Marketing",
+    value: "/merchant/marketing-fund",
+  },
+  {
+    label: "Gallery",
+    value: "/merchant/gallery",
+  },
+  {
+    label: "Reviews",
+    value: "/merchant/reviews",
+  },
+  {
+    label: "Profile",
+    value: "/merchant/profile",
+  },
+];
+
 
 export default function AdminNotificationsPage() {
   const [
@@ -132,8 +221,14 @@ export default function AdminNotificationsPage() {
     useState("");
 
   const [
-    url,
-    setUrl,
+    relatedPage,
+    setRelatedPage,
+  ] =
+    useState("");
+
+  const [
+    customUrl,
+    setCustomUrl,
   ] =
     useState("");
 
@@ -152,6 +247,34 @@ export default function AdminNotificationsPage() {
           "SPECIFIC_MERCHANT",
       [targetType]
     );
+
+
+  const isMemberTarget =
+    targetType ===
+      "ALL_MEMBERS" ||
+    targetType ===
+      "SPECIFIC_MEMBER";
+
+  const relatedPageOptions =
+    useMemo(
+      () =>
+        isMemberTarget
+          ? MEMBER_RELATED_PAGES
+          : MERCHANT_RELATED_PAGES,
+      [isMemberTarget]
+    );
+
+  const effectiveUrl =
+    customUrl.trim() ||
+    relatedPage;
+
+  const selectedRelatedPageLabel =
+    relatedPageOptions.find(
+      (option) =>
+        option.value ===
+        relatedPage
+    )?.label ||
+    "No Related Page";
 
   const loadNotificationData =
     useCallback(
@@ -269,7 +392,7 @@ export default function AdminNotificationsPage() {
             message.trim(),
 
           url:
-            url.trim(),
+            effectiveUrl,
 
           image:
             image.trim(),
@@ -283,7 +406,8 @@ export default function AdminNotificationsPage() {
 
       setTitle("");
       setMessage("");
-      setUrl("");
+      setRelatedPage("");
+      setCustomUrl("");
       setImage("");
 
       await loadNotificationData(
@@ -465,6 +589,8 @@ export default function AdminNotificationsPage() {
                   );
 
                   setTargetId("");
+                  setRelatedPage("");
+                  setCustomUrl("");
                 }}
                 className="h-12 w-full rounded-2xl border border-slate-800 bg-[#050d1e] px-4 text-sm font-semibold text-white outline-none transition focus:border-emerald-400"
               >
@@ -512,7 +638,7 @@ export default function AdminNotificationsPage() {
                     targetType ===
                     "SPECIFIC_MEMBER"
                       ? "RHM00000001"
-                      : "RHCM00000011"
+                      : "RHCM0000001"
                   }
                   className="h-12 w-full rounded-2xl border border-slate-800 bg-[#050d1e] px-4 text-sm font-semibold text-white outline-none transition placeholder:text-slate-600 focus:border-emerald-400"
                 />
@@ -560,20 +686,69 @@ export default function AdminNotificationsPage() {
               </p>
             </Field>
 
-            <Field label="Target URL">
-              <input
-                value={url}
+            <Field label="Related Page">
+              <select
+                value={
+                  relatedPage
+                }
                 onChange={(
                   event
                 ) =>
-                  setUrl(
+                  setRelatedPage(
                     event.target
                       .value
                   )
                 }
-                placeholder="/merchant/settlement"
+                className="h-12 w-full rounded-2xl border border-slate-800 bg-[#050d1e] px-4 text-sm font-semibold text-white outline-none transition focus:border-emerald-400"
+              >
+                {relatedPageOptions.map(
+                  (option) => (
+                    <option
+                      key={
+                        option.value ||
+                        "NONE"
+                      }
+                      value={
+                        option.value
+                      }
+                    >
+                      {
+                        option.label
+                      }
+                    </option>
+                  )
+                )}
+              </select>
+
+              <p className="mt-2 text-xs leading-5 text-slate-600">
+                The selected page will be used when the recipient taps “Open Related Page”.
+              </p>
+            </Field>
+
+            <Field label="Custom URL (Optional)">
+              <input
+                value={
+                  customUrl
+                }
+                onChange={(
+                  event
+                ) =>
+                  setCustomUrl(
+                    event.target
+                      .value
+                  )
+                }
+                placeholder={
+                  isMemberTarget
+                    ? "/member/marketplace"
+                    : "/merchant/marketing-fund"
+                }
                 className="h-12 w-full rounded-2xl border border-slate-800 bg-[#050d1e] px-4 text-sm font-semibold text-white outline-none transition placeholder:text-slate-600 focus:border-emerald-400"
               />
+
+              <p className="mt-2 text-xs leading-5 text-slate-600">
+                When entered, the custom URL overrides the Related Page selection.
+              </p>
             </Field>
 
             <Field label="Image URL (Optional)">
@@ -591,6 +766,80 @@ export default function AdminNotificationsPage() {
                 className="h-12 w-full rounded-2xl border border-slate-800 bg-[#050d1e] px-4 text-sm font-semibold text-white outline-none transition placeholder:text-slate-600 focus:border-emerald-400"
               />
             </Field>
+
+
+            <div className="rounded-[1.5rem] border border-slate-800 bg-[#050d1e] p-4 sm:p-5">
+              <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.12em] text-slate-500">
+                <Eye className="h-4 w-4" />
+                Live Preview
+              </div>
+
+              <div className="mt-4 overflow-hidden rounded-2xl border border-slate-800 bg-[#071126]">
+                {image.trim() ? (
+                  <div className="aspect-[16/7] w-full overflow-hidden bg-slate-900">
+                    <img
+                      src={
+                        image.trim()
+                      }
+                      alt="Notification preview"
+                      className="h-full w-full object-cover"
+                    />
+                  </div>
+                ) : null}
+
+                <div className="p-4">
+                  <div className="flex items-start gap-3">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-emerald-400/10 text-emerald-300">
+                      <Bell className="h-5 w-5" />
+                    </div>
+
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-slate-600">
+                        {isMemberTarget
+                          ? "Member Notification"
+                          : "Merchant Notification"}
+                      </p>
+
+                      <h3 className="mt-2 break-words text-base font-black text-white">
+                        {title.trim() ||
+                          "Notification Title"}
+                      </h3>
+
+                      <p className="mt-2 whitespace-pre-line text-sm leading-6 text-slate-400">
+                        {message.trim() ||
+                          "Your notification message will appear here."}
+                      </p>
+
+                      <div className="mt-4 flex flex-wrap items-center gap-2">
+                        <span className="rounded-full bg-slate-800 px-3 py-1 text-[10px] font-bold text-slate-400">
+                          Preview
+                        </span>
+
+                        {effectiveUrl ? (
+                          <span className="rounded-full bg-emerald-400/10 px-3 py-1 text-[10px] font-bold text-emerald-300">
+                            Open Related Page
+                          </span>
+                        ) : null}
+                      </div>
+
+                      <div className="mt-4 rounded-xl border border-slate-800 bg-[#050d1e] px-3 py-2">
+                        <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-slate-600">
+                          Destination
+                        </p>
+
+                        <p className="mt-1 break-all text-xs font-semibold text-slate-400">
+                          {customUrl.trim()
+                            ? `Custom URL • ${customUrl.trim()}`
+                            : relatedPage
+                              ? `${selectedRelatedPageLabel} • ${relatedPage}`
+                              : "No related page"}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
 
           <button

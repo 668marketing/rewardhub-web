@@ -8,24 +8,28 @@ import {
 } from "react";
 import { useRouter } from "next/navigation";
 import {
-  getMerchantNotifications,
-  markAllMerchantNotificationsRead,
-  markMerchantNotificationRead,
-  type MerchantNotificationItem,
+  getMemberNotifications,
+  markAllMemberNotificationsRead,
+  markMemberNotificationRead,
+  type MemberNotificationItem,
 } from "@/lib/api";
 
-type StoredMerchant = {
-  merchantId?: string;
-  MERCHANT_ID?: string;
+type StoredMember = {
+  memberId?: string;
+  MEMBER_ID?: string;
   id?: string;
+  profile?: StoredMember;
+  member?: StoredMember;
+  data?: StoredMember;
 };
+
 
 type FilterType =
   | "ALL"
   | "UNREAD"
   | "READ";
 
-function getMerchantIdFromStorage() {
+function getMemberIdFromStorage() {
   if (typeof window === "undefined") {
     return "";
   }
@@ -33,25 +37,26 @@ function getMerchantIdFromStorage() {
   try {
     const raw =
       window.localStorage.getItem(
-        "merchant"
+        "member"
       );
 
     if (!raw) {
       return "";
     }
 
-    const parsed: any =
+    const parsed: StoredMember =
       JSON.parse(raw);
 
-    const candidate =
-      parsed?.merchant ??
-      parsed?.data ??
-      parsed;
-
     return String(
-      candidate?.merchantId ??
-        candidate?.MERCHANT_ID ??
-        candidate?.id ??
+      parsed?.memberId ??
+        parsed?.MEMBER_ID ??
+        parsed?.id ??
+        parsed?.profile?.memberId ??
+        parsed?.profile?.MEMBER_ID ??
+        parsed?.member?.memberId ??
+        parsed?.member?.MEMBER_ID ??
+        parsed?.data?.memberId ??
+        parsed?.data?.MEMBER_ID ??
         ""
     ).trim();
   } catch {
@@ -209,19 +214,19 @@ function dispatchNotificationUpdate() {
   );
 }
 
-export default function MerchantNotificationsPage() {
+export default function MemberNotificationsPage() {
   const router = useRouter();
 
   const [
-    merchantId,
-    setMerchantId,
+    memberId,
+    setMemberId,
   ] = useState("");
 
   const [
     notifications,
     setNotifications,
   ] = useState<
-    MerchantNotificationItem[]
+    MemberNotificationItem[]
   >([]);
 
   const [
@@ -252,24 +257,25 @@ export default function MerchantNotificationsPage() {
   ] = useState("");
 
   useEffect(() => {
-    const storedMerchantId =
-      getMerchantIdFromStorage();
+    const storedMemberId =
+      getMemberIdFromStorage();
 
-    if (!storedMerchantId) {
-      router.replace(
-        "/merchant/login"
+    if (!storedMemberId) {
+      setError(
+        "Member session is unavailable. Please return to the dashboard and try again."
       );
+      setLoading(false);
       return;
     }
 
-    setMerchantId(
-      storedMerchantId
+    setMemberId(
+      storedMemberId
     );
-  }, [router]);
+  }, []);
 
   const loadNotifications =
     useCallback(async () => {
-      if (!merchantId) {
+      if (!memberId) {
         return;
       }
 
@@ -278,9 +284,9 @@ export default function MerchantNotificationsPage() {
 
       try {
         const result =
-          await getMerchantNotifications(
+          await getMemberNotifications(
             {
-              merchantId,
+              memberId,
               limit: 200,
             }
           );
@@ -290,7 +296,7 @@ export default function MerchantNotificationsPage() {
 
         const items =
           Array.isArray(data.items)
-            ? (data.items as MerchantNotificationItem[])
+            ? (data.items as MemberNotificationItem[])
             : [];
 
         setNotifications(items);
@@ -310,10 +316,10 @@ export default function MerchantNotificationsPage() {
       } finally {
         setLoading(false);
       }
-    }, [merchantId]);
+    }, [memberId]);
 
   useEffect(() => {
-    loadNotifications();
+    void loadNotifications();
   }, [loadNotifications]);
 
   const sortedNotifications =
@@ -374,9 +380,9 @@ export default function MerchantNotificationsPage() {
 
 
   async function handleNotificationClick(
-    notification: MerchantNotificationItem
+    notification: MemberNotificationItem
   ) {
-    if (!merchantId) {
+    if (!memberId) {
       return;
     }
 
@@ -386,9 +392,9 @@ export default function MerchantNotificationsPage() {
       );
 
       try {
-        await markMerchantNotificationRead(
+        await markMemberNotificationRead(
           {
-            merchantId,
+            memberId,
             userNotificationId:
               notification.userNotificationId,
           }
@@ -434,7 +440,7 @@ export default function MerchantNotificationsPage() {
     }
 
     router.push(
-      `/merchant/notifications/${encodeURIComponent(
+      `/member/notifications/${encodeURIComponent(
         notification.userNotificationId
       )}`
     );
@@ -442,7 +448,7 @@ export default function MerchantNotificationsPage() {
 
   async function handleMarkAllRead() {
     if (
-      !merchantId ||
+      !memberId ||
       unreadCount === 0
     ) {
       return;
@@ -454,9 +460,9 @@ export default function MerchantNotificationsPage() {
     setError("");
 
     try {
-      await markAllMerchantNotificationsRead(
+      await markAllMemberNotificationsRead(
         {
-          merchantId,
+          memberId,
         }
       );
 
@@ -508,7 +514,7 @@ export default function MerchantNotificationsPage() {
                     }
 
                     router.push(
-                      "/merchant/dashboard"
+                      "/member/dashboard"
                     );
                   }}
                   className="mb-5 inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/10 px-3 py-2 text-xs font-black text-white transition hover:bg-white/20"
@@ -524,7 +530,7 @@ export default function MerchantNotificationsPage() {
                 </button>
 
                 <p className="text-xs font-black uppercase tracking-[0.22em] text-slate-300">
-                  Merchant Portal
+                  Member Portal
                 </p>
 
                 <h1 className="mt-2 text-3xl font-black tracking-tight sm:text-4xl">
@@ -532,8 +538,8 @@ export default function MerchantNotificationsPage() {
                 </h1>
 
                 <p className="mt-3 max-w-2xl text-sm font-medium leading-6 text-slate-300 sm:text-base">
-                  Important RewardHub updates, settlements,
-                  campaigns and system messages appear here.
+                  Important RewardHub updates, rewards,
+                  referrals and system messages appear here.
                 </p>
               </div>
 
@@ -605,8 +611,8 @@ export default function MerchantNotificationsPage() {
 
               <button
                 type="button"
-                onClick={
-                  loadNotifications
+                onClick={() =>
+                  void loadNotifications()
                 }
                 disabled={loading}
                 className="ml-auto rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-black text-slate-700 transition hover:bg-slate-50 disabled:opacity-50 sm:text-sm"
