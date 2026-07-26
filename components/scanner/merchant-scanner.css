@@ -5,7 +5,7 @@
 .rh-scanner-page {
   position: relative;
   min-height: 100dvh;
-  overflow: hidden;
+  overflow-x: hidden;
   background:
     radial-gradient(circle at top left, rgba(27, 187, 214, 0.08), transparent 34%),
     radial-gradient(circle at 85% 18%, rgba(37, 99, 235, 0.1), transparent 32%),
@@ -502,7 +502,7 @@
   height: 20px;
 }
 
-.rh-tool-button span:last-child {
+.rh-tool-content {
   min-width: 0;
 }
 
@@ -618,15 +618,149 @@
   }
 }
 
-.rh-device-message {
-  margin-top: 10px;
-  padding: 11px 13px;
-  border: 1px solid rgba(103, 232, 249, 0.12);
-  border-radius: 13px;
-  background: rgba(103, 232, 249, 0.055);
-  color: #94a3b8;
-  font-size: 11px;
-  font-weight: 700;
-  line-height: 1.55;
-  text-align: center;
+
+/* ========================================
+   RewardHub scanner mobile refinement
+======================================== */
+
+@media (max-width: 559px) {
+  .rh-scanner-shell {
+    width: 100%;
+    padding:
+      max(18px, env(safe-area-inset-top))
+      14px
+      calc(24px + env(safe-area-inset-bottom));
+  }
+
+  .rh-title-block {
+    margin-top: 26px;
+  }
+
+  .rh-title-block h1 {
+    font-size: 32px;
+  }
+
+  .rh-title-block p {
+    margin-top: 10px;
+    font-size: 13px;
+    line-height: 1.6;
+  }
+
+  .rh-scanner-card {
+    margin-top: 22px;
+    padding: 10px;
+    border-radius: 26px;
+  }
+
+  .rh-camera-stage {
+    /*
+      鎵嬫満涓嶅啀浣跨敤瓒呴暱姝ｆ柟褰㈢浉鏈恒€�
+      绋嶅井闄嶄綆楂樺害锛岃鎸夐挳鍜屽唴瀹规洿闆嗕腑銆�
+    */
+    aspect-ratio: 1 / 1;
+    max-height: 64vh;
+    border-radius: 21px;
+  }
+
+  .rh-frame {
+    inset: 14%;
+  }
+
+  .rh-corner {
+    width: 42px;
+    height: 42px;
+  }
+
+  .rh-camera-summary {
+    padding: 14px 7px 5px;
+  }
+
+  .rh-camera-summary strong {
+    font-size: 13px;
+  }
+
+  /*
+    鎵嬫満鎭㈠涓変釜妯悜鎸夐挳锛�
+    涓嶅啀鍙樻垚涓夊紶澶у瀷绾靛悜鍗＄墖銆�
+  */
+  .rh-toolbar {
+    display: grid;
+    grid-template-columns:
+      repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    margin-top: 11px;
+  }
+
+  .rh-tool-button {
+    min-width: 0;
+    min-height: 88px;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 6px;
+    border-radius: 17px;
+    text-align: center;
+  }
+
+  .rh-tool-icon {
+    width: 37px;
+    height: 37px;
+    border-radius: 12px;
+  }
+
+  .rh-tool-icon svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .rh-tool-content {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .rh-tool-button strong {
+    overflow: hidden;
+    font-size: 11px;
+    line-height: 1.25;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .rh-tool-button small {
+    overflow: hidden;
+    margin-top: 3px;
+    font-size: 9px;
+    line-height: 1.25;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .rh-help-grid {
+    gap: 7px;
+    margin-top: 14px;
+  }
+
+  .rh-help-grid article {
+    padding: 11px 8px;
+    border-radius: 16px;
+  }
+
+  .rh-help-grid article > span {
+    width: 27px;
+    height: 27px;
+  }
+
+  .rh-help-grid strong {
+    margin-top: 9px;
+    font-size: 10px;
+  }
+
+  .rh-help-grid p {
+    display: none;
+  }
+
+  .rh-footnote {
+    margin-top: 18px;
+  }
 }

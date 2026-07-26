@@ -9,8 +9,8 @@ import {
   useState,
 } from "react";
 import { useRouter } from "next/navigation";
-import {
-  Html5Qrcode,
+import { Html5Qrcode } from "html5-qrcode";
+import type {
   Html5QrcodeCameraScanConfig,
   Html5QrcodeResult,
 } from "html5-qrcode";
@@ -32,6 +32,24 @@ type CameraInfo = {
 };
 
 const READER_ID = "rewardhub-merchant-qr-reader";
+
+function getCameraFacing(label: string): "environment" | "user" | "unknown" {
+  const value = String(label || "").toLowerCase();
+
+  if (/front|user|facetime|selfie|前置|前鏡|前镜|depan/.test(value)) {
+    return "user";
+  }
+
+  if (
+    /back|rear|environment|后置|後置|后鏡|後鏡|后镜|後镜|背面|belakang/.test(
+      value
+    )
+  ) {
+    return "environment";
+  }
+
+  return "unknown";
+}
 
 function normalizeQrPayload(decodedText: string): string {
   const raw = String(decodedText || "").trim();
@@ -91,13 +109,9 @@ export default function MerchantQrScanner() {
   const [cameras, setCameras] = useState<CameraInfo[]>([]);
   const [cameraIndex, setCameraIndex] = useState(0);
 
-const [currentFacingMode, setCurrentFacingMode] = useState<
-  "environment" | "user"
->("environment");
 
 const [torchSupported, setTorchSupported] = useState(false);
 const [torchEnabled, setTorchEnabled] = useState(false);
-const [deviceMessage, setDeviceMessage] = useState("");
   const [uploading, setUploading] = useState(false);
 
   const statusLabel = useMemo(() => {
@@ -313,8 +327,8 @@ const [deviceMessage, setDeviceMessage] = useState("");
       setCameras(normalized);
 
       if (normalized.length > 0) {
-        const rearIndex = normalized.findIndex((camera) =>
-          /back|rear|environment/i.test(camera.label)
+        const rearIndex = normalized.findIndex(
+          (camera) => getCameraFacing(camera.label) === "environment"
         );
 
         const initialIndex = rearIndex >= 0 ? rearIndex : 0;
@@ -354,181 +368,85 @@ const [deviceMessage, setDeviceMessage] = useState("");
   };
 
   const handleSwitchCamera = async () => {
-  if (status === "processing" || status === "starting") {
-    return;
-  }
+    if (
+      status === "processing" ||
+      status === "starting" ||
+      cameras.length < 2
+    ) {
+      return;
+    }
 
-  setDeviceMessage("");
-  setErrorMessage("");
+    setErrorMessage("");
 
-  try {
-    if (cameras.length >= 2) {
-      const nextIndex = (cameraIndex + 1) % cameras.length;
+    try {
+      const currentFacing = getCameraFacing(
+        cameras[cameraIndex]?.label || ""
+      );
+
+      let nextIndex = -1;
+
+      if (currentFacing === "environment") {
+        nextIndex = cameras.findIndex(
+          (camera) => getCameraFacing(camera.label) === "user"
+        );
+      } else if (currentFacing === "user") {
+        nextIndex = cameras.findIndex(
+          (camera) => getCameraFacing(camera.label) === "environment"
+        );
+      }
+
+      if (nextIndex < 0) {
+        nextIndex = (cameraIndex + 1) % cameras.length;
+      }
 
       setCameraIndex(nextIndex);
-
-      const nextCamera = cameras[nextIndex];
-
-      const nextFacingMode =
-        /front|user|facetime/i.test(nextCamera.label)
-          ? "user"
-          : "environment";
-
-      setCurrentFacingMode(nextFacingMode);
-
-      await startCamera(nextCamera.id);
-
-      setDeviceMessage(
-        nextFacingMode === "environment"
-          ? "Rear camera activated."
-          : "Front camera activated."
-      );
-
-      return;
+      await startCamera(cameras[nextIndex].id);
+    } catch (error) {
+      console.warn("Unable to switch camera:", error);
+      setStatus("error");
+      setErrorMessage("Unable to switch camera. Please try again.");
     }
-
-    const nextFacingMode =
-      currentFacingMode === "environment"
-        ? "user"
-        : "environment";
-
-    setCurrentFacingMode(nextFacingMode);
-
-    await clearScanner();
-
-    handledRef.current = false;
-    setStatus("starting");
-
-    const scanner = new Html5Qrcode(READER_ID, {
-      verbose: false,
-    });
-
-    scannerRef.current = scanner;
-
-    const config: Html5QrcodeCameraScanConfig = {
-      fps: 12,
-
-      qrbox: (width, height) => {
-        const shortest = Math.min(width, height);
-
-        const size = Math.max(
-          210,
-          Math.min(
-            300,
-            Math.floor(shortest * 0.72)
-          )
-        );
-
-        return {
-          width: size,
-          height: size,
-        };
-      },
-
-      aspectRatio: 1,
-      disableFlip: false,
-    };
-
-    await scanner.start(
-      {
-        facingMode: nextFacingMode,
-      },
-      config,
-      (decodedText) => {
-        void completeScan(decodedText);
-      },
-      () => undefined
-    );
-
-    setStatus("ready");
-
-    window.setTimeout(() => {
-      detectTorchSupport();
-    }, 350);
-
-    setDeviceMessage(
-      nextFacingMode === "environment"
-        ? "Rear camera activated."
-        : "Front camera activated."
-    );
-  } catch (error) {
-    console.warn("Unable to switch camera:", error);
-
-    setStatus("ready");
-
-    setDeviceMessage(
-      "No additional camera is available on this device."
-    );
-  }
-};
+  };
 
   const handleTorch = async () => {
-  if (status === "processing" || status === "starting") {
-    return;
-  }
-
-  setDeviceMessage("");
-  setErrorMessage("");
-
-  try {
-    const track = getActiveVideoTrack();
-
-    if (!track) {
-      setDeviceMessage(
-        "Camera is not ready. Please try again."
-      );
-
+    if (status !== "ready" || !torchSupported) {
       return;
     }
 
-    const capabilities = track.getCapabilities?.() as
-      | MediaTrackCapabilities & {
-          torch?: boolean;
-        }
-      | undefined;
+    try {
+      const track = getActiveVideoTrack();
 
-    if (capabilities?.torch !== true) {
+      if (!track) {
+        setTorchSupported(false);
+        return;
+      }
+
+      const nextValue = !torchEnabled;
+
+      await track.applyConstraints({
+        advanced: [
+          {
+            torch: nextValue,
+          } as MediaTrackConstraintSet,
+        ],
+      });
+
+      setTorchEnabled(nextValue);
+    } catch (error) {
+      console.warn("Unable to control flashlight:", error);
+      setTorchEnabled(false);
       setTorchSupported(false);
-
-      setDeviceMessage(
-        "Flashlight is not supported by this camera or browser."
-      );
-
-      return;
     }
-
-    setTorchSupported(true);
-
-    const nextValue = !torchEnabled;
-
-    await track.applyConstraints({
-      advanced: [
-        {
-          torch: nextValue,
-        } as MediaTrackConstraintSet,
-      ],
-    });
-
-    setTorchEnabled(nextValue);
-
-    setDeviceMessage(
-      nextValue
-        ? "Flashlight turned on."
-        : "Flashlight turned off."
-    );
-  } catch (error) {
-    console.warn("Unable to control flashlight:", error);
-
-    setTorchEnabled(false);
-
-    setDeviceMessage(
-      "Unable to control the flashlight on this device."
-    );
-  }
-};
+  };
 
   const handleUploadClick = () => {
-    if (status === "processing" || uploading) return;
+    if (
+      status === "processing" ||
+      status === "starting" ||
+      uploading
+    ) {
+      return;
+    }
     fileInputRef.current?.click();
   };
 
@@ -697,19 +615,15 @@ const [deviceMessage, setDeviceMessage] = useState("");
           </div>
 
           <ScannerToolbar
-  torchEnabled={torchEnabled}
-  busy={status === "processing" || status === "starting"}
-  uploading={uploading}
-  onUpload={handleUploadClick}
-  onSwitchCamera={handleSwitchCamera}
-  onToggleTorch={handleTorch}
-/>
-
-{deviceMessage && (
-  <div className="rh-device-message">
-    {deviceMessage}
-  </div>
-)}
+            cameraCount={cameras.length}
+            torchSupported={torchSupported}
+            torchEnabled={torchEnabled}
+            busy={status === "processing" || status === "starting"}
+            uploading={uploading}
+            onUpload={handleUploadClick}
+            onSwitchCamera={handleSwitchCamera}
+            onToggleTorch={handleTorch}
+          />
 
           <input
             ref={fileInputRef}
