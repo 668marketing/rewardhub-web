@@ -4,9 +4,7 @@ import {
 } from "next/server";
 
 export const runtime = "nodejs";
-
-export const dynamic =
-  "force-dynamic";
+export const dynamic = "force-dynamic";
 
 type BackendResponse<T> = {
   success?: boolean;
@@ -25,12 +23,8 @@ type AdminRewardsGetAction =
 type AdminRewardsPostAction =
   | "createAdminReward"
   | "uploadAdminRewardImage"
-  | "updateAdminReward";
-
-/* ============================================================
- * Clear Admin Cookie
- * ============================================================
- */
+  | "updateAdminReward"
+  | "updateAdminRewardRedemption";
 
 function clearAdminCookie(
   response: NextResponse
@@ -38,29 +32,69 @@ function clearAdminCookie(
   response.cookies.set({
     name:
       "rewardhub_admin_session",
-
     value: "",
-
     httpOnly: true,
-
     secure:
       process.env.NODE_ENV ===
       "production",
-
     sameSite: "lax",
-
     path: "/",
-
     expires: new Date(0),
   });
 
   return response;
 }
 
-/* ============================================================
- * Read Backend Response
- * ============================================================
- */
+function unwrapBackendData(
+  value: unknown
+): unknown {
+  let current = value;
+
+  for (
+    let level = 0;
+    level < 5;
+    level++
+  ) {
+    if (
+      !current ||
+      typeof current !==
+        "object" ||
+      Array.isArray(current)
+    ) {
+      break;
+    }
+
+    const objectValue =
+      current as {
+        data?: unknown;
+        result?: unknown;
+      };
+
+    if (
+      objectValue.data !==
+        undefined &&
+      objectValue.data !== null
+    ) {
+      current =
+        objectValue.data;
+      continue;
+    }
+
+    if (
+      objectValue.result !==
+        undefined &&
+      objectValue.result !== null
+    ) {
+      current =
+        objectValue.result;
+      continue;
+    }
+
+    break;
+  }
+
+  return current;
+}
 
 async function parseBackendResponse<T>(
   backendResponse: Response,
@@ -70,19 +104,14 @@ async function parseBackendResponse<T>(
     await backendResponse.text();
 
   let payload:
-    BackendResponse<T>;
+    BackendResponse<unknown>;
 
   try {
     payload =
       JSON.parse(
         rawText
-      ) as BackendResponse<T>;
+      ) as BackendResponse<unknown>;
   } catch {
-    console.error(
-      "Invalid admin rewards backend response:",
-      rawText
-    );
-
     const preview =
       rawText
         .replace(/\s+/g, " ")
@@ -91,13 +120,10 @@ async function parseBackendResponse<T>(
 
     return {
       ok: false as const,
-
       status: 502,
-
       error:
         preview ||
         fallbackMessage,
-
       unauthorized: false,
     };
   }
@@ -118,22 +144,24 @@ async function parseBackendResponse<T>(
 
     return {
       ok: false as const,
-
       status:
         unauthorized
           ? 401
           : 400,
-
       error:
         message,
-
       unauthorized,
     };
   }
 
-  const result =
+  const firstResult =
     payload.data ??
     payload.result;
+
+  const result =
+    unwrapBackendData(
+      firstResult
+    ) as T;
 
   if (
     result === undefined ||
@@ -141,34 +169,18 @@ async function parseBackendResponse<T>(
   ) {
     return {
       ok: false as const,
-
       status: 502,
-
       error:
         "Rewards data is missing.",
-
       unauthorized: false,
     };
   }
 
   return {
     ok: true as const,
-
-    data:
-      result,
+    data: result,
   };
 }
-
-/* ============================================================
- * GET
- *
- * Modes:
- * - dashboard
- * - redemptions
- * - list
- * - detail
- * ============================================================
- */
 
 export async function GET(
   request: NextRequest
@@ -183,7 +195,6 @@ export async function GET(
       return NextResponse.json(
         {
           success: false,
-
           error:
             "Admin authentication required.",
         },
@@ -237,67 +248,53 @@ export async function GET(
         ),
         {
           method: "POST",
-
           headers: {
             "Content-Type":
               "application/json",
           },
-
           cache: "no-store",
-
           body:
             JSON.stringify({
               action,
-
               token,
-
               rewardId:
                 searchParams.get(
                   "rewardId"
                 ) || "",
-
               search:
                 searchParams.get(
                   "search"
                 ) || "",
-
               status:
                 searchParams.get(
                   "status"
                 ) || "ALL",
-
               category:
                 searchParams.get(
                   "category"
                 ) || "ALL",
-
               rewardType:
                 searchParams.get(
                   "rewardType"
                 ) || "ALL",
-
               deliveryMethod:
                 searchParams.get(
                   "deliveryMethod"
                 ) || "ALL",
-
               dateFrom:
                 searchParams.get(
                   "dateFrom"
                 ) || "",
-
               dateTo:
                 searchParams.get(
                   "dateTo"
                 ) || "",
-
               page:
                 Number(
                   searchParams.get(
                     "page"
                   ) || 1
                 ),
-
               pageSize:
                 Number(
                   searchParams.get(
@@ -308,33 +305,12 @@ export async function GET(
         }
       );
 
-    let fallbackMessage =
-      "Unable to load rewards dashboard.";
-
-    if (
-      mode ===
-      "redemptions"
-    ) {
-      fallbackMessage =
-        "Unable to load reward redemptions.";
-    } else if (
-      mode === "list"
-    ) {
-      fallbackMessage =
-        "Unable to load rewards.";
-    } else if (
-      mode === "detail"
-    ) {
-      fallbackMessage =
-        "Unable to load reward details.";
-    }
-
     const parsed =
       await parseBackendResponse<
         unknown
       >(
         backendResponse,
-        fallbackMessage
+        "Unable to load rewards."
       );
 
     if (!parsed.ok) {
@@ -342,7 +318,6 @@ export async function GET(
         NextResponse.json(
           {
             success: false,
-
             error:
               parsed.error,
           },
@@ -361,20 +336,13 @@ export async function GET(
 
     return NextResponse.json({
       success: true,
-
       data:
         parsed.data,
     });
   } catch (error) {
-    console.error(
-      "Admin rewards GET route error:",
-      error
-    );
-
     return NextResponse.json(
       {
         success: false,
-
         error:
           error instanceof Error
             ? error.message
@@ -386,16 +354,6 @@ export async function GET(
     );
   }
 }
-
-/* ============================================================
- * POST
- *
- * Modes:
- * - create
- * - uploadImage
- * - update
- * ============================================================
- */
 
 export async function POST(
   request: NextRequest
@@ -410,7 +368,6 @@ export async function POST(
       return NextResponse.json(
         {
           success: false,
-
           error:
             "Admin authentication required.",
         },
@@ -452,11 +409,16 @@ export async function POST(
     ) {
       action =
         "updateAdminReward";
+    } else if (
+      mode ===
+      "updateredemption"
+    ) {
+      action =
+        "updateAdminRewardRedemption";
     } else {
       return NextResponse.json(
         {
           success: false,
-
           error:
             "Invalid rewards request mode.",
         },
@@ -474,52 +436,26 @@ export async function POST(
         ),
         {
           method: "POST",
-
           headers: {
             "Content-Type":
               "application/json",
           },
-
           cache: "no-store",
-
           body:
             JSON.stringify({
               ...body,
-
               action,
-
               token,
             }),
         }
       );
-
-    let fallbackMessage =
-      "Unable to process reward request.";
-
-    if (
-      mode ===
-      "uploadimage"
-    ) {
-      fallbackMessage =
-        "Unable to upload reward image.";
-    } else if (
-      mode === "create"
-    ) {
-      fallbackMessage =
-        "Unable to create reward.";
-    } else if (
-      mode === "update"
-    ) {
-      fallbackMessage =
-        "Unable to update reward.";
-    }
 
     const parsed =
       await parseBackendResponse<
         unknown
       >(
         backendResponse,
-        fallbackMessage
+        "Unable to process reward request."
       );
 
     if (!parsed.ok) {
@@ -527,7 +463,6 @@ export async function POST(
         NextResponse.json(
           {
             success: false,
-
             error:
               parsed.error,
           },
@@ -546,20 +481,13 @@ export async function POST(
 
     return NextResponse.json({
       success: true,
-
       data:
         parsed.data,
     });
   } catch (error) {
-    console.error(
-      "Admin rewards POST route error:",
-      error
-    );
-
     return NextResponse.json(
       {
         success: false,
-
         error:
           error instanceof Error
             ? error.message

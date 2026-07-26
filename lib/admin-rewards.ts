@@ -670,3 +670,60 @@ export async function updateAdminReward(
     "Unable to update reward."
   );
 }
+
+/* ============================================================
+ * Admin Reward Redemption Actions
+ * Add this section to the END of lib/admin-rewards.ts
+ * ============================================================
+ */
+
+export type UpdateAdminRewardRedemptionInput = {
+  redemptionId: string;
+  status:
+    | "PROCESSING"
+    | "SHIPPED"
+    | "COMPLETED"
+    | "CANCELLED";
+  trackingNo?: string;
+  courier?: string;
+  cancelReason?: string;
+  adminNote?: string;
+};
+
+export type UpdateAdminRewardRedemptionResult = {
+  message: string;
+  redemption:
+    AdminRewardRedemption;
+};
+
+export async function updateAdminRewardRedemption(
+  input:
+    UpdateAdminRewardRedemptionInput
+): Promise<UpdateAdminRewardRedemptionResult> {
+  const response =
+    await fetch(
+      "/api/admin/rewards",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type":
+            "application/json",
+        },
+        cache: "no-store",
+        body:
+          JSON.stringify({
+            mode:
+              "updateRedemption",
+            ...input,
+          }),
+      }
+    );
+
+  return readApiResponse<
+    UpdateAdminRewardRedemptionResult
+  >(
+    response,
+    "Unable to update redemption."
+  );
+}
+

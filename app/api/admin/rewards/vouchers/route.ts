@@ -47,6 +47,170 @@ function clearAdminCookie(
 }
 
 /* ============================================================
+ * Unwrap Nested RewardHub Response
+ *
+ * Supports:
+ *
+ * {
+ *   success: true,
+ *   data: actualData
+ * }
+ *
+ * and:
+ *
+ * {
+ *   success: true,
+ *   data: {
+ *     success: true,
+ *     data: actualData
+ *   }
+ * }
+ * ============================================================
+ */
+
+function unwrapBackendData(
+  value: unknown
+): unknown {
+  let current =
+    value;
+
+  /*
+   * Maximum 5 levels prevents an
+   * accidental infinite nested object.
+   */
+  for (
+    let level = 0;
+    level < 5;
+    level++
+  ) {
+    if (
+      !current ||
+      typeof current !==
+        "object" ||
+      Array.isArray(current)
+    ) {
+      break;
+    }
+
+    const objectValue =
+      current as {
+        success?: unknown;
+        data?: unknown;
+        result?: unknown;
+      };
+
+    if (
+      objectValue.data !==
+        undefined &&
+      objectValue.data !== null
+    ) {
+      current =
+        objectValue.data;
+
+      continue;
+    }
+
+    if (
+      objectValue.result !==
+        undefined &&
+      objectValue.result !== null
+    ) {
+      current =
+        objectValue.result;
+
+      continue;
+    }
+
+    break;
+  }
+
+  return current;
+}
+
+/* ============================================================
+ * Find Backend Error
+ *
+ * Checks outer and nested response levels.
+ * ============================================================
+ */
+
+function getBackendError(
+  payload: unknown,
+  fallbackMessage: string
+) {
+  let current =
+    payload;
+
+  for (
+    let level = 0;
+    level < 5;
+    level++
+  ) {
+    if (
+      !current ||
+      typeof current !==
+        "object" ||
+      Array.isArray(current)
+    ) {
+      break;
+    }
+
+    const objectValue =
+      current as {
+        success?: boolean;
+        error?: unknown;
+        message?: unknown;
+        data?: unknown;
+        result?: unknown;
+      };
+
+    if (
+      objectValue.success === false
+    ) {
+      return String(
+        objectValue.error ||
+        objectValue.message ||
+        fallbackMessage
+      );
+    }
+
+    if (
+      objectValue.error
+    ) {
+      return String(
+        objectValue.error
+      );
+    }
+
+    if (
+      objectValue.data !==
+        undefined &&
+      objectValue.data !== null
+    ) {
+      current =
+        objectValue.data;
+
+      continue;
+    }
+
+    if (
+      objectValue.result !==
+        undefined &&
+      objectValue.result !== null
+    ) {
+      current =
+        objectValue.result;
+
+      continue;
+    }
+
+    break;
+  }
+
+  return "";
+}
+
+/* ============================================================
  * Parse Backend Response
  * ============================================================
  */
@@ -59,18 +223,24 @@ async function parseBackendResponse<T>(
     await backendResponse.text();
 
   let payload:
-    BackendResponse<T>;
+    BackendResponse<unknown>;
 
   try {
     payload =
       JSON.parse(
         rawText
-      ) as BackendResponse<T>;
+      ) as BackendResponse<unknown>;
   } catch {
     console.error(
       "Invalid voucher backend response:",
       rawText
     );
+
+    const preview =
+      rawText
+        .replace(/\s+/g, " ")
+        .trim()
+        .slice(0, 500);
 
     return {
       ok: false as const,
@@ -78,21 +248,26 @@ async function parseBackendResponse<T>(
       status: 502,
 
       error:
-        rawText
-          .replace(/\s+/g, " ")
-          .trim()
-          .slice(0, 500) ||
+        preview ||
         fallbackMessage,
 
       unauthorized: false,
     };
   }
 
+  const nestedError =
+    getBackendError(
+      payload,
+      fallbackMessage
+    );
+
   if (
     !backendResponse.ok ||
-    payload.success === false
+    payload.success === false ||
+    nestedError
   ) {
     const message =
+      nestedError ||
       payload.error ||
       payload.message ||
       fallbackMessage;
@@ -117,9 +292,14 @@ async function parseBackendResponse<T>(
     };
   }
 
-  const result =
+  const firstPayload =
     payload.data ??
     payload.result;
+
+  const result =
+    unwrapBackendData(
+      firstPayload
+    ) as T;
 
   if (
     result === undefined ||

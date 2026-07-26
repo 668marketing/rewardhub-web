@@ -124,6 +124,179 @@ function SummaryCard({
   );
 }
 
+
+function normalizeVoucherResponse(
+  value: unknown
+): {
+  stats: AdminRewardVoucherStats;
+  rewards: AdminRewardVoucherRewardOption[];
+  vouchers: AdminRewardVoucher[];
+  pagination: {
+    page: number;
+    pageSize: number;
+    totalItems: number;
+    totalPages: number;
+    showingFrom: number;
+    showingTo: number;
+  };
+} {
+  let current: unknown = value;
+
+  for (let level = 0; level < 5; level++) {
+    if (
+      !current ||
+      typeof current !== "object" ||
+      Array.isArray(current)
+    ) {
+      break;
+    }
+
+    const objectValue = current as {
+      data?: unknown;
+      result?: unknown;
+      stats?: unknown;
+      vouchers?: unknown;
+      rewards?: unknown;
+      pagination?: unknown;
+    };
+
+    const hasVoucherPayload =
+      objectValue.stats !== undefined ||
+      objectValue.vouchers !== undefined ||
+      objectValue.rewards !== undefined ||
+      objectValue.pagination !== undefined;
+
+    if (hasVoucherPayload) {
+      break;
+    }
+
+    if (
+      objectValue.data !== undefined &&
+      objectValue.data !== null
+    ) {
+      current = objectValue.data;
+      continue;
+    }
+
+    if (
+      objectValue.result !== undefined &&
+      objectValue.result !== null
+    ) {
+      current = objectValue.result;
+      continue;
+    }
+
+    break;
+  }
+
+  const payload =
+    current &&
+    typeof current === "object" &&
+    !Array.isArray(current)
+      ? (current as {
+          stats?: Partial<AdminRewardVoucherStats>;
+          rewards?: AdminRewardVoucherRewardOption[];
+          vouchers?: AdminRewardVoucher[];
+          pagination?: {
+            page?: number;
+            pageSize?: number;
+            totalItems?: number;
+            totalPages?: number;
+            showingFrom?: number;
+            showingTo?: number;
+          };
+        })
+      : {};
+
+  const stats = payload.stats || {};
+  const pagination = payload.pagination || {};
+
+  return {
+    stats: {
+      total: Number(stats.total || 0),
+      available: Number(stats.available || 0),
+      assigned: Number(stats.assigned || 0),
+      redeemed: Number(stats.redeemed || 0),
+      expired: Number(stats.expired || 0),
+      disabled: Number(stats.disabled || 0),
+    },
+    rewards: Array.isArray(payload.rewards)
+      ? payload.rewards
+      : [],
+    vouchers: Array.isArray(payload.vouchers)
+      ? payload.vouchers
+      : [],
+    pagination: {
+      page: Math.max(
+        1,
+        Number(pagination.page || 1)
+      ),
+      pageSize: Math.max(
+        1,
+        Number(pagination.pageSize || 25)
+      ),
+      totalItems: Math.max(
+        0,
+        Number(pagination.totalItems || 0)
+      ),
+      totalPages: Math.max(
+        1,
+        Number(pagination.totalPages || 1)
+      ),
+      showingFrom: Math.max(
+        0,
+        Number(pagination.showingFrom || 0)
+      ),
+      showingTo: Math.max(
+        0,
+        Number(pagination.showingTo || 0)
+      ),
+    },
+  };
+}
+
+
+function unwrapActionResponse<T>(
+  value: unknown
+): T {
+  let current: unknown = value;
+
+  for (let level = 0; level < 5; level++) {
+    if (
+      !current ||
+      typeof current !== "object" ||
+      Array.isArray(current)
+    ) {
+      break;
+    }
+
+    const objectValue = current as {
+      data?: unknown;
+      result?: unknown;
+    };
+
+    if (
+      objectValue.data !== undefined &&
+      objectValue.data !== null
+    ) {
+      current = objectValue.data;
+      continue;
+    }
+
+    if (
+      objectValue.result !== undefined &&
+      objectValue.result !== null
+    ) {
+      current = objectValue.result;
+      continue;
+    }
+
+    break;
+  }
+
+  return current as T;
+}
+
 export default function VoucherManagement() {
   const [vouchers, setVouchers] =
     useState<AdminRewardVoucher[]>(
@@ -245,55 +418,70 @@ export default function VoucherManagement() {
         setLoading(true);
 
         try {
+          const response =
+            await getAdminRewardVouchers({
+              search,
+              status,
+              rewardId,
+              page,
+              pageSize,
+            });
+
           const result =
-            await getAdminRewardVouchers(
-              {
-                search,
-                status,
-                rewardId,
-                page,
-                pageSize,
-              }
+            normalizeVoucherResponse(
+              response
             );
 
-            console.log(
-  "Voucher API result:",
-  result
-);  
-
           setVouchers(
-            result.vouchers || []
+            result.vouchers
           );
 
           setRewardOptions(
-            result.rewards || []
+            result.rewards
           );
 
           setStats(
-            result.stats ||
-              EMPTY_STATS
+            result.stats
           );
 
           setTotalItems(
-            result.pagination
-              ?.totalItems || 0
+            result.pagination.totalItems
           );
 
           setTotalPages(
-            result.pagination
-              ?.totalPages || 1
+            result.pagination.totalPages
           );
 
           setShowingFrom(
-            result.pagination
-              ?.showingFrom || 0
+            result.pagination.showingFrom
           );
 
           setShowingTo(
-            result.pagination
-              ?.showingTo || 0
+            result.pagination.showingTo
           );
+
+          setNotice(function (
+            currentNotice
+          ) {
+            return currentNotice?.type ===
+              "error"
+              ? null
+              : currentNotice;
+          });
         } catch (error) {
+          console.error(
+            "Unable to load vouchers:",
+            error
+          );
+
+          setVouchers([]);
+          setRewardOptions([]);
+          setStats(EMPTY_STATS);
+          setTotalItems(0);
+          setTotalPages(1);
+          setShowingFrom(0);
+          setShowingTo(0);
+
           setNotice({
             type: "error",
 
@@ -446,7 +634,7 @@ export default function VoucherManagement() {
           );
         }
 
-        const result =
+        const rawResult =
           await generateAdminRewardVoucherCodes(
             {
               rewardId:
@@ -468,12 +656,45 @@ export default function VoucherManagement() {
             }
           );
 
+        const result =
+          unwrapActionResponse<{
+            message?: string;
+            createdCount?: number;
+            firstVoucherCode?: string;
+            lastVoucherCode?: string;
+          }>(rawResult);
+
+        const createdCount =
+          Number(
+            result.createdCount ||
+            parsedQuantity
+          );
+
+        const firstCode =
+          String(
+            result.firstVoucherCode ||
+            ""
+          );
+
+        const lastCode =
+          String(
+            result.lastVoucherCode ||
+            ""
+          );
+
         setNotice({
           type: "success",
 
           message:
-            `${result.createdCount} voucher code(s) generated successfully. ` +
-            `${result.firstVoucherCode} to ${result.lastVoucherCode}`,
+            result.message ||
+            (
+              `${createdCount} voucher code(s) generated successfully.` +
+              (
+                firstCode && lastCode
+                  ? ` ${firstCode} to ${lastCode}`
+                  : ""
+              )
+            ),
         });
       } else {
         const codes =
@@ -494,7 +715,7 @@ export default function VoucherManagement() {
           );
         }
 
-        const result =
+        const rawResult =
           await createAdminRewardVouchers(
             {
               rewardId:
@@ -510,20 +731,40 @@ export default function VoucherManagement() {
             }
           );
 
+        const result =
+          unwrapActionResponse<{
+            message?: string;
+            createdCount?: number;
+            skippedCount?: number;
+          }>(rawResult);
+
+        const createdCount =
+          Number(
+            result.createdCount || 0
+          );
+
+        const skippedCount =
+          Number(
+            result.skippedCount || 0
+          );
+
         setNotice({
           type: "success",
 
           message:
-            `${result.createdCount} voucher code(s) imported. ` +
-            `${result.skippedCount} duplicate code(s) skipped.`,
+            result.message ||
+            `${createdCount} voucher code(s) imported. ` +
+            `${skippedCount} duplicate code(s) skipped.`,
         });
       }
 
       setModalOpen(false);
 
-      setPage(1);
-
-      await loadVouchers();
+      if (page !== 1) {
+        setPage(1);
+      } else {
+        await loadVouchers();
+      }
     } catch (error) {
       setNotice({
         type: "error",

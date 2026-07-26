@@ -24,17 +24,158 @@ type RewardSort =
   | "POINTS_LOW"
   | "POINTS_HIGH";
 
+
+function extractDriveFileId(
+  value: string
+) {
+  const url = String(
+    value || ""
+  ).trim();
+
+  if (!url) {
+    return "";
+  }
+
+  const patterns = [
+    /[?&]id=([a-zA-Z0-9_-]+)/i,
+    /\/file\/d\/([a-zA-Z0-9_-]+)/i,
+    /\/d\/([a-zA-Z0-9_-]+)/i,
+    /googleusercontent\.com\/d\/([a-zA-Z0-9_-]+)/i,
+  ];
+
+  for (
+    const pattern of patterns
+  ) {
+    const match =
+      url.match(pattern);
+
+    if (
+      match &&
+      match[1]
+    ) {
+      return match[1];
+    }
+  }
+
+  return "";
+}
+
+function getRewardImageSrc(
+  imageUrl: string
+) {
+  const value = String(
+    imageUrl || ""
+  ).trim();
+
+  if (!value) {
+    return "";
+  }
+
+  if (
+    value.startsWith(
+      "/api/drive-image"
+    )
+  ) {
+    return value;
+  }
+
+  const fileId =
+    extractDriveFileId(
+      value
+    );
+
+  if (fileId) {
+    return (
+      "/api/drive-image?id=" +
+      encodeURIComponent(
+        fileId
+      )
+    );
+  }
+
+  return value;
+}
+
+function RewardImage({
+  imageUrl,
+  thumbnailUrl,
+  title,
+  category,
+  rewardType,
+  compact = false,
+  className,
+}: {
+  imageUrl?: string;
+  thumbnailUrl?: string;
+  title: string;
+  category: string;
+  rewardType: string;
+  compact?: boolean;
+  className: string;
+}) {
+  const source =
+    getRewardImageSrc(
+      thumbnailUrl ||
+      imageUrl ||
+      ""
+    );
+
+  const [failed, setFailed] =
+    useState(false);
+
+  useEffect(
+    function () {
+      setFailed(false);
+    },
+    [source]
+  );
+
+  if (!source || failed) {
+    return (
+      <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-slate-100 to-amber-50">
+        <span
+          className={
+            compact
+              ? "text-5xl"
+              : "text-6xl sm:text-8xl"
+          }
+          aria-hidden="true"
+        >
+          {rewardIcon(
+            category,
+            rewardType
+          )}
+        </span>
+      </div>
+    );
+  }
+
+  return (
+    <img
+      src={source}
+      alt={title}
+      className={className}
+      loading="lazy"
+      decoding="async"
+      referrerPolicy="no-referrer"
+      onError={function () {
+        setFailed(true);
+      }}
+    />
+  );
+}
+
 export default function PointsPage() {
   const [wallet, setWallet] =
     useState<any>(null);
 
-    const [redeeming, setRedeeming] =
-  useState(false);
+  const [redeeming, setRedeeming] =
+    useState(false);
 
-const [
-  redemptionMessage,
-  setRedemptionMessage,
-] = useState("");
+  const [
+    redemptionMessage,
+    setRedemptionMessage,
+  ] = useState("");
 
   const [history, setHistory] =
     useState<any[]>([]);
@@ -1006,32 +1147,23 @@ function RewardCard({
         onClick={onOpen}
         className="relative block aspect-[4/3] w-full overflow-hidden bg-slate-100 text-left"
       >
-        {reward.thumbnailUrl ||
-        reward.imageUrl ? (
-          <img
-            src={
-              reward.thumbnailUrl ||
-              reward.imageUrl
-            }
-            alt={reward.title}
-            className="h-full w-full object-cover transition duration-300 hover:scale-105"
-          />
-        ) : (
-          <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-slate-100 to-amber-50">
-            <span
-              className={
-                compact
-                  ? "text-5xl"
-                  : "text-4xl sm:text-6xl"
-              }
-            >
-              {rewardIcon(
-                reward.category,
-                reward.rewardType
-              )}
-            </span>
-          </div>
-        )}
+        <RewardImage
+          imageUrl={
+            reward.imageUrl
+          }
+          thumbnailUrl={
+            reward.thumbnailUrl
+          }
+          title={reward.title}
+          category={
+            reward.category
+          }
+          rewardType={
+            reward.rewardType
+          }
+          compact={compact}
+          className="h-full w-full object-cover transition duration-300 hover:scale-105"
+        />
 
         <div className="absolute left-2 top-2 flex max-w-[85%] flex-wrap gap-1.5 sm:left-3 sm:top-3">
           {reward.isNew && (
@@ -1276,25 +1408,23 @@ function RewardDetailModal({
 
       <section className="relative z-10 max-h-[92vh] w-full overflow-y-auto rounded-t-[2rem] bg-white shadow-2xl sm:max-w-2xl sm:rounded-[2.25rem]">
         <div className="relative aspect-[16/10] overflow-hidden bg-slate-100">
-          {reward.imageUrl || reward.thumbnailUrl ? (
-            <img
-              src={
-                reward.imageUrl ||
-                reward.thumbnailUrl
-              }
-              alt={reward.title}
-              className="h-full w-full object-cover"
-            />
-          ) : (
-            <div className="flex h-full items-center justify-center bg-gradient-to-br from-slate-100 to-amber-50">
-              <span className="text-7xl sm:text-8xl">
-                {rewardIcon(
-                  reward.category,
-                  reward.rewardType
-                )}
-              </span>
-            </div>
-          )}
+          <RewardImage
+            imageUrl={
+              reward.imageUrl
+            }
+            thumbnailUrl={
+              reward.imageUrl ||
+              reward.thumbnailUrl
+            }
+            title={reward.title}
+            category={
+              reward.category
+            }
+            rewardType={
+              reward.rewardType
+            }
+            className="h-full w-full object-cover"
+          />
 
           <button
             type="button"
