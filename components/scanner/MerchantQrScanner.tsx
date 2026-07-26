@@ -1,7 +1,7 @@
 "use client";
 
 import {
-  ChangeEvent,
+  type ChangeEvent,
   useCallback,
   useEffect,
   useMemo,
@@ -14,6 +14,7 @@ import type {
   Html5QrcodeCameraScanConfig,
   Html5QrcodeResult,
 } from "html5-qrcode";
+
 import ScannerOverlay from "./ScannerOverlay";
 import ScannerToolbar from "./ScannerToolbar";
 import "./merchant-scanner.css";
@@ -33,7 +34,9 @@ type CameraInfo = {
 
 const READER_ID = "rewardhub-merchant-qr-reader";
 
-function getCameraFacing(label: string): "environment" | "user" | "unknown" {
+function getCameraFacing(
+  label: string
+): "environment" | "user" | "unknown" {
   const value = String(label || "").toLowerCase();
 
   if (/front|user|facetime|selfie|前置|前鏡|前镜|depan/.test(value)) {
@@ -84,7 +87,11 @@ function normalizeQrPayload(decodedText: string): string {
 
     return cardId;
   } catch (error) {
-    if (error instanceof Error && error.message.includes("RewardHub")) {
+    if (
+      error instanceof Error &&
+      (error.message.includes("RewardHub") ||
+        error.message.includes("Card ID"))
+    ) {
       throw error;
     }
 
@@ -96,6 +103,26 @@ function normalizeQrPayload(decodedText: string): string {
   }
 }
 
+function createScanConfig(): Html5QrcodeCameraScanConfig {
+  return {
+    fps: 12,
+    qrbox: (width, height) => {
+      const shortest = Math.min(width, height);
+      const size = Math.max(
+        210,
+        Math.min(300, Math.floor(shortest * 0.72))
+      );
+
+      return {
+        width: size,
+        height: size,
+      };
+    },
+    aspectRatio: 1,
+    disableFlip: false,
+  };
+}
+
 export default function MerchantQrScanner() {
   const router = useRouter();
 
@@ -103,15 +130,12 @@ export default function MerchantQrScanner() {
   const handledRef = useRef(false);
   const mountedRef = useRef(true);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const redirectTimerRef = useRef<number | null>(null);
 
   const [status, setStatus] = useState<ScannerStatus>("idle");
   const [errorMessage, setErrorMessage] = useState("");
   const [cameras, setCameras] = useState<CameraInfo[]>([]);
   const [cameraIndex, setCameraIndex] = useState(0);
-
-
-const [torchSupported, setTorchSupported] = useState(false);
-const [torchEnabled, setTorchEnabled] = useState(false);
   const [uploading, setUploading] = useState(false);
 
   const statusLabel = useMemo(() => {
@@ -131,24 +155,13 @@ const [torchEnabled, setTorchEnabled] = useState(false);
     }
   }, [status]);
 
-  const getActiveVideoTrack = useCallback(() => {
-  const video = document.querySelector(
-    `#${READER_ID} video`
-  ) as HTMLVideoElement | null;
-
-  if (!video?.srcObject) {
-    return null;
-  }
-
-  const stream = video.srcObject as MediaStream;
-
-  return stream.getVideoTracks()[0] || null;
-}, []);
-
   const clearScanner = useCallback(async () => {
     const scanner = scannerRef.current;
+    scannerRef.current = null;
 
-    if (!scanner) return;
+    if (!scanner) {
+      return;
+    }
 
     try {
       if (scanner.isScanning) {
@@ -163,15 +176,13 @@ const [torchEnabled, setTorchEnabled] = useState(false);
     } catch (error) {
       console.warn("Unable to clear QR scanner:", error);
     }
-
-    scannerRef.current = null;
-    setTorchEnabled(false);
-    setTorchSupported(false);
   }, []);
 
   const completeScan = useCallback(
     async (decodedText: string) => {
-      if (handledRef.current) return;
+      if (handledRef.current) {
+        return;
+      }
 
       handledRef.current = true;
       setStatus("processing");
@@ -189,7 +200,7 @@ const [torchEnabled, setTorchEnabled] = useState(false);
 
         localStorage.setItem("scannedCardId", cardId);
 
-        window.setTimeout(() => {
+        redirectTimerRef.current = window.setTimeout(() => {
           router.replace("/merchant/collect");
         }, 650);
       } catch (error) {
@@ -205,34 +216,30 @@ const [torchEnabled, setTorchEnabled] = useState(false);
     [clearScanner, router]
   );
 
-  const detectTorchSupport = useCallback(() => {
-  try {
-    const track = getActiveVideoTrack();
+  const startScannerWithSource = useCallback(
+    async (source: string | MediaTrackConstraints) => {
+      const scanner = new Html5Qrcode(READER_ID, {
+        verbose: false,
+      });
 
-    if (!track) {
-      setTorchSupported(false);
-      return false;
-    }
+      scannerRef.current = scanner;
 
-    const capabilities = track.getCapabilities?.() as
-      | MediaTrackCapabilities & {
-          torch?: boolean;
-        }
-      | undefined;
+      const onSuccess = (
+        decodedText: string,
+        _result: Html5QrcodeResult
+      ) => {
+        void completeScan(decodedText);
+      };
 
-    const supported = capabilities?.torch === true;
-
-    setTorchSupported(supported);
-
-    return supported;
-  } catch (error) {
-    console.warn("Unable to detect torch support:", error);
-
-    setTorchSupported(false);
-
-    return false;
-  }
-}, [getActiveVideoTrack]);
+      await scanner.start(
+        source,
+        createScanConfig(),
+        onSuccess,
+        () => undefined
+      );
+    },
+    [completeScan]
+  );
 
   const startCamera = useCallback(
     async (preferredCameraId?: string) => {
@@ -242,66 +249,33 @@ const [torchEnabled, setTorchEnabled] = useState(false);
 
       await clearScanner();
 
-      const scanner = new Html5Qrcode(READER_ID, {
-        verbose: false,
-      });
-
-      scannerRef.current = scanner;
-
-      const config: Html5QrcodeCameraScanConfig = {
-        fps: 12,
-        qrbox: (width, height) => {
-          const shortest = Math.min(width, height);
-          const size = Math.max(210, Math.min(300, Math.floor(shortest * 0.72)));
-
-          return {
-            width: size,
-            height: size,
-          };
-        },
-        aspectRatio: 1,
-        disableFlip: false,
-      };
-
-      const onSuccess = (
-        decodedText: string,
-        _result: Html5QrcodeResult
-      ) => {
-        void completeScan(decodedText);
-      };
-
       try {
-        const source = preferredCameraId
-          ? { deviceId: { exact: preferredCameraId } }
-          : { facingMode: { exact: "environment" } };
-
-        await scanner.start(source, config, onSuccess, () => undefined);
+        if (preferredCameraId) {
+          await startScannerWithSource(preferredCameraId);
+        } else {
+          await startScannerWithSource({
+            facingMode: { ideal: "environment" },
+          });
+        }
 
         if (mountedRef.current) {
           setStatus("ready");
-          window.setTimeout(() => {
-            void detectTorchSupport();
-          }, 350);
         }
       } catch (firstError) {
         console.warn("Preferred camera unavailable:", firstError);
+        await clearScanner();
 
         try {
-          await scanner.start(
-            { facingMode: "environment" },
-            config,
-            onSuccess,
-            () => undefined
-          );
+          await startScannerWithSource({
+            facingMode: "environment",
+          });
 
           if (mountedRef.current) {
             setStatus("ready");
-            window.setTimeout(() => {
-              void detectTorchSupport();
-            }, 350);
           }
         } catch (secondError) {
           console.error("Unable to start camera:", secondError);
+          await clearScanner();
 
           if (mountedRef.current) {
             setStatus("error");
@@ -312,7 +286,7 @@ const [torchEnabled, setTorchEnabled] = useState(false);
         }
       }
     },
-    [clearScanner, completeScan, detectTorchSupport]
+    [clearScanner, startScannerWithSource]
   );
 
   const loadCameras = useCallback(async () => {
@@ -332,6 +306,7 @@ const [torchEnabled, setTorchEnabled] = useState(false);
         );
 
         const initialIndex = rearIndex >= 0 ? rearIndex : 0;
+
         setCameraIndex(initialIndex);
         await startCamera(normalized[initialIndex].id);
         return;
@@ -353,11 +328,20 @@ const [torchEnabled, setTorchEnabled] = useState(false);
     return () => {
       mountedRef.current = false;
       window.clearTimeout(timer);
+
+      if (redirectTimerRef.current !== null) {
+        window.clearTimeout(redirectTimerRef.current);
+      }
+
       void clearScanner();
     };
   }, [clearScanner, loadCameras]);
 
   const handleBack = async () => {
+    if (redirectTimerRef.current !== null) {
+      window.clearTimeout(redirectTimerRef.current);
+    }
+
     await clearScanner();
     router.push("/merchant/collect");
   };
@@ -408,37 +392,6 @@ const [torchEnabled, setTorchEnabled] = useState(false);
     }
   };
 
-  const handleTorch = async () => {
-    if (status !== "ready" || !torchSupported) {
-      return;
-    }
-
-    try {
-      const track = getActiveVideoTrack();
-
-      if (!track) {
-        setTorchSupported(false);
-        return;
-      }
-
-      const nextValue = !torchEnabled;
-
-      await track.applyConstraints({
-        advanced: [
-          {
-            torch: nextValue,
-          } as MediaTrackConstraintSet,
-        ],
-      });
-
-      setTorchEnabled(nextValue);
-    } catch (error) {
-      console.warn("Unable to control flashlight:", error);
-      setTorchEnabled(false);
-      setTorchSupported(false);
-    }
-  };
-
   const handleUploadClick = () => {
     if (
       status === "processing" ||
@@ -447,6 +400,7 @@ const [torchEnabled, setTorchEnabled] = useState(false);
     ) {
       return;
     }
+
     fileInputRef.current?.click();
   };
 
@@ -456,7 +410,9 @@ const [torchEnabled, setTorchEnabled] = useState(false);
     const file = event.target.files?.[0];
     event.target.value = "";
 
-    if (!file) return;
+    if (!file) {
+      return;
+    }
 
     if (!file.type.startsWith("image/")) {
       setStatus("error");
@@ -490,6 +446,9 @@ const [torchEnabled, setTorchEnabled] = useState(false);
       setUploading(false);
     }
   };
+
+  const activeCameraLabel =
+    cameras[cameraIndex]?.label || "Rear camera";
 
   return (
     <main className="rh-scanner-page">
@@ -590,9 +549,7 @@ const [torchEnabled, setTorchEnabled] = useState(false);
           <div className="rh-camera-summary">
             <div>
               <span className="rh-camera-summary-label">Active source</span>
-              <strong>
-                {cameras[cameraIndex]?.label || "Rear camera"}
-              </strong>
+              <strong>{activeCameraLabel}</strong>
             </div>
 
             <span className="rh-secure-badge">
@@ -615,15 +572,12 @@ const [torchEnabled, setTorchEnabled] = useState(false);
           </div>
 
           <ScannerToolbar
-            cameraCount={cameras.length}
-            torchSupported={torchSupported}
-            torchEnabled={torchEnabled}
-            busy={status === "processing" || status === "starting"}
-            uploading={uploading}
-            onUpload={handleUploadClick}
-            onSwitchCamera={handleSwitchCamera}
-            onToggleTorch={handleTorch}
-          />
+  cameraCount={cameras.length}
+  busy={status === "processing" || status === "starting"}
+  uploading={uploading}
+  onUpload={handleUploadClick}
+  onSwitchCamera={handleSwitchCamera}
+/>
 
           <input
             ref={fileInputRef}
