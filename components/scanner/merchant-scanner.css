@@ -174,6 +174,7 @@
 
 .rh-camera-stage {
   position: relative;
+  width: 100%;
   aspect-ratio: 1 / 1;
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.08);
@@ -433,24 +434,30 @@
 
 .rh-toolbar {
   display: grid;
-  grid-template-columns: 1fr;
-  gap: 9px;
-  margin-top: 12px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  width: 100%;
+  gap: 12px;
+  margin-top: 14px;
 }
 
 .rh-tool-button {
   display: flex;
   width: 100%;
-  min-height: 64px;
+  min-width: 0;
+  min-height: 96px;
   align-items: center;
-  gap: 12px;
-  padding: 11px 13px;
+  justify-content: flex-start;
+  gap: 14px;
+  padding: 16px 18px;
   border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 17px;
+  border-radius: 20px;
   background: rgba(255, 255, 255, 0.035);
   color: #fff;
   text-align: left;
-  transition: 160ms ease;
+  transition:
+    transform 160ms ease,
+    border-color 160ms ease,
+    background 160ms ease;
 }
 
 .rh-tool-button:hover:not(:disabled) {
@@ -476,34 +483,26 @@
   );
 }
 
-.rh-tool-active {
-  border-color: rgba(251, 191, 36, 0.24);
-  background: rgba(251, 191, 36, 0.09);
-}
-
 .rh-tool-icon {
   display: inline-flex;
-  width: 41px;
-  height: 41px;
+  width: 48px;
+  height: 48px;
   flex-shrink: 0;
   align-items: center;
   justify-content: center;
-  border-radius: 13px;
+  border-radius: 15px;
   background: rgba(255, 255, 255, 0.055);
   color: #67e8f9;
 }
 
-.rh-tool-active .rh-tool-icon {
-  color: #fcd34d;
-}
-
 .rh-tool-icon svg {
-  width: 20px;
-  height: 20px;
+  width: 22px;
+  height: 22px;
 }
 
 .rh-tool-content {
   min-width: 0;
+  flex: 1;
 }
 
 .rh-tool-button strong,
@@ -512,16 +511,20 @@
 }
 
 .rh-tool-button strong {
+  display: block;
   color: #e2e8f0;
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 900;
+  line-height: 1.25;
 }
 
 .rh-tool-button small {
-  margin-top: 3px;
+  display: block;
+  margin-top: 5px;
   color: #64748b;
   font-size: 11px;
   font-weight: 700;
+  line-height: 1.35;
 }
 
 .rh-hidden-input {
@@ -588,40 +591,19 @@
   }
 
   .rh-toolbar {
-    grid-template-columns: 1.25fr 1fr 1fr;
+    gap: 14px;
   }
 
   .rh-tool-button {
-    min-height: 92px;
-    flex-direction: column;
-    align-items: flex-start;
-    justify-content: center;
+    min-height: 104px;
+    padding: 18px 20px;
+  }
+
+  .rh-tool-icon {
+    width: 50px;
+    height: 50px;
   }
 }
-
-@media (max-width: 420px) {
-  .rh-scanner-shell {
-    padding-right: 15px;
-    padding-left: 15px;
-  }
-
-  .rh-title-block {
-    margin-top: 28px;
-  }
-
-  .rh-help-grid {
-    gap: 7px;
-  }
-
-  .rh-help-grid article {
-    padding: 12px 9px;
-  }
-}
-
-
-/* ========================================
-   RewardHub scanner mobile refinement
-======================================== */
 
 @media (max-width: 559px) {
   .rh-scanner-shell {
@@ -653,12 +635,7 @@
   }
 
   .rh-camera-stage {
-    /*
-      鎵嬫満涓嶅啀浣跨敤瓒呴暱姝ｆ柟褰㈢浉鏈恒€�
-      绋嶅井闄嶄綆楂樺害锛岃鎸夐挳鍜屽唴瀹规洿闆嗕腑銆�
-    */
-    aspect-ratio: 1 / 1;
-    max-height: 64vh;
+    max-height: min(64vh, 520px);
     border-radius: 21px;
   }
 
@@ -679,62 +656,57 @@
     font-size: 13px;
   }
 
-  /*
-    鎵嬫満鎭㈠涓変釜妯悜鎸夐挳锛�
-    涓嶅啀鍙樻垚涓夊紶澶у瀷绾靛悜鍗＄墖銆�
-  */
   .rh-toolbar {
-    display: grid;
-    grid-template-columns:
-      repeat(3, minmax(0, 1fr));
-    gap: 8px;
-    margin-top: 11px;
-  }
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  width: 100%;
+  gap: 9px;
+  margin-top: 12px;
+}
 
-  .rh-tool-button {
-    min-width: 0;
-    min-height: 88px;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    padding: 10px 6px;
-    border-radius: 17px;
-    text-align: center;
-  }
+.rh-tool-button {
+  min-width: 0;
+  min-height: 102px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 14px 8px;
+  border-radius: 19px;
+  text-align: center;
+}
 
-  .rh-tool-icon {
-    width: 37px;
-    height: 37px;
-    border-radius: 12px;
-  }
+.rh-tool-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 13px;
+}
 
-  .rh-tool-icon svg {
-    width: 18px;
-    height: 18px;
-  }
+.rh-tool-icon svg {
+  width: 20px;
+  height: 20px;
+}
 
-  .rh-tool-content {
-    width: 100%;
-    min-width: 0;
-  }
+.rh-tool-content {
+  width: 100%;
+  min-width: 0;
+}
 
-  .rh-tool-button strong {
-    overflow: hidden;
-    font-size: 11px;
-    line-height: 1.25;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
+.rh-tool-button strong {
+  overflow: hidden;
+  font-size: 12px;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 
-  .rh-tool-button small {
-    overflow: hidden;
-    margin-top: 3px;
-    font-size: 9px;
-    line-height: 1.25;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
+.rh-tool-button small {
+  overflow: hidden;
+  margin-top: 4px;
+  font-size: 9px;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 
   .rh-help-grid {
     gap: 7px;
@@ -762,5 +734,30 @@
 
   .rh-footnote {
     margin-top: 18px;
+  }
+}
+
+@media (max-width: 360px) {
+  .rh-scanner-shell {
+    padding-right: 10px;
+    padding-left: 10px;
+  }
+
+  .rh-toolbar {
+    gap: 7px;
+  }
+
+  .rh-tool-button {
+    min-height: 88px;
+    padding-right: 5px;
+    padding-left: 5px;
+  }
+
+  .rh-tool-button strong {
+    font-size: 11px;
+  }
+
+  .rh-tool-button small {
+    font-size: 8px;
   }
 }
