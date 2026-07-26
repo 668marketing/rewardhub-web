@@ -1,4 +1,4 @@
-const CACHE_NAME = "rewardhub-v3";
+const CACHE_NAME = "rewardhub-v1";
 
 const STATIC_ASSETS = [
   "/",
