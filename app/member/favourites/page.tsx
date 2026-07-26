@@ -258,7 +258,7 @@ function FavouriteCard({
         href={`/member/merchant/${merchantId}`}
         className="block no-underline"
       >
-        <div className="relative h-32 overflow-hidden bg-slate-950 sm:h-100">
+        <div className="relative h-32 overflow-hidden bg-slate-950 sm:h-50">
           {bannerUrl ? (
             <img
               src={getDisplayImageUrl(bannerUrl)}

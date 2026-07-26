@@ -46,7 +46,7 @@ export default function MerchantHeader({
       <div className="px-5 pb-6 pt-2 sm:px-7 sm:pt-3">
         <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
   <div className="flex flex-col gap-4 sm:flex-row sm:items-end">
-    <div className="-mt-6 shrink-0 sm:-mt-8">
+    <div className="-mt-4 shrink-0 sm:-mt-6">
       <MerchantLogo
         merchant={merchant}
       />

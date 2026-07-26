@@ -21,6 +21,9 @@ type StoredMember = {
   memberId?: string;
   MEMBER_ID?: string;
   id?: string;
+  profile?: StoredMember;
+  member?: StoredMember;
+  data?: StoredMember;
 };
 
 function getMemberIdFromStorage() {
@@ -38,18 +41,19 @@ function getMemberIdFromStorage() {
       return "";
     }
 
-    const parsed: any =
+    const parsed: StoredMember =
       JSON.parse(raw);
 
-    const candidate =
-      parsed?.member ??
-      parsed?.data ??
-      parsed;
-
     return String(
-      candidate?.memberId ??
-        candidate?.MEMBER_ID ??
-        candidate?.id ??
+      parsed?.memberId ??
+        parsed?.MEMBER_ID ??
+        parsed?.id ??
+        parsed?.profile?.memberId ??
+        parsed?.profile?.MEMBER_ID ??
+        parsed?.member?.memberId ??
+        parsed?.member?.MEMBER_ID ??
+        parsed?.data?.memberId ??
+        parsed?.data?.MEMBER_ID ??
         ""
     ).trim();
   } catch {

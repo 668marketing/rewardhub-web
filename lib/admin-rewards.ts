@@ -43,9 +43,10 @@ export type AdminRewardRedemption = {
   adminNote: string;
 
   redeemedAt: string;
-  processedAt: string;
-  completedAt: string;
-  updatedAt: string;
+processedAt: string;
+shippedAt: string;
+completedAt: string;
+updatedAt: string;
 };
 
 export type AdminRewardsDashboardData = {

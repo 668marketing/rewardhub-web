@@ -1,8 +1,6 @@
 "use client";
 
 type ScannerToolbarProps = {
-  cameraCount: number;
-  torchSupported: boolean;
   torchEnabled: boolean;
   busy: boolean;
   uploading: boolean;
@@ -12,8 +10,6 @@ type ScannerToolbarProps = {
 };
 
 export default function ScannerToolbar({
-  cameraCount,
-  torchSupported,
   torchEnabled,
   busy,
   uploading,
@@ -37,6 +33,7 @@ export default function ScannerToolbar({
               strokeWidth="1.7"
               strokeLinejoin="round"
             />
+
             <circle
               cx="12"
               cy="12"
@@ -48,7 +45,10 @@ export default function ScannerToolbar({
         </span>
 
         <span>
-          <strong>{uploading ? "Reading image…" : "Upload QR image"}</strong>
+          <strong>
+            {uploading ? "Reading image…" : "Upload QR image"}
+          </strong>
+
           <small>Choose from gallery</small>
         </span>
       </button>
@@ -56,7 +56,7 @@ export default function ScannerToolbar({
       <button
         type="button"
         onClick={onSwitchCamera}
-        disabled={busy || cameraCount < 2}
+        disabled={busy}
         className="rh-tool-button"
       >
         <span className="rh-tool-icon">
@@ -66,12 +66,14 @@ export default function ScannerToolbar({
               stroke="currentColor"
               strokeWidth="1.7"
             />
+
             <path
               d="M9 12a3 3 0 015-2M15 12a3 3 0 01-5 2"
               stroke="currentColor"
               strokeWidth="1.7"
               strokeLinecap="round"
             />
+
             <path
               d="M14 8.8v2.1h2.1M10 15.2v-2.1H7.9"
               stroke="currentColor"
@@ -84,17 +86,17 @@ export default function ScannerToolbar({
 
         <span>
           <strong>Switch camera</strong>
-          <small>
-            {cameraCount < 2 ? "One camera detected" : "Front or rear"}
-          </small>
+          <small>Front or rear camera</small>
         </span>
       </button>
 
       <button
         type="button"
         onClick={onToggleTorch}
-        disabled={busy || !torchSupported}
-        className={`rh-tool-button ${torchEnabled ? "rh-tool-active" : ""}`}
+        disabled={busy}
+        className={`rh-tool-button ${
+          torchEnabled ? "rh-tool-active" : ""
+        }`}
       >
         <span className="rh-tool-icon">
           <svg viewBox="0 0 24 24" fill="none">
@@ -108,10 +110,11 @@ export default function ScannerToolbar({
         </span>
 
         <span>
-          <strong>{torchEnabled ? "Flashlight on" : "Flashlight"}</strong>
-          <small>
-            {torchSupported ? "Improve low light" : "Not supported"}
-          </small>
+          <strong>
+            {torchEnabled ? "Flashlight on" : "Flashlight"}
+          </strong>
+
+          <small>Tap to turn on or off</small>
         </span>
       </button>
     </div>
