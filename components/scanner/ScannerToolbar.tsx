@@ -2,24 +2,18 @@
 
 type ScannerToolbarProps = {
   cameraCount: number;
-  torchSupported: boolean;
-  torchEnabled: boolean;
   busy: boolean;
   uploading: boolean;
   onUpload: () => void;
   onSwitchCamera: () => void;
-  onToggleTorch: () => void;
 };
 
 export default function ScannerToolbar({
   cameraCount,
-  torchSupported,
-  torchEnabled,
   busy,
   uploading,
   onUpload,
   onSwitchCamera,
-  onToggleTorch,
 }: ScannerToolbarProps) {
   const cameraAvailable = cameraCount > 1;
 
@@ -50,8 +44,8 @@ export default function ScannerToolbar({
         </span>
 
         <span className="rh-tool-content">
-          <strong>{uploading ? "Reading…" : "Upload QR"}</strong>
-          <small>From gallery</small>
+          <strong>{uploading ? "Reading image…" : "Upload QR"}</strong>
+          <small>Choose from photos</small>
         </span>
       </button>
 
@@ -85,33 +79,10 @@ export default function ScannerToolbar({
         </span>
 
         <span className="rh-tool-content">
-          <strong>Switch</strong>
-          <small>{cameraAvailable ? "Front / rear" : "Unavailable"}</small>
-        </span>
-      </button>
-
-      <button
-        type="button"
-        onClick={onToggleTorch}
-        disabled={busy || !torchSupported}
-        className={`rh-tool-button ${
-          torchEnabled ? "rh-tool-active" : ""
-        }`}
-      >
-        <span className="rh-tool-icon">
-          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <path
-              d="M9 3h6l-1 6h-4L9 3zM10 9h4l1 4-3 8-3-8 1-4z"
-              stroke="currentColor"
-              strokeWidth="1.7"
-              strokeLinejoin="round"
-            />
-          </svg>
-        </span>
-
-        <span className="rh-tool-content">
-          <strong>{torchEnabled ? "Light on" : "Flashlight"}</strong>
-          <small>{torchSupported ? "Tap to control" : "Unsupported"}</small>
+          <strong>Switch Camera</strong>
+          <small>
+            {cameraAvailable ? "Front or rear camera" : "Only one camera"}
+          </small>
         </span>
       </button>
     </div>
