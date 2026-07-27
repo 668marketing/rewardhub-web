@@ -63,6 +63,11 @@ const primaryItems: NavItem[] = [
 
 const moreItems: NavItem[] = [
   {
+    label: "Products",
+    href: "/merchant/products",
+    icon: "📦",
+  },
+  {
     label: "Gallery",
     href: "/merchant/gallery",
     icon: "🖼️",
@@ -664,20 +669,6 @@ export default function MerchantNav() {
                 </div>
 
                 {[
-                  {
-                    label:
-                      "Settlement",
-                    href:
-                      "/merchant/settlement",
-                    icon: "💰",
-                  },
-                  {
-                    label:
-                      "Marketing",
-                    href:
-                      "/merchant/marketing-fund",
-                    icon: "📢",
-                  },
                   ...moreItems,
                 ].map((item) => {
                   const active =
