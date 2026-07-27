@@ -8,6 +8,12 @@ import {
   useRef,
   useState,
 } from "react";
+import {
+  Bell,
+  Headset,
+  MoreHorizontal,
+} from "lucide-react";
+
 import Logo from "@/components/ui/Logo";
 import SessionTimeout from "@/components/auth/SessionTimeout";
 import {
@@ -94,7 +100,17 @@ const mobilePrimaryItems: NavItem[] = [
   },
 ];
 
-function getMerchantIdFromStorage() {
+function openCustomerSupport(): void {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  window.dispatchEvent(
+    new Event("rewardhub-open-support")
+  );
+}
+
+function getMerchantIdFromStorage(): string {
   if (typeof window === "undefined") {
     return "";
   }
@@ -109,8 +125,7 @@ function getMerchantIdFromStorage() {
       return "";
     }
 
-    const parsed: any =
-      JSON.parse(raw);
+    const parsed = JSON.parse(raw);
 
     const candidate =
       parsed?.merchant ??
@@ -139,10 +154,7 @@ function unwrapData(
   }
 
   const root =
-    result as Record<
-      string,
-      unknown
-    >;
+    result as Record<string, unknown>;
 
   const first =
     root.data &&
@@ -163,7 +175,8 @@ function unwrapData(
 }
 
 export default function MerchantNav() {
-  const pathname = usePathname();
+  const pathname =
+    usePathname() || "";
 
   const [
     unreadCount,
@@ -186,7 +199,9 @@ export default function MerchantNav() {
   const mobileMoreRef =
     useRef<HTMLDivElement>(null);
 
-  function isActive(href: string) {
+  function isActive(
+    href: string
+  ): boolean {
     return (
       pathname === href ||
       pathname.startsWith(
@@ -226,10 +241,17 @@ export default function MerchantNav() {
         const data =
           unwrapData(result);
 
-        setUnreadCount(
+        const nextCount =
           Number(
-            data.unreadCount || 0
-          )
+            data.unreadCount ??
+              data.count ??
+              0
+          );
+
+        setUnreadCount(
+          Number.isFinite(nextCount)
+            ? nextCount
+            : 0
         );
       } catch (error) {
         console.error(
@@ -240,11 +262,11 @@ export default function MerchantNav() {
     }, []);
 
   useEffect(() => {
-    loadUnreadCount();
+    void loadUnreadCount();
 
     const handleNotificationChange =
       () => {
-        loadUnreadCount();
+        void loadUnreadCount();
       };
 
     window.addEventListener(
@@ -252,9 +274,14 @@ export default function MerchantNav() {
       handleNotificationChange
     );
 
+    window.addEventListener(
+      "focus",
+      handleNotificationChange
+    );
+
     const interval =
       window.setInterval(
-        loadUnreadCount,
+        handleNotificationChange,
         60000
       );
 
@@ -264,14 +291,16 @@ export default function MerchantNav() {
         handleNotificationChange
       );
 
+      window.removeEventListener(
+        "focus",
+        handleNotificationChange
+      );
+
       window.clearInterval(
         interval
       );
     };
-  }, [
-    loadUnreadCount,
-    pathname,
-  ]);
+  }, [loadUnreadCount]);
 
   useEffect(() => {
     setDesktopMoreOpen(false);
@@ -317,6 +346,14 @@ export default function MerchantNav() {
     };
   }, []);
 
+  const badgeText =
+    unreadCount > 99
+      ? "99+"
+      : String(unreadCount);
+
+  const headerIconClass =
+    "relative inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-100 hover:text-slate-950 hover:shadow-md active:scale-95 sm:h-11 sm:w-11";
+
   return (
     <>
       <SessionTimeout
@@ -326,6 +363,7 @@ export default function MerchantNav() {
 
       <header className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/95 shadow-[0_8px_30px_rgba(15,23,42,0.05)] backdrop-blur-xl">
         <div className="mx-auto flex h-16 w-full max-w-[1600px] items-center gap-3 px-4 sm:h-[72px] sm:px-6 md:px-8 xl:px-10">
+          {/* Logo */}
           <Link
             href="/merchant/dashboard"
             className="flex shrink-0 items-center no-underline"
@@ -336,6 +374,7 @@ export default function MerchantNav() {
             />
           </Link>
 
+          {/* Desktop navigation */}
           <nav className="hidden min-w-0 flex-1 items-center justify-end gap-1.5 lg:flex">
             {primaryItems.map(
               (item) => {
@@ -369,29 +408,29 @@ export default function MerchantNav() {
               }
             )}
 
+            {/* Desktop More */}
             <div
               ref={desktopMoreRef}
               className="relative"
             >
               <button
                 type="button"
-                onClick={() =>
+                onClick={() => {
                   setDesktopMoreOpen(
                     (open) => !open
-                  )
-                }
+                  );
+                }}
                 aria-expanded={
                   desktopMoreOpen
                 }
+                aria-label="Open more merchant tools"
                 className={`inline-flex items-center gap-1.5 rounded-xl border px-2.5 py-2 text-[12px] font-black transition xl:px-3 xl:text-[13px] ${
                   moreActive
                     ? "border-slate-950 bg-slate-950 text-white shadow-sm"
                     : "border-transparent text-slate-600 hover:border-slate-200 hover:bg-slate-50 hover:text-slate-950"
                 }`}
               >
-                <span className="text-base leading-none">
-                  ⋯
-                </span>
+                <MoreHorizontal className="h-4 w-4" />
 
                 <span>More</span>
 
@@ -454,44 +493,103 @@ export default function MerchantNav() {
               ) : null}
             </div>
 
+            {/* Desktop customer support */}
+            <button
+              type="button"
+              onClick={
+                openCustomerSupport
+              }
+              aria-label="Open customer support"
+              title="Customer Support"
+              className={
+                headerIconClass
+              }
+            >
+              <Headset className="h-5 w-5" />
+            </button>
+
+            {/* Desktop notifications */}
             <Link
               href="/merchant/notifications"
-              aria-label="Notifications"
+              aria-label={
+                unreadCount > 0
+                  ? `${unreadCount} unread notifications`
+                  : "Notifications"
+              }
               aria-current={
                 notificationActive
                   ? "page"
                   : undefined
               }
-              className={`relative ml-1 inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border text-lg no-underline transition ${
+              className={`${headerIconClass} ${
                 notificationActive
-                  ? "border-slate-950 bg-slate-950 text-white shadow-sm"
-                  : "border-slate-200 bg-white text-slate-700 hover:bg-slate-100 hover:text-slate-950"
+                  ? "border-slate-950 bg-slate-950 text-white hover:bg-slate-900 hover:text-white"
+                  : ""
               }`}
             >
-              <span aria-hidden="true">
-                🔔
-              </span>
+              <Bell className="h-5 w-5" />
 
               {unreadCount > 0 ? (
-                <span className="absolute -right-2 -top-2 flex min-h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-black leading-none text-white ring-2 ring-white">
-                  {unreadCount > 99
-                    ? "99+"
-                    : unreadCount}
+                <span className="absolute -right-2 -top-2 flex min-h-5 min-w-5 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-black leading-none text-white ring-2 ring-white">
+                  {badgeText}
                 </span>
               ) : null}
             </Link>
           </nav>
+
+          {/* Mobile top-right support and notifications */}
+          <div className="ml-auto flex items-center gap-2 lg:hidden">
+            <button
+              type="button"
+              onClick={
+                openCustomerSupport
+              }
+              aria-label="Open customer support"
+              title="Customer Support"
+              className={
+                headerIconClass
+              }
+            >
+              <Headset className="h-5 w-5" />
+            </button>
+
+            <Link
+              href="/merchant/notifications"
+              aria-label={
+                unreadCount > 0
+                  ? `${unreadCount} unread notifications`
+                  : "Notifications"
+              }
+              aria-current={
+                notificationActive
+                  ? "page"
+                  : undefined
+              }
+              className={`${headerIconClass} ${
+                notificationActive
+                  ? "border-slate-950 bg-slate-950 text-white hover:bg-slate-900 hover:text-white"
+                  : ""
+              }`}
+            >
+              <Bell className="h-5 w-5" />
+
+              {unreadCount > 0 ? (
+                <span className="absolute -right-1.5 -top-1.5 flex min-h-5 min-w-5 items-center justify-center rounded-full bg-red-600 px-1 text-[9px] font-black leading-none text-white ring-2 ring-white">
+                  {badgeText}
+                </span>
+              ) : null}
+            </Link>
+          </div>
         </div>
       </header>
 
+      {/* Mobile bottom navigation */}
       <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-slate-200 bg-white/95 px-2 pb-[max(8px,env(safe-area-inset-bottom))] pt-2 shadow-[0_-12px_35px_rgba(15,23,42,0.12)] backdrop-blur-xl lg:hidden">
-        <div className="mx-auto grid w-full max-w-xl grid-cols-6 gap-1">
+        <div className="mx-auto grid w-full max-w-xl grid-cols-5 gap-1">
           {mobilePrimaryItems.map(
             (item) => {
               const active =
-                isActive(
-                  item.href
-                );
+                isActive(item.href);
 
               return (
                 <Link
@@ -520,47 +618,22 @@ export default function MerchantNav() {
             }
           )}
 
-          <Link
-            href="/merchant/notifications"
-            aria-current={
-              notificationActive
-                ? "page"
-                : undefined
-            }
-            className={`relative flex min-w-0 flex-col items-center justify-center rounded-2xl px-1 py-2 text-center no-underline transition active:scale-95 ${
-              notificationActive
-                ? "bg-slate-950 text-white"
-                : "text-slate-500 hover:bg-slate-100 hover:text-slate-950"
-            }`}
-          >
-            <span className="relative text-lg leading-none">
-              🔔
-
-              {unreadCount > 0 ? (
-                <span className="absolute -right-3 -top-3 flex min-h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[8px] font-black leading-none text-white ring-2 ring-white">
-                  {unreadCount > 99
-                    ? "99+"
-                    : unreadCount}
-                </span>
-              ) : null}
-            </span>
-
-            <span className="mt-1 block w-full truncate text-[9px] font-black leading-none sm:text-[10px]">
-              Alerts
-            </span>
-          </Link>
-
+          {/* Mobile More */}
           <div
             ref={mobileMoreRef}
             className="relative"
           >
             <button
               type="button"
-              onClick={() =>
+              onClick={() => {
                 setMobileMoreOpen(
                   (open) => !open
-                )
+                );
+              }}
+              aria-expanded={
+                mobileMoreOpen
               }
+              aria-label="Open more merchant tools"
               className={`flex h-full w-full min-w-0 flex-col items-center justify-center rounded-2xl px-1 py-2 text-center transition active:scale-95 ${
                 moreActive ||
                 mobileMoreOpen
@@ -568,7 +641,7 @@ export default function MerchantNav() {
                   : "text-slate-500 hover:bg-slate-100 hover:text-slate-950"
               }`}
             >
-              
+              <MoreHorizontal className="h-[18px] w-[18px]" />
 
               <span className="mt-1 block w-full truncate text-[9px] font-black leading-none sm:text-[10px]">
                 More
