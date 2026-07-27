@@ -1,6 +1,12 @@
-import type { Metadata, Viewport } from "next";
+import type {
+  Metadata,
+  Viewport,
+} from "next";
+
 import PWARegister from "@/components/pwa/PWARegister";
 import SplashScreen from "@/components/pwa/SplashScreen";
+import SupportModal from "@/components/chat/SupportModal";
+
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -38,8 +44,12 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <SplashScreen />
+
         <PWARegister />
+
         {children}
+
+        <SupportModal />
       </body>
     </html>
   );

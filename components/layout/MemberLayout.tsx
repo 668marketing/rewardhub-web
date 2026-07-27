@@ -8,6 +8,7 @@ import {
 import Link from "next/link";
 import {
   Bell,
+  Headset,
 } from "lucide-react";
 
 import MemberBottomNav from "@/components/layout/MemberBottomNav";
@@ -26,7 +27,19 @@ type StoredMember = {
   data?: StoredMember;
 };
 
-function getMemberIdFromStorage() {
+function openCustomerSupport(): void {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  window.dispatchEvent(
+    new Event(
+      "rewardhub-open-support"
+    )
+  );
+}
+
+function getMemberIdFromStorage(): string {
   if (typeof window === "undefined") {
     return "";
   }
@@ -126,18 +139,20 @@ export default function MemberLayout({
         const data =
           unwrapData(result);
 
+        const nextCount = Number(
+          data.unreadCount ??
+            data.count ??
+            0
+        );
+
         setUnreadCount(
-          Number(
-            data.unreadCount ??
-              data.count ??
-              0
-          )
+          Number.isFinite(nextCount)
+            ? nextCount
+            : 0
         );
       } catch {
-        /*
-         * Notification count should never block the member portal.
-         * Keep the current value when a refresh fails.
-         */
+        // Notification refresh failure
+        // should not block the portal.
       }
     }, []);
 
@@ -187,6 +202,9 @@ export default function MemberLayout({
       ? "99+"
       : String(unreadCount);
 
+  const headerButtonClass =
+    "relative inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-950 hover:shadow-md active:scale-95 sm:h-12 sm:w-12";
+
   return (
     <MemberGuard>
       <SessionTimeout
@@ -209,10 +227,20 @@ export default function MemberLayout({
             </Link>
 
             <div className="flex items-center gap-2 sm:gap-3">
-              {/*
-               * Keep this right-side area separate from the bottom navigation.
-               * A customer-service button can be added beside the bell later.
-               */}
+              <button
+                type="button"
+                onClick={
+                  openCustomerSupport
+                }
+                aria-label="Open customer support"
+                title="Customer Support"
+                className={
+                  headerButtonClass
+                }
+              >
+                <Headset className="h-5 w-5 sm:h-6 sm:w-6" />
+              </button>
+
               <Link
                 href="/member/notifications"
                 aria-label={
@@ -220,7 +248,9 @@ export default function MemberLayout({
                     ? `${unreadCount} unread notifications`
                     : "Notifications"
                 }
-                className="relative inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-950 active:scale-95 sm:h-12 sm:w-12"
+                className={
+                  headerButtonClass
+                }
               >
                 <Bell className="h-5 w-5 sm:h-6 sm:w-6" />
 

@@ -9,61 +9,137 @@ import {
   useRouter,
 } from "next/navigation";
 import {
-  getMemberNotifications,
-  markMemberNotificationRead,
-  type MemberNotificationItem,
+  getMerchantNotifications,
+  markMerchantNotificationRead,
+  type MerchantNotificationItem,
 } from "@/lib/api";
 
-type StoredMember = {
-  memberId?: string;
-  MEMBER_ID?: string;
+type StoredMerchant = {
+  merchantId?: string;
+  MERCHANT_ID?: string;
   id?: string;
-  profile?: StoredMember;
-  member?: StoredMember;
-  data?: StoredMember;
+  profile?: StoredMerchant;
+  merchant?: StoredMerchant;
+  data?: StoredMerchant;
+  user?: StoredMerchant;
 };
 
-function getMemberIdFromStorage() {
-  if (typeof window === "undefined") {
+function findMerchantId(
+  value: unknown
+): string {
+  if (
+    !value ||
+    typeof value !== "object"
+  ) {
     return "";
   }
 
-  try {
-    const raw =
-      window.localStorage.getItem(
-        "member"
+  const record =
+    value as Record<
+      string,
+      unknown
+    >;
+
+  const directId = String(
+    record.merchantId ??
+      record.MERCHANT_ID ??
+      record.merchantID ??
+      record.id ??
+      ""
+  ).trim();
+
+  if (directId) {
+    return directId;
+  }
+
+  const nestedKeys = [
+    "profile",
+    "merchant",
+    "data",
+    "user",
+    "account",
+    "result",
+  ];
+
+  for (const key of nestedKeys) {
+    const nested =
+      record[key];
+
+    const found =
+      findMerchantId(
+        nested
       );
 
-    if (!raw) {
-      return "";
+    if (found) {
+      return found;
     }
+  }
 
-    const parsed: StoredMember =
-      JSON.parse(raw);
+  return "";
+}
 
-    return String(
-      parsed?.memberId ??
-        parsed?.MEMBER_ID ??
-        parsed?.id ??
-        parsed?.profile?.memberId ??
-        parsed?.profile?.MEMBER_ID ??
-        parsed?.member?.memberId ??
-        parsed?.member?.MEMBER_ID ??
-        parsed?.data?.memberId ??
-        parsed?.data?.MEMBER_ID ??
-        ""
-    ).trim();
-  } catch {
+function getMerchantIdFromStorage(): string {
+  if (
+    typeof window ===
+    "undefined"
+  ) {
     return "";
   }
+
+  const keys = [
+    "merchant",
+    "merchantData",
+    "merchantAuth",
+    "merchantSession",
+    "rewardhubMerchant",
+    "rewardhub_merchant",
+  ];
+
+  for (const storage of [
+    window.localStorage,
+    window.sessionStorage,
+  ]) {
+    for (const key of keys) {
+      try {
+        const raw =
+          storage.getItem(
+            key
+          );
+
+        if (!raw) {
+          continue;
+        }
+
+        const parsed =
+          JSON.parse(raw);
+
+        const merchantId =
+          findMerchantId(
+            parsed
+          );
+
+        if (merchantId) {
+          return merchantId;
+        }
+      } catch {
+        // Continue checking.
+      }
+    }
+  }
+
+  return "";
 }
 
 function unwrapData(
   result: unknown
-): Record<string, unknown> {
+): Record<
+  string,
+  unknown
+> {
   if (
     !result ||
-    typeof result !== "object"
+    typeof result !==
+      "object"
   ) {
     return {};
   }
@@ -76,7 +152,8 @@ function unwrapData(
 
   const first =
     root.data &&
-    typeof root.data === "object"
+    typeof root.data ===
+      "object"
       ? (root.data as Record<
           string,
           unknown
@@ -84,7 +161,8 @@ function unwrapData(
       : root;
 
   return first.data &&
-    typeof first.data === "object"
+    typeof first.data ===
+      "object"
     ? (first.data as Record<
         string,
         unknown
@@ -130,16 +208,19 @@ function formatDateTime(
 function dispatchNotificationUpdate() {
   window.dispatchEvent(
     new Event(
-      "rewardhub-notifications-updated"
+      "rewardhub-merchant-notifications-updated"
     )
   );
 }
 
-export default function MemberNotificationDetailPage() {
-  const router = useRouter();
-  const params = useParams<{
-    notificationId: string;
-  }>();
+export default function MerchantNotificationDetailPage() {
+  const router =
+    useRouter();
+
+  const params =
+    useParams<{
+      notificationId: string;
+    }>();
 
   const notificationId =
     decodeURIComponent(
@@ -153,7 +234,7 @@ export default function MemberNotificationDetailPage() {
     notification,
     setNotification,
   ] = useState<
-    MemberNotificationItem | null
+    MerchantNotificationItem | null
   >(null);
 
   const [
@@ -167,31 +248,39 @@ export default function MemberNotificationDetailPage() {
   ] = useState("");
 
   useEffect(() => {
-    async function loadDetail() {
-      const memberId =
-        getMemberIdFromStorage();
+    let cancelled = false;
 
-      if (!memberId) {
-        setError(
-          "Member session is unavailable. Please return to the dashboard and try again."
-        );
-        setLoading(false);
+    async function loadDetail() {
+      const merchantId =
+        getMerchantIdFromStorage();
+
+      if (!merchantId) {
+        if (!cancelled) {
+          setError(
+            "Merchant session is unavailable. Please return to the dashboard and try again."
+          );
+          setLoading(false);
+        }
+
         return;
       }
 
       if (!notificationId) {
-        setError(
-          "Notification ID is missing."
-        );
-        setLoading(false);
+        if (!cancelled) {
+          setError(
+            "Notification ID is missing."
+          );
+          setLoading(false);
+        }
+
         return;
       }
 
       try {
         const result =
-          await getMemberNotifications(
+          await getMerchantNotifications(
             {
-              memberId,
+              merchantId,
               limit: 500,
             }
           );
@@ -200,8 +289,10 @@ export default function MemberNotificationDetailPage() {
           unwrapData(result);
 
         const items =
-          Array.isArray(data.items)
-            ? (data.items as MemberNotificationItem[])
+          Array.isArray(
+            data.items
+          )
+            ? (data.items as MerchantNotificationItem[])
             : [];
 
         const matched =
@@ -212,52 +303,72 @@ export default function MemberNotificationDetailPage() {
           ) || null;
 
         if (!matched) {
-          setError(
-            "Notification not found."
-          );
+          if (!cancelled) {
+            setError(
+              "Notification not found."
+            );
+          }
+
           return;
         }
 
+        let updatedNotification =
+          matched;
+
         if (!matched.isRead) {
-          await markMemberNotificationRead(
+          await markMerchantNotificationRead(
             {
-              memberId,
+              merchantId,
               userNotificationId:
                 matched.userNotificationId,
             }
           );
 
-          matched.status =
-            "READ";
-
-          matched.isRead =
-            true;
-
-          matched.readAt =
-            new Date().toISOString();
+          updatedNotification =
+            {
+              ...matched,
+              status:
+                "READ",
+              isRead:
+                true,
+              readAt:
+                new Date().toISOString(),
+            };
 
           dispatchNotificationUpdate();
         }
 
-        setNotification(
-          matched
-        );
-      } catch (loadError) {
-        setError(
-          loadError instanceof Error
-            ? loadError.message
-            : "Unable to load notification."
-        );
+        if (!cancelled) {
+          setNotification(
+            updatedNotification
+          );
+        }
+      } catch (
+        loadError
+      ) {
+        if (!cancelled) {
+          setError(
+            loadError instanceof
+              Error
+              ? loadError.message
+              : "Unable to load notification."
+          );
+        }
       } finally {
-        setLoading(false);
+        if (!cancelled) {
+          setLoading(
+            false
+          );
+        }
       }
     }
 
-    loadDetail();
-  }, [
-    notificationId,
-    router,
-  ]);
+    void loadDetail();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [notificationId]);
 
   function goBack() {
     if (
@@ -269,7 +380,7 @@ export default function MemberNotificationDetailPage() {
     }
 
     router.push(
-      "/member/notifications"
+      "/merchant/notifications"
     );
   }
 
@@ -293,7 +404,9 @@ export default function MemberNotificationDetailPage() {
           <section className="rounded-[32px] border border-slate-200 bg-white p-6 shadow-sm sm:p-10">
             <button
               type="button"
-              onClick={goBack}
+              onClick={
+                goBack
+              }
               className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-black text-slate-700 transition hover:bg-slate-50"
             >
               ← Back
@@ -330,7 +443,9 @@ export default function MemberNotificationDetailPage() {
       <div className="mx-auto w-full max-w-4xl">
         <button
           type="button"
-          onClick={goBack}
+          onClick={
+            goBack
+          }
           className="mb-5 inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-black text-slate-700 shadow-sm transition hover:bg-slate-100"
         >
           ← Back to Notifications
@@ -341,11 +456,13 @@ export default function MemberNotificationDetailPage() {
             <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
               <div className="min-w-0">
                 <p className="text-xs font-black uppercase tracking-[0.22em] text-emerald-300">
-                  Member Notification
+                  Merchant Notification
                 </p>
 
                 <h1 className="mt-3 break-words text-3xl font-black tracking-tight sm:text-4xl">
-                  {notification.title}
+                  {
+                    notification.title
+                  }
                 </h1>
 
                 <p className="mt-4 text-sm font-bold text-slate-300">
@@ -376,7 +493,9 @@ export default function MemberNotificationDetailPage() {
 
             <div className="rounded-3xl bg-slate-50 p-5 sm:p-7">
               <p className="whitespace-pre-line text-base font-medium leading-8 text-slate-700 sm:text-lg">
-                {notification.message}
+                {
+                  notification.message
+                }
               </p>
             </div>
 
@@ -384,7 +503,9 @@ export default function MemberNotificationDetailPage() {
               <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
                 <button
                   type="button"
-                  onClick={goBack}
+                  onClick={
+                    goBack
+                  }
                   className="rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-black text-slate-700 transition hover:bg-slate-50"
                 >
                   Back to Notifications
