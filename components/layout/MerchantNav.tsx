@@ -28,9 +28,9 @@ type NavItem = {
 
 const primaryItems: NavItem[] = [
   {
-    label: "Dashboard",
-    href: "/merchant/dashboard",
-    icon: "🏠",
+    label: "Marketing",
+    href: "/merchant/marketing-fund",
+    icon: "📢",
   },
   {
     label: "Collect",
@@ -38,9 +38,9 @@ const primaryItems: NavItem[] = [
     icon: "💳",
   },
   {
-    label: "Products",
-    href: "/merchant/products",
-    icon: "📦",
+    label: "Dashboard",
+    href: "/merchant/dashboard",
+    icon: "🏠",
   },
   {
     label: "Transactions",
@@ -53,10 +53,12 @@ const primaryItems: NavItem[] = [
     icon: "💰",
   },
   {
-    label: "Marketing",
-    href: "/merchant/marketing-fund",
-    icon: "📢",
+    label: "Products",
+    href: "/merchant/products",
+    icon: "📦",
   },
+  
+  
 ];
 
 const moreItems: NavItem[] = [
@@ -79,9 +81,9 @@ const moreItems: NavItem[] = [
 
 const mobilePrimaryItems: NavItem[] = [
   {
-    label: "Home",
-    href: "/merchant/dashboard",
-    icon: "🏠",
+    label: "Marketing",
+    href: "/merchant/marketing-fund",
+    icon: "📢",
   },
   {
     label: "Collect",
@@ -89,14 +91,19 @@ const mobilePrimaryItems: NavItem[] = [
     icon: "💳",
   },
   {
-    label: "Products",
-    href: "/merchant/products",
-    icon: "📦",
+    label: "Dashboard",
+    href: "/merchant/dashboard",
+    icon: "🏠",
   },
   {
     label: "Transactions",
     href: "/merchant/transactions",
     icon: "📄",
+  },
+  {
+    label: "Settlement",
+    href: "/merchant/settlement",
+    icon: "💰",
   },
 ];
 
