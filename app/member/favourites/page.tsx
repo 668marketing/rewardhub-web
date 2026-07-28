@@ -3,12 +3,14 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import MemberLayout from "@/components/layout/MemberLayout";
+import { useLanguage } from "@/hooks/useLanguage";
 import {
   getMemberFavouriteMerchants,
   toggleFavouriteMerchant,
 } from "@/lib/api";
 
 export default function FavouriteMerchantsPage() {
+  const { t } = useLanguage();
   const [merchants, setMerchants] = useState<any[]>([]);
   const [memberId, setMemberId] = useState("");
   const [loading, setLoading] = useState(true);
@@ -85,7 +87,7 @@ export default function FavouriteMerchantsPage() {
     } catch (error: any) {
       alert(
         error?.message ||
-          "Failed to remove favourite merchant"
+          t("memberFavourites.removeFailed")
       );
     } finally {
       setRemovingId("");
@@ -100,7 +102,7 @@ export default function FavouriteMerchantsPage() {
             href="/member/dashboard"
             className="inline-flex rounded-full border border-slate-200 bg-white px-4 py-2.5 text-xs font-black text-slate-700 no-underline shadow-sm transition hover:bg-slate-50 sm:px-5 sm:py-3 sm:text-sm"
           >
-            ← Back to Dashboard
+            ← {t("memberFavourites.backToDashboard")}
           </Link>
 
           <section className="relative mt-5 overflow-hidden rounded-[1.75rem] bg-slate-950 p-5 text-white shadow-2xl sm:mt-6 sm:rounded-[2rem] sm:p-7 md:rounded-[2.5rem] md:p-10">
@@ -109,24 +111,23 @@ export default function FavouriteMerchantsPage() {
 
             <div className="relative">
               <p className="text-[10px] font-black uppercase tracking-[0.22em] text-amber-300 sm:text-xs sm:tracking-[0.25em]">
-                Favourite Merchants
+                {t("memberFavourites.eyebrow")}
               </p>
 
               <h1 className="mt-3 text-3xl font-black leading-tight sm:text-4xl md:text-5xl">
-                My Favourite Stores
+                {t("memberFavourites.title")}
               </h1>
 
               <p className="mt-2 max-w-2xl text-[11px] font-bold leading-5 text-slate-400 sm:mt-3 sm:text-sm sm:leading-6">
-                Quickly access merchants you saved and enjoy RewardHub member
-                benefits faster.
+                {t("memberFavourites.description")}
               </p>
 
               <div className="mt-6 grid grid-cols-2 gap-3 sm:mt-8 sm:gap-4">
                 <HeroStat
-                  title="Saved Merchants"
+                  title={t("memberFavourites.savedMerchants")}
                   value={merchants.length}
                 />
-                <HeroStat title="Quick Access" value="Ready" />
+                <HeroStat title={t("memberFavourites.quickAccess")} value={t("memberFavourites.ready")} />
               </div>
             </div>
           </section>
@@ -135,10 +136,10 @@ export default function FavouriteMerchantsPage() {
             <div className="flex items-start justify-between gap-4">
               <div className="min-w-0">
                 <h2 className="text-xl font-black text-slate-950 sm:text-2xl md:text-3xl">
-                  Favourite List
+                  {t("memberFavourites.favouriteList")}
                 </h2>
                 <p className="mt-1 text-[11px] font-bold leading-5 text-slate-500 sm:mt-2 sm:text-sm">
-                  Manage your saved merchants here.
+                  {t("memberFavourites.manageDescription")}
                 </p>
               </div>
 
@@ -146,7 +147,7 @@ export default function FavouriteMerchantsPage() {
                 href="/member/marketplace"
                 className="shrink-0 rounded-xl bg-slate-950 px-3 py-2.5 text-[10px] font-black text-white no-underline transition hover:bg-slate-800 sm:rounded-2xl sm:px-5 sm:py-4 sm:text-sm"
               >
-                Browse Marketplace
+                {t("memberFavourites.browseMarketplace")}
               </Link>
             </div>
 
@@ -212,6 +213,8 @@ function FavouriteCard({
   removing: boolean;
   onRemove: () => void;
 }) {
+  const { t } = useLanguage();
+
   const merchantId =
     merchant?.merchantId ||
     merchant?.MERCHANT_ID ||
@@ -222,12 +225,12 @@ function FavouriteCard({
     merchant?.DISPLAY_NAME ||
     merchant?.businessName ||
     merchant?.BUSINESS_NAME ||
-    "Merchant";
+    t("memberFavourites.merchant");
 
   const category =
     merchant?.category ||
     merchant?.CATEGORY ||
-    "Merchant";
+    t("memberFavourites.merchant");
 
   const area = merchant?.area || merchant?.AREA || "";
   const state = merchant?.state || merchant?.STATE || "";
@@ -291,22 +294,22 @@ function FavouriteCard({
 
           <div className="mt-4 grid grid-cols-2 gap-2 sm:mt-5 sm:gap-3">
             <InfoBox
-              title="Rating"
+              title={t("memberFavourites.rating")}
               value={
                 rating > 0
                   ? `★ ${rating.toFixed(1)}`
-                  : "No rating"
+                  : t("memberFavourites.noRating")
               }
             />
             <InfoBox
-              title="Budget"
+              title={t("memberFavourites.budget")}
               value={`${marketingBudget}%`}
               green
             />
           </div>
 
           <p className="mt-4 text-[10px] font-black text-slate-950 sm:mt-5 sm:text-sm">
-            View Store →
+            {t("memberFavourites.viewStore")} →
           </p>
         </div>
       </Link>
@@ -317,19 +320,20 @@ function FavouriteCard({
         disabled={removing}
         className="mx-4 mb-4 w-[calc(100%-2rem)] rounded-xl bg-red-50 px-4 py-2.5 sm:py-4 text-[10px] font-black text-red-600 transition hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-50 sm:mx-5 sm:mb-5 sm:w-[calc(100%-2.5rem)] sm:rounded-2xl sm:py-4 sm:text-sm"
       >
-        {removing ? "Removing..." : "Remove Favourite"}
+        {removing ? t("memberFavourites.removing") : t("memberFavourites.removeFavourite")}
       </button>
     </article>
   );
 }
 
 function MerchantLogo({ merchant }: { merchant: any }) {
+  const { t } = useLanguage();
   const name =
     merchant?.displayName ||
     merchant?.DISPLAY_NAME ||
     merchant?.businessName ||
     merchant?.BUSINESS_NAME ||
-    "Merchant";
+    t("memberFavourites.merchant");
 
   const logoUrl =
     merchant?.logoUrl ||
@@ -377,20 +381,22 @@ function InfoBox({
 }
 
 function EmptyState() {
+  const { t } = useLanguage();
+
   return (
     <div className="mt-5 rounded-[1.5rem] bg-slate-50 p-6 text-center sm:mt-6 sm:rounded-[2rem] sm:p-10">
       <p className="text-3xl sm:text-4xl">❤️</p>
       <h3 className="mt-3 text-xl font-black text-slate-950 sm:mt-4 sm:text-2xl">
-        No favourite merchants yet
+        {t("memberFavourites.emptyTitle")}
       </h3>
       <p className="mt-2 text-[11px] font-bold leading-5 text-slate-500 sm:text-sm">
-        Save merchants from Marketplace and they will appear here.
+        {t("memberFavourites.emptyDescription")}
       </p>
       <Link
         href="/member/marketplace"
         className="mt-5 inline-flex rounded-xl bg-slate-950 px-5 py-3 text-xs font-black text-white no-underline sm:mt-6 sm:rounded-2xl sm:px-6 sm:py-4 sm:text-sm"
       >
-        Discover Merchants
+        {t("memberFavourites.discoverMerchants")}
       </Link>
     </div>
   );

@@ -5,9 +5,11 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import MemberLayout from "@/components/layout/MemberLayout";
 import PushNotificationManager from "@/components/pwa/PushNotificationManager";
+import { useLanguage } from "@/hooks/useLanguage";
 
 export default function ProfilePage() {
   const router = useRouter();
+  const { t } = useLanguage();
   const [member, setMember] = useState<any>(null);
 
   useEffect(() => {
@@ -27,13 +29,21 @@ export default function ProfilePage() {
     router.push("/login");
   }
 
-  const name = member?.displayName || member?.fullName || "Member";
+  const name =
+    member?.displayName ||
+    member?.fullName ||
+    t("memberProfile.member");
+
   const tier = member?.tier || "Silver";
   const memberId = member?.memberId || member?.MEMBER_ID || "-";
   const email = member?.email || "-";
   const phone = member?.phone || "-";
   const gender = member?.gender || member?.GENDER || "-";
   const status = member?.status || "Active";
+
+  const localizedTier = getTierLabel(tier, t);
+  const localizedGender = getGenderLabel(gender, t);
+  const localizedStatus = getStatusLabel(status, t);
 
   const pushUserId = memberId === "-" ? "" : memberId;
 
@@ -45,7 +55,7 @@ export default function ProfilePage() {
             href="/member/dashboard"
             className="inline-flex rounded-full border border-slate-200 bg-white px-4 py-2.5 text-xs font-black text-slate-700 no-underline shadow-sm sm:px-5 sm:py-3 sm:text-sm"
           >
-            ← Back to Dashboard
+            ← {t("memberProfile.backToDashboard")}
           </Link>
 
           <div className="mt-5 rounded-[1.75rem] bg-slate-950 p-5 text-white shadow-2xl sm:mt-6 sm:rounded-[2rem] sm:p-7 md:rounded-[2.5rem] md:p-9">
@@ -61,7 +71,7 @@ export default function ProfilePage() {
 
                 <div className="min-w-0">
                   <p className="text-[10px] font-black uppercase tracking-[0.22em] text-amber-300 sm:text-xs sm:tracking-[0.25em]">
-                    Member Profile
+                    {t("memberProfile.memberProfile")}
                   </p>
 
                   <h1 className="mt-1 truncate text-2xl font-black sm:mt-2 sm:text-4xl md:text-5xl">
@@ -69,51 +79,94 @@ export default function ProfilePage() {
                   </h1>
 
                   <p className="mt-1 truncate text-[10px] font-bold text-slate-400 sm:mt-2 sm:text-sm">
-                    {tier} Member • {memberId}
+                    {localizedTier} {t("memberProfile.member")} • {memberId}
                   </p>
                 </div>
               </div>
 
-              <StatusBadge status={status} />
+              <StatusBadge
+                status={status}
+                label={localizedStatus}
+              />
             </div>
 
             <div className="mt-6 grid grid-cols-3 gap-3 sm:mt-8 sm:gap-4">
-              <StatCard title="Tier" value={tier} />
-              <StatCard title="Member ID" value={memberId} />
-              <StatCard title="Account Status" value={status} />
+              <StatCard
+                title={t("memberProfile.tier")}
+                value={localizedTier}
+              />
+              <StatCard
+                title={t("memberProfile.memberId")}
+                value={memberId}
+                compact
+              />
+              <StatCard
+                title={t("memberProfile.accountStatus")}
+                value={localizedStatus}
+              />
             </div>
           </div>
 
           <div className="mt-5 grid grid-cols-1 gap-5 sm:mt-6 lg:grid-cols-3 lg:gap-6">
             <div className="rounded-[1.75rem] bg-white p-4 shadow-sm sm:rounded-[2rem] sm:p-6 lg:col-span-2 lg:rounded-[2.5rem] lg:p-7">
               <h2 className="text-xl font-black text-slate-950 sm:text-2xl">
-                Personal Information
+                {t("memberProfile.personalInformation")}
               </h2>
 
               <p className="mt-1 text-[11px] font-bold text-slate-500 sm:mt-2 sm:text-sm">
-                Your RewardHub membership details.
+                {t("memberProfile.membershipDetails")}
               </p>
 
               <div className="mt-5 grid grid-cols-2 gap-3 sm:mt-6 sm:gap-4">
-                <InfoCard label="Full Name" value={name} />
-                <InfoCard label="Gender" value={gender || "-"} />
-                <InfoCard label="Member ID" value={memberId} />
-                <InfoCard label="Tier" value={`${tier} Member`} />
-                <InfoCard label="Email" value={email} />
-                <InfoCard label="Phone" value={phone} />
+                <InfoCard
+                  label={t("memberProfile.fullName")}
+                  value={name}
+                />
+                <InfoCard
+                  label={t("memberProfile.gender")}
+                  value={localizedGender}
+                />
+                <InfoCard
+                  label={t("memberProfile.memberId")}
+                  value={memberId}
+                />
+                <InfoCard
+                  label={t("memberProfile.tier")}
+                  value={`${localizedTier} ${t("memberProfile.member")}`}
+                />
+                <InfoCard
+                  label={t("memberProfile.email")}
+                  value={email}
+                />
+                <InfoCard
+                  label={t("memberProfile.phone")}
+                  value={phone}
+                />
               </div>
             </div>
 
             <div className="rounded-[1.75rem] bg-white p-4 shadow-sm sm:rounded-[2rem] sm:p-6 lg:rounded-[2.5rem] lg:p-7">
               <h2 className="text-xl font-black text-slate-950 sm:text-2xl">
-                Account Summary
+                {t("memberProfile.accountSummary")}
               </h2>
 
               <div className="mt-5 grid grid-cols-2 gap-3 sm:mt-6 sm:grid-cols-1 sm:gap-4">
-                <SummaryRow label="Membership" value="Lifetime" />
-                <SummaryRow label="Referral" value="Enabled" />
-                <SummaryRow label="Reward Credits" value="Enabled" />
-                <SummaryRow label="Security" value="Protected" />
+                <SummaryRow
+                  label={t("memberProfile.membership")}
+                  value={t("memberProfile.lifetime")}
+                />
+                <SummaryRow
+                  label={t("memberProfile.referral")}
+                  value={t("memberProfile.enabled")}
+                />
+                <SummaryRow
+                  label={t("memberProfile.rewardCredits")}
+                  value={t("memberProfile.enabled")}
+                />
+                <SummaryRow
+                  label={t("memberProfile.security")}
+                  value={t("memberProfile.protected")}
+                />
               </div>
             </div>
           </div>
@@ -127,42 +180,44 @@ export default function ProfilePage() {
 
           <div className="mt-5 rounded-[1.75rem] bg-white p-4 shadow-sm sm:mt-6 sm:rounded-[2.5rem] sm:p-7">
             <h2 className="text-xl font-black text-slate-950 sm:text-2xl">
-              Security
+              {t("memberProfile.security")}
             </h2>
 
             <p className="mt-1 text-[11px] font-bold text-slate-500 sm:mt-2 sm:text-sm">
-              Manage your account password and trusted devices.
+              {t("memberProfile.securityDescription")}
             </p>
 
             <div className="mt-5 grid grid-cols-2 gap-3 sm:mt-6 sm:gap-4">
               <ActionCard
-                title="Change Password"
-                subtitle="Update your account password"
+                title={t("memberProfile.changePassword")}
+                subtitle={t("memberProfile.changePasswordDescription")}
                 href="/member/change-password"
+                openLabel={t("memberProfile.open")}
               />
 
               <ActionCard
-                title="Devices"
-                subtitle="Manage your logged in devices"
+                title={t("memberProfile.devices")}
+                subtitle={t("memberProfile.devicesDescription")}
                 href="/member/devices"
+                openLabel={t("memberProfile.open")}
               />
             </div>
           </div>
 
           <div className="mt-5 rounded-[1.75rem] border border-red-100 bg-white p-4 shadow-sm sm:mt-6 sm:rounded-[2.5rem] sm:p-7">
             <h2 className="text-xl font-black text-red-600 sm:text-2xl">
-              Danger Zone
+              {t("memberProfile.dangerZone")}
             </h2>
 
             <p className="mt-1 text-[11px] font-bold text-slate-500 sm:mt-2 sm:text-sm">
-              This action will sign you out from this device.
+              {t("memberProfile.logoutDescription")}
             </p>
 
             <button
               onClick={logout}
               className="mt-5 w-full rounded-xl bg-red-600 py-3 text-xs font-black text-white shadow-xl shadow-red-600/20 sm:mt-6 sm:rounded-2xl sm:py-5 sm:text-sm"
             >
-              Logout
+              {t("memberProfile.logout")}
             </button>
           </div>
         </section>
@@ -171,7 +226,15 @@ export default function ProfilePage() {
   );
 }
 
-function StatCard({ title, value }: { title: string; value: any }) {
+function StatCard({
+  title,
+  value,
+  compact = false,
+}: {
+  title: string;
+  value: any;
+  compact?: boolean;
+}) {
   return (
     <div className="min-w-0 rounded-xl bg-white/10 p-3 text-white sm:rounded-[2rem] sm:p-6">
       <p className="truncate text-[9px] font-black text-slate-300 sm:text-sm">
@@ -180,7 +243,7 @@ function StatCard({ title, value }: { title: string; value: any }) {
 
       <h3
         className={`mt-1 break-words font-black leading-tight sm:mt-3 ${
-          title === "Member ID"
+          compact
             ? "text-[12px] sm:text-xl lg:text-2xl"
             : "text-sm sm:text-3xl"
         }`}
@@ -221,10 +284,12 @@ function ActionCard({
   title,
   subtitle,
   href,
+  openLabel,
 }: {
   title: string;
   subtitle: string;
   href: string;
+  openLabel: string;
 }) {
   return (
     <Link
@@ -236,14 +301,21 @@ function ActionCard({
         {subtitle}
       </p>
       <p className="mt-3 text-[10px] font-black text-slate-950 sm:mt-4 sm:text-sm">
-        Open →
+        {openLabel} →
       </p>
     </Link>
   );
 }
 
-function StatusBadge({ status }: { status: string }) {
-  const isActive = status === "Active";
+function StatusBadge({
+  status,
+  label,
+}: {
+  status: string;
+  label: string;
+}) {
+  const isActive =
+    String(status || "").trim().toLowerCase() === "active";
 
   return (
     <span
@@ -253,7 +325,87 @@ function StatusBadge({ status }: { status: string }) {
           : "bg-amber-400/15 text-amber-300"
       }`}
     >
-      {status}
+      {label}
     </span>
   );
+}
+
+function getTierLabel(
+  tier: unknown,
+  t: (key: string) => string
+) {
+  const normalized = String(tier || "")
+    .trim()
+    .toLowerCase();
+
+  if (normalized === "silver") {
+    return t("memberProfile.silver");
+  }
+
+  if (normalized === "gold") {
+    return t("memberProfile.gold");
+  }
+
+  if (normalized === "platinum") {
+    return t("memberProfile.platinum");
+  }
+
+  return String(tier || "-");
+}
+
+function getGenderLabel(
+  gender: unknown,
+  t: (key: string) => string
+) {
+  const normalized = String(gender || "")
+    .trim()
+    .toLowerCase();
+
+  if (normalized === "male") {
+    return t("memberProfile.male");
+  }
+
+  if (normalized === "female") {
+    return t("memberProfile.female");
+  }
+
+  if (
+    normalized === "other" ||
+    normalized === "others"
+  ) {
+    return t("memberProfile.other");
+  }
+
+  if (!normalized || normalized === "-") {
+    return "-";
+  }
+
+  return String(gender);
+}
+
+function getStatusLabel(
+  status: unknown,
+  t: (key: string) => string
+) {
+  const normalized = String(status || "")
+    .trim()
+    .toLowerCase();
+
+  if (normalized === "active") {
+    return t("memberProfile.active");
+  }
+
+  if (normalized === "inactive") {
+    return t("memberProfile.inactive");
+  }
+
+  if (normalized === "suspended") {
+    return t("memberProfile.suspended");
+  }
+
+  if (normalized === "pending") {
+    return t("memberProfile.pending");
+  }
+
+  return String(status || "-");
 }

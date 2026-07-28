@@ -1,45 +1,82 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import {
+  usePathname,
+} from "next/navigation";
 
-const navItems = [
+import {
+  useLanguage,
+} from "@/hooks/useLanguage";
+
+type NavItem = {
+  labelKey: string;
+  href: string;
+  icon: string;
+};
+
+const navItems: NavItem[] = [
   {
-    label: "Dashboard",
-    href: "/member/dashboard",
-    icon: "🏠",
+    labelKey:
+      "navigation.dashboard",
+    href:
+      "/member/dashboard",
+    icon:
+      "🏠",
   },
   {
-    label: "Points",
-    href: "/member/points",
-    icon: "💳",
+    labelKey:
+      "navigation.points",
+    href:
+      "/member/points",
+    icon:
+      "💳",
   },
   {
-    label: "Pay",
-    href: "/member/pay",
-    icon: "💰",
+    labelKey:
+      "navigation.pay",
+    href:
+      "/member/pay",
+    icon:
+      "💰",
   },
   {
-    label: "History",
-    href: "/member/transactions",
-    icon: "📜",
+    labelKey:
+      "navigation.transactions",
+    href:
+      "/member/transactions",
+    icon:
+      "📜",
   },
   {
-    label: "Referral",
-    href: "/member/commission",
-    icon: "👥",
+    labelKey:
+      "navigation.commission",
+    href:
+      "/member/commission",
+    icon:
+      "👥",
   },
   {
-    label: "Profile",
-    href: "/member/profile",
-    icon: "👤",
+    labelKey:
+      "navigation.profile",
+    href:
+      "/member/profile",
+    icon:
+      "👤",
   },
 ];
 
 export default function MemberBottomNav() {
-  const pathname = usePathname();
+  const pathname =
+    usePathname();
 
-  function isActive(href: string) {
+  const {
+    t,
+  } = useLanguage();
+
+  function isActive(
+    href: string
+  ) {
     return (
       pathname === href ||
       pathname.startsWith(
@@ -50,6 +87,9 @@ export default function MemberBottomNav() {
 
   return (
     <nav
+      aria-label={t(
+        "memberBottomNav.navigation"
+      )}
       className="
         fixed bottom-0 left-0 right-0 z-50
         border-t border-slate-200
@@ -81,6 +121,11 @@ export default function MemberBottomNav() {
                 item.href
               );
 
+            const label =
+              t(
+                item.labelKey
+              );
+
             return (
               <Link
                 key={
@@ -89,13 +134,17 @@ export default function MemberBottomNav() {
                 href={
                   item.href
                 }
+                aria-label={
+                  label
+                }
                 aria-current={
                   active
                     ? "page"
                     : undefined
                 }
                 className={`
-                  flex min-w-0 flex-col items-center justify-center
+                  flex min-w-0 flex-col
+                  items-center justify-center
                   rounded-2xl px-1 py-2
                   text-center no-underline
                   transition active:scale-95
@@ -107,7 +156,10 @@ export default function MemberBottomNav() {
                   }
                 `}
               >
-                <span className="text-lg leading-none sm:text-xl lg:text-2xl">
+                <span
+                  aria-hidden="true"
+                  className="text-lg leading-none sm:text-xl lg:text-2xl"
+                >
                   {
                     item.icon
                   }
@@ -115,7 +167,7 @@ export default function MemberBottomNav() {
 
                 <span className="mt-1 block w-full truncate text-[9px] font-black leading-none sm:text-[10px] lg:text-[11px]">
                   {
-                    item.label
+                    label
                   }
                 </span>
               </Link>

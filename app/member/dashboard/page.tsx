@@ -8,9 +8,10 @@ import {
   fetchMarketplaceMerchants,
   getMemberDashboard,
 } from "@/lib/api";
-
+import { useLanguage } from "@/hooks/useLanguage";
 
 export default function MemberDashboardPage() {
+  const { t, language } = useLanguage();
   const [member, setMember] = useState<any>(null);
   const [origin, setOrigin] = useState("");
   const [merchants, setMerchants] = useState<any[]>([]);
@@ -108,7 +109,7 @@ const name =
   profile?.fullName ||
   member?.displayName ||
   member?.fullName ||
-  "Member";
+  t("memberDashboard.fallbackMember");
 
 const memberId =
   profile?.memberId ||
@@ -136,7 +137,7 @@ const rewardCredits = Number(wallet?.rewardCredits || 0);
 const cashbackSaved = Number(wallet?.cashbackSaved || 0);
 const lifetimeSpending = Number(profile?.lifetimeSpending || 0);
 
-const tierInfo = getTierInfo(tier, lifetimeSpending);
+const tierInfo = getTierInfo(tier, lifetimeSpending, t);
 
   const referralUrl =
     origin && memberId !== "-" ? `${origin}/register?ref=${memberId}` : "";
@@ -161,30 +162,30 @@ const tierInfo = getTierInfo(tier, lifetimeSpending);
   <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
     <div>
       <p className="text-xs font-black uppercase tracking-[0.25em] text-amber-300">
-        RewardHub Member
+        {t("memberDashboard.rewardHubMember")}
       </p>
 
       <h1 className="mt-3 text-2xl font-black leading-tight sm:text-4xl lg:text-5xl">
-        Hi, {name} 👋
+        {t("memberDashboard.greeting", { name })} 👋
       </h1>
 
       <p className="mt-3 text-sm font-bold text-slate-400">
-        {tier} Member • {memberId}
+        {t("memberDashboard.memberTierLine", { tier, memberId })}
       </p>
 
       <div className="mt-4 flex flex-wrap gap-2 sm:mt-5 sm:gap-3">
-        <Badge text="Active Account" />
-        <Badge text="Lifetime Tier" />
-        <Badge text="Reward Credits Enabled" />
+        <Badge text={t("memberDashboard.activeAccount")} />
+        <Badge text={t("memberDashboard.lifetimeTier")} />
+        <Badge text={t("memberDashboard.rewardCreditsEnabled")} />
       </div>
     </div>
   </div>
 
   <div className="mt-8 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
-    <StatCard title="Current Tier" value={tier} />
-    <StatCard title="Points" value={`${points} pts`} />
-    <StatCard title="Reward Credits" value={`RM${money(rewardCredits)}`} />
-    <StatCard title="Cashback Saved" value={`RM${money(cashbackSaved)}`} />
+    <StatCard title={t("memberDashboard.currentTier")} value={tier} />
+    <StatCard title={t("memberDashboard.points")} value={t("memberDashboard.pointsValue", { points })} />
+    <StatCard title={t("memberDashboard.rewardCredits")} value={`RM${money(rewardCredits)}`} />
+    <StatCard title={t("memberDashboard.cashbackSaved")} value={`RM${money(cashbackSaved)}`} />
   </div>
 </div>
 
@@ -192,7 +193,7 @@ const tierInfo = getTierInfo(tier, lifetimeSpending);
   <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3 sm:items-center sm:gap-5">
     <div>
       <p className="text-xs font-black uppercase tracking-[0.25em] text-amber-600">
-        Membership Tier
+        {t("memberDashboard.membershipTier")}
       </p>
 
       <h2 className="mt-1 text-xl font-black leading-tight text-slate-950 sm:mt-2 sm:text-3xl">
@@ -206,7 +207,7 @@ const tierInfo = getTierInfo(tier, lifetimeSpending);
 
     <div className="shrink-0 rounded-xl bg-slate-950 px-3 py-3 text-white sm:rounded-2xl sm:px-6 sm:py-4">
       <p className="text-xs font-black text-slate-400">
-        Lifetime Spending
+        {t("memberDashboard.lifetimeSpending")}
       </p>
       <p className="mt-1 whitespace-nowrap text-lg font-black sm:text-2xl">
         RM{money(lifetimeSpending)}
@@ -233,9 +234,9 @@ const tierInfo = getTierInfo(tier, lifetimeSpending);
   </div>
 
  <div className="mt-4 grid grid-cols-3 gap-2 sm:mt-6 sm:gap-4">
-    <TierRate title="Silver" value="Marketing Budget × 10%" active={String(tier).toLowerCase() === "silver"}/>
-    <TierRate title="Gold" value="Marketing Budget × 20%" active={String(tier).toLowerCase() === "gold"} />
-    <TierRate title="Platinum" value="Marketing Budget × 30%" active={String(tier).toLowerCase() === "platinum"} />
+    <TierRate title={t("memberDashboard.silver")} value={t("memberDashboard.marketingBudget10")} active={String(tier).toLowerCase() === "silver"}/>
+    <TierRate title={t("memberDashboard.gold")} value={t("memberDashboard.marketingBudget20")} active={String(tier).toLowerCase() === "gold"} />
+    <TierRate title={t("memberDashboard.platinum")} value={t("memberDashboard.marketingBudget30")} active={String(tier).toLowerCase() === "platinum"} />
   </div>
 </div>
 
@@ -243,16 +244,15 @@ const tierInfo = getTierInfo(tier, lifetimeSpending);
             <div className="grid grid-cols-[minmax(0,1fr)_auto] items-end gap-3 lg:gap-5">
               <div>
                 <p className="text-xs font-black uppercase tracking-[0.25em] text-amber-600">
-                  Marketplace
+                  {t("memberDashboard.marketplace")}
                 </p>
 
                 <h2 className="mt-1 text-xl font-black leading-tight text-slate-950 sm:mt-2 sm:text-3xl lg:text-4xl">
-                  Top Rated Merchants
+                  {t("memberDashboard.topRatedMerchants")}
                 </h2>
 
                 <p className="mt-1 max-w-2xl text-xs font-bold leading-5 text-slate-500 sm:mt-2 sm:text-sm">
-                  Discover popular RewardHub merchants with great reviews,
-                  member rewards and Reward Credits support.
+                  {t("memberDashboard.marketplaceDescription")}
                 </p>
               </div>
 
@@ -260,11 +260,11 @@ const tierInfo = getTierInfo(tier, lifetimeSpending);
                 href="/member/marketplace"
                 className="shrink-0 rounded-xl bg-slate-950 px-3 py-2.5 text-center text-[11px] font-black text-white no-underline sm:rounded-2xl sm:px-6 sm:py-4 sm:text-sm"
               >
-                View Full Marketplace →
+                {t("memberDashboard.viewFullMarketplace")} →
               </Link>
             </div>
 
-            <div className="mt-4 flex gap-3 overflow-x-auto pb-3 sm:mt-6 sm:gap-4">
+            <div className="mt-4 flex gap-3 overflow-x-auto pb-8 sm:mt-6 sm:gap-4 sm:pb-10">
               {topMerchants.length > 0 ? (
                 topMerchants.map((merchant: any) => (
                   <MerchantCard
@@ -275,8 +275,8 @@ const tierInfo = getTierInfo(tier, lifetimeSpending);
               ) : (
                 <div className="w-full rounded-3xl bg-slate-50 p-10 text-center text-sm font-bold text-slate-500">
                   {loadingMerchants
-                    ? "Loading marketplace merchants..."
-                    : "No merchants available yet."}
+                    ? t("memberDashboard.loadingMarketplace")
+                    : t("memberDashboard.noMerchants")}
                 </div>
               )}
             </div>
@@ -284,27 +284,27 @@ const tierInfo = getTierInfo(tier, lifetimeSpending);
 
           <div className="mt-4 grid grid-cols-2 gap-3 sm:mt-6 sm:gap-4 xl:grid-cols-4">
             <ActionCard
-              title="Pay QR"
-              desc="Show your QR code when paying at RewardHub merchants."
+              title={t("memberDashboard.payQr")}
+              desc={t("memberDashboard.payQrDescription")}
               href="/member/pay"
               dark
             />
 
             <ActionCard
-              title="Favourite"
-              desc="View spending, cashback, points and Reward Credits usage."
+              title={t("memberDashboard.favourite")}
+              desc={t("memberDashboard.favouriteDescription")}
               href="/member/favourites"
             />
 
             <ActionCard
-  title="Physical Card"
-  desc="Apply for your official RewardHub membership card."
+  title={t("memberDashboard.physicalCard")}
+  desc={t("memberDashboard.physicalCardDescription")}
   href="/member/card-application"
 />
 
             <ActionCard
-              title="Referral Center"
-              desc="Share your link and grow your Reward Credits."
+              title={t("memberDashboard.referralCenter")}
+              desc={t("memberDashboard.referralCenterDescription")}
               href="/member/commission"
             />
           </div>
@@ -313,10 +313,10 @@ const tierInfo = getTierInfo(tier, lifetimeSpending);
   <div className="flex items-center justify-between gap-3 sm:gap-4">
     <div>
       <h2 className="text-lg font-black leading-tight text-slate-950 sm:text-2xl">
-        Recent Transactions
+        {t("memberDashboard.recentTransactions")}
       </h2>
       <p className="mt-1 text-xs font-bold text-slate-500 sm:text-sm">
-        Your latest RewardHub payments.
+        {t("memberDashboard.latestPayments")}
       </p>
     </div>
 
@@ -324,7 +324,7 @@ const tierInfo = getTierInfo(tier, lifetimeSpending);
       href="/member/transactions"
       className="shrink-0 rounded-xl bg-slate-950 px-3 py-2.5 text-center text-[11px] font-black text-white no-underline sm:rounded-2xl sm:px-6 sm:py-4 sm:text-sm"
     >
-      View All
+      {t("common.viewAll")}
     </Link>
   </div>
 
@@ -340,7 +340,7 @@ const tierInfo = getTierInfo(tier, lifetimeSpending);
           </p>
 
           <p className="mt-1 text-xs font-bold text-slate-500 sm:text-sm">
-            {formatDate(tx.createdAt)} • {tx.paymentMethod || "-"}
+            {formatDate(tx.createdAt, language)} • {tx.paymentMethod || "-"}
           </p>
 
           <p className="mt-1 max-w-[180px] truncate text-[10px] font-bold text-slate-400 sm:max-w-none sm:text-xs">
@@ -354,7 +354,7 @@ const tierInfo = getTierInfo(tier, lifetimeSpending);
           </p>
 
           <p className="mt-1 whitespace-nowrap text-[11px] font-bold text-emerald-700 sm:text-sm">
-            Cashback RM{money(tx.cashback)}
+            {t("memberDashboard.cashbackAmount", { amount: money(tx.cashback) })}
           </p>
         </div>
       </div>
@@ -362,13 +362,13 @@ const tierInfo = getTierInfo(tier, lifetimeSpending);
 
     {!loadingDashboard && recentTransactions.length === 0 && (
       <div className="rounded-3xl bg-slate-50 p-8 text-center text-sm font-bold text-slate-500">
-        No transactions yet.
+        {t("memberDashboard.noTransactions")}
       </div>
     )}
 
     {loadingDashboard && (
       <div className="rounded-3xl bg-slate-50 p-8 text-center text-sm font-bold text-slate-500">
-        Loading dashboard...
+        {t("memberDashboard.loadingDashboard")}
       </div>
     )}
   </div>
@@ -377,35 +377,35 @@ const tierInfo = getTierInfo(tier, lifetimeSpending);
           <div className="mt-4 grid grid-cols-[minmax(0,1.7fr)_minmax(145px,0.8fr)] gap-3 sm:mt-6 sm:gap-6 lg:grid-cols-3">
             <div className="min-w-0 rounded-[1.5rem] bg-white p-4 shadow-sm sm:rounded-[2rem] sm:p-7 lg:col-span-2">
               <h2 className="text-lg font-black leading-tight text-slate-950 sm:text-2xl">
-                Account Overview
+                {t("memberDashboard.accountOverview")}
               </h2>
 
               <p className="mt-1 text-[11px] font-bold leading-5 text-slate-500 sm:mt-2 sm:text-sm">
-                Your RewardHub account details and membership status.
+                {t("memberDashboard.accountOverviewDescription")}
               </p>
 
               <div className="mt-4 grid grid-cols-2 gap-2 sm:mt-6 sm:gap-4">
-                <DetailCard label="Name" value={name} />
-                <DetailCard label="Tier" value={tier} />
-                <DetailCard label="Email" value={email} />
-                <DetailCard label="Phone" value={phone} />
+                <DetailCard label={t("memberDashboard.name")} value={name} />
+                <DetailCard label={t("memberDashboard.tier")} value={tier} />
+                <DetailCard label={t("memberDashboard.email")} value={email} />
+                <DetailCard label={t("memberDashboard.phone")} value={phone} />
               </div>
 
               <Link
                 href="/member/profile"
                 className="mt-4 block rounded-xl border border-slate-200 py-2.5 text-center text-xs font-black text-slate-950 no-underline sm:mt-6 sm:rounded-2xl sm:py-4 sm:text-sm"
               >
-                View Profile
+                {t("memberDashboard.viewProfile")}
               </Link>
             </div>
 
             <div className="min-w-0 rounded-[1.5rem] bg-white p-3 shadow-sm sm:rounded-[2rem] sm:p-7">
               <h2 className="text-lg font-black leading-tight text-slate-950 sm:text-2xl">
-                Referral QR
+                {t("memberDashboard.referralQr")}
               </h2>
 
               <p className="mt-1 text-[10px] font-bold leading-4 text-slate-500 sm:mt-2 sm:text-sm">
-                Share this QR to invite new members.
+                {t("memberDashboard.referralQrDescription")}
               </p>
 
               <div className="mt-3 flex justify-center rounded-xl bg-slate-50 p-2 sm:mt-6 sm:rounded-[2rem] sm:p-6">
@@ -417,20 +417,20 @@ const tierInfo = getTierInfo(tier, lifetimeSpending);
                   />
                 ) : (
                   <div className="flex aspect-square w-full max-w-[110px] items-center justify-center rounded-xl bg-slate-100 text-[10px] font-bold text-slate-400 sm:max-w-[190px] sm:rounded-2xl sm:text-xs">
-                    Loading QR
+                    {t("memberDashboard.loadingQr")}
                   </div>
                 )}
               </div>
 
               <p className="mt-2 truncate text-center text-[9px] font-black text-slate-500 sm:mt-4 sm:text-sm">
-                Referrer ID: {memberId}
+                {t("memberDashboard.referrerId", { memberId })}
               </p>
 
               <Link
                 href="/member/commission"
                 className="mt-3 block rounded-xl bg-slate-950 py-2.5 text-center text-[10px] font-black text-white no-underline sm:mt-5 sm:rounded-2xl sm:py-4 sm:text-sm"
               >
-                Referral Center
+                {t("memberDashboard.referralCenter")}
               </Link>
             </div>
           </div>
@@ -441,16 +441,19 @@ const tierInfo = getTierInfo(tier, lifetimeSpending);
 }
 
 function MerchantCard({ merchant }: { merchant: any }) {
+  const { t } = useLanguage();
+  const [logoFailed, setLogoFailed] = useState(false);
+
   const merchantName =
     merchant.storeName ||
     merchant.businessName ||
     merchant.displayName ||
     merchant.name ||
-    "RewardHub Merchant";
+    t("memberDashboard.fallbackMerchant");
 
   const merchantId = merchant.merchantId || merchant.MERCHANT_ID || "";
-  const category = merchant.category || "Merchant";
-  const location = merchant.location || merchant.city || "Malaysia";
+  const category = merchant.category || t("memberDashboard.merchant");
+  const location = merchant.location || merchant.city || t("memberDashboard.malaysia");
  const rating = Number(
   merchant.averageRating ||
   merchant.rating ||
@@ -468,26 +471,49 @@ function MerchantCard({ merchant }: { merchant: any }) {
     merchant.acceptRewardCredits !== false &&
     merchant.rewardCreditsAccepted !== false;
 
+  const logoUrl =
+  String(
+    merchant?.logoUrl ||
+    merchant?.LOGO_URL ||
+    merchant?.merchantLogo ||
+    merchant?.MERCHANT_LOGO ||
+    ""
+  ).trim();
+
+  const showLogo =
+    Boolean(logoUrl) &&
+    !logoFailed;
+
   return (
     <Link
       href={`/member/merchant/${merchantId}`}
-      className="min-w-[220px] rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4 no-underline transition hover:-translate-y-1 hover:bg-white hover:shadow-xl sm:min-w-[260px] sm:rounded-[2rem] sm:p-5 lg:min-w-[280px]"
+      className="flex min-h-[420px] min-w-[230px] flex-col rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4 no-underline transition hover:-translate-y-1 hover:bg-white hover:shadow-xl sm:min-h-[450px] sm:min-w-[270px] sm:rounded-[2rem] sm:p-5 lg:min-w-[290px]"
     >
       <div className="flex items-start justify-between">
         <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-950 text-base font-black text-white sm:h-16 sm:w-16 sm:rounded-2xl sm:text-xl">
-          {merchant.logoUrl ? (
+          {showLogo ? (
             <img
-              src={merchant.logoUrl}
-              alt={merchantName}
-              className="h-full w-full rounded-2xl object-cover"
-            />
+  src={getDisplayImageUrl(
+    logoUrl
+  )}
+  alt={merchantName}
+  loading="lazy"
+  decoding="async"
+  referrerPolicy="no-referrer"
+  onError={() => {
+    setLogoFailed(true);
+  }}
+  className="h-full w-full rounded-xl object-cover sm:rounded-2xl"
+/>
           ) : (
-            merchantName.slice(0, 2).toUpperCase()
+            merchantName
+              .slice(0, 2)
+              .toUpperCase()
           )}
         </div>
 
         <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-black text-amber-700">
-  {reviews > 0 ? `★ ${rating.toFixed(1)}` : "New"}
+  {reviews > 0 ? `★ ${rating.toFixed(1)}` : t("memberDashboard.new")}
 </span>
       </div>
 
@@ -495,40 +521,44 @@ function MerchantCard({ merchant }: { merchant: any }) {
         {merchantName}
       </h3>
 
-      <p className="mt-1 text-xs font-bold text-slate-500 sm:text-sm">
+      <p className="mt-1 min-h-10 line-clamp-2 text-xs font-bold leading-5 text-slate-500 sm:min-h-11 sm:text-sm">
         {category} • {location}
       </p>
 
       <div className="mt-4 grid grid-cols-2 gap-2 sm:mt-5 sm:gap-3">
         <div className="rounded-xl bg-white p-3 sm:rounded-2xl sm:p-4">
-          <p className="text-xs font-black text-slate-400">Cashback</p>
+          <p className="min-h-8 text-[11px] font-black leading-4 text-slate-400 sm:text-xs">
+            {t("memberDashboard.cashback")}
+          </p>
           <p className="mt-1 text-sm font-black text-emerald-700 sm:text-base lg:text-lg">
             {cashback}%
           </p>
         </div>
 
         <div className="rounded-xl bg-white p-3 sm:rounded-2xl sm:p-4">
-          <p className="text-xs font-black text-slate-400">Reviews</p>
+          <p className="min-h-8 text-[11px] font-black leading-4 text-slate-400 sm:text-xs">
+            {t("memberDashboard.reviews")}
+          </p>
           <p className="mt-1 text-sm font-black text-slate-950 sm:text-base lg:text-lg">
-            {reviews || "New"}
+            {reviews || t("memberDashboard.new")}
           </p>
         </div>
       </div>
 
-      <div className="mt-3 flex flex-wrap gap-1.5 sm:mt-4 sm:gap-2">
+      <div className="mt-3 flex min-h-16 flex-wrap content-start gap-1.5 sm:mt-4 sm:gap-2">
         <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-black text-emerald-700">
-          Member Rewards
+          {t("memberDashboard.memberRewards")}
         </span>
 
         {acceptsCredits && (
           <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-black text-blue-700">
-            Credits Accepted
+            {t("memberDashboard.creditsAccepted")}
           </span>
         )}
       </div>
 
-      <p className="mt-4 text-xs font-black text-slate-950 sm:mt-5 sm:text-sm">
-        View Store →
+      <p className="mt-auto pt-4 text-xs font-black text-slate-950 sm:pt-5 sm:text-sm">
+        {t("memberDashboard.viewStore")} →
       </p>
     </Link>
   );
@@ -565,6 +595,8 @@ function ActionCard({
   href: string;
   dark?: boolean;
 }) {
+  const { t } = useLanguage();
+
   return (
     <Link
       href={href}
@@ -581,7 +613,7 @@ function ActionCard({
       </p>
 
       <p className={`mt-3 text-xs font-black sm:mt-5 sm:text-sm ${dark ? "text-amber-300" : "text-slate-950"}`}>
-        Open →
+        {t("memberDashboard.open")} →
       </p>
     </Link>
   );
@@ -612,10 +644,20 @@ function money(value: any) {
   return Number(value || 0).toFixed(2);
 }
 
-function formatDate(date: any) {
+function formatDate(
+  date: any,
+  language: "en" | "zh" | "ms"
+) {
   if (!date) return "-";
 
-  return new Date(date).toLocaleString("en-GB", {
+  const locale =
+    language === "zh"
+      ? "zh-CN"
+      : language === "ms"
+        ? "ms-MY"
+        : "en-GB";
+
+  return new Date(date).toLocaleString(locale, {
     timeZone: "Asia/Kuala_Lumpur",
     day: "2-digit",
     month: "short",
@@ -654,17 +696,24 @@ function TierRate({
   );
 }
 
-function getTierInfo(tier: string, spending: number) {
+function getTierInfo(
+  tier: string,
+  spending: number,
+  t: (
+    key: string,
+    variables?: Record<string, string | number>
+  ) => string
+) {
   const currentTier = String(tier || "Silver").toLowerCase();
 
   if (currentTier === "platinum" || spending >= 15000) {
     return {
-      title: "Platinum Tier Unlocked",
-      description: "You have reached the highest lifetime member tier.",
+      title: t("memberDashboard.platinumTierUnlocked"),
+      description: t("memberDashboard.highestTierReached"),
       startLabel: "RM15,000",
-      endLabel: "Highest Tier",
+      endLabel: t("memberDashboard.highestTier"),
       progress: 100,
-      note: "Platinum members receive Marketing Budget × 30% cashback.",
+      note: t("memberDashboard.platinumCashbackNote"),
     };
   }
 
@@ -673,12 +722,12 @@ function getTierInfo(tier: string, spending: number) {
     const remaining = Math.max(0, 15000 - spending);
 
     return {
-      title: "Gold Member",
-      description: "Spend more to unlock Platinum lifetime tier.",
+      title: t("memberDashboard.goldMember"),
+      description: t("memberDashboard.unlockPlatinumDescription"),
       startLabel: "RM5,000",
       endLabel: "RM15,000",
       progress,
-      note: `Spend RM${money(remaining)} more to unlock Platinum.`,
+      note: t("memberDashboard.spendMorePlatinum", { amount: money(remaining) }),
     };
   }
 
@@ -686,11 +735,75 @@ function getTierInfo(tier: string, spending: number) {
   const remaining = Math.max(0, 5000 - spending);
 
   return {
-    title: "Silver Member",
-    description: "Spend more to unlock Gold lifetime tier.",
+    title: t("memberDashboard.silverMember"),
+    description: t("memberDashboard.unlockGoldDescription"),
     startLabel: "RM0",
     endLabel: "RM5,000",
     progress,
-    note: `Spend RM${money(remaining)} more to unlock Gold.`,
+    note: t("memberDashboard.spendMoreGold", { amount: money(remaining) }),
   };
+}
+
+function getDriveFileId(
+  value: string
+) {
+  const url = String(
+    value || ""
+  ).trim();
+
+  if (!url) {
+    return "";
+  }
+
+  const patterns = [
+    /[?&]id=([a-zA-Z0-9_-]+)/i,
+    /\/file\/d\/([a-zA-Z0-9_-]+)/i,
+    /\/d\/([a-zA-Z0-9_-]+)/i,
+    /googleusercontent\.com\/d\/([a-zA-Z0-9_-]+)/i,
+  ];
+
+  for (const pattern of patterns) {
+    const match =
+      url.match(pattern);
+
+    if (match?.[1]) {
+      return match[1];
+    }
+  }
+
+  return "";
+}
+
+function getDisplayImageUrl(
+  value: string
+) {
+  const url = String(
+    value || ""
+  ).trim();
+
+  if (!url) {
+    return "";
+  }
+
+  if (
+    url.startsWith(
+      "/api/drive-image"
+    )
+  ) {
+    return url;
+  }
+
+  const fileId =
+    getDriveFileId(url);
+
+  if (fileId) {
+    return (
+      "/api/drive-image?id=" +
+      encodeURIComponent(
+        fileId
+      )
+    );
+  }
+
+  return url;
 }

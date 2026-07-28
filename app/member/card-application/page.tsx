@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import MemberLayout from "@/components/layout/MemberLayout";
+import { useLanguage } from "@/hooks/useLanguage";
 import {
   getMemberCardApplication,
   submitMemberCardApplication,
@@ -189,6 +190,7 @@ type CardApplicationResponse = {
 };
 
 export default function CardApplicationPage() {
+  const { t } = useLanguage();
   const [memberId, setMemberId] = useState("");
   const [sessionMissing, setSessionMissing] = useState(false);
   const [loadError, setLoadError] = useState("");
@@ -364,7 +366,7 @@ const replacementAllowed =
 
       setLoadError(
         error?.message ||
-          "Unable to load physical card information."
+          t("memberCard.unableToLoadPhysicalCard")
       );
       setApplications([]);
       setActiveApplication(null);
@@ -387,7 +389,7 @@ const replacementAllowed =
     };
 
     reader.onerror = () => {
-      reject(new Error("Unable to read image"));
+      reject(new Error(t("memberCard.unableToReadImage")));
     };
 
     reader.readAsDataURL(file);
@@ -400,12 +402,12 @@ async function handleReceiptUpload(file: File) {
   }
 
   if (!file.type.startsWith("image/")) {
-    alert("Please upload an image receipt.");
+    alert(t("memberCard.uploadImageReceipt"));
     return;
   }
 
   if (file.size > 5 * 1024 * 1024) {
-    alert("Receipt image must not exceed 5MB.");
+    alert(t("memberCard.receiptMax5Mb"));
     return;
   }
 
@@ -423,13 +425,13 @@ async function handleReceiptUpload(file: File) {
       base64,
     });
 
-    alert("Payment receipt submitted successfully.");
+    alert(t("memberCard.receiptSubmittedSuccessfully"));
 
     await loadApplication();
   } catch (error: any) {
     alert(
       error?.message ||
-        "Unable to upload payment receipt."
+        t("memberCard.unableToUploadReceipt")
     );
   } finally {
     setUploadingReceipt(false);
@@ -467,68 +469,68 @@ async function handleReceiptUpload(file: File) {
     };
 
     if (!payload.memberId) {
-      alert("Member ID missing. Please login again.");
+      alert(t("memberCard.memberIdMissing"));
       return;
     }
 
     if (!payload.fullName) {
-      alert("Please enter your full name.");
+      alert(t("memberCard.enterFullName"));
       return;
     }
 
     if (!payload.phone) {
-      alert("Please enter your phone number.");
+      alert(t("memberCard.enterPhone"));
       return;
     }
 
     if (!payload.email) {
-      alert("Please enter your email.");
+      alert(t("memberCard.enterEmail"));
       return;
     }
 
     if (!isValidEmail(payload.email)) {
-      alert("Please enter a valid email address.");
+      alert(t("memberCard.enterValidEmail"));
       return;
     }
 
     if (!payload.address) {
-      alert("Please enter your delivery address.");
+      alert(t("memberCard.enterDeliveryAddress"));
       return;
     }
 
     if (!payload.state) {
-      alert("Please select your state.");
+      alert(t("memberCard.selectStateAlert"));
       return;
     }
 
     if (!payload.area) {
-      alert("Please select your area.");
+      alert(t("memberCard.selectAreaAlert"));
       return;
     }
 
     if (!/^\d{5}$/.test(payload.postcode)) {
-      alert("Please enter a valid 5-digit postcode.");
+      alert(t("memberCard.enterValidPostcode"));
       return;
     }
 
     if (payload.deliveryNote.length > 500) {
-      alert("Delivery note must not exceed 500 characters.");
+      alert(t("memberCard.deliveryNoteMax"));
       return;
     }
 
     if (applicationType === "Replacement Card") {
       if (!payload.lossReason) {
-        alert("Please explain why you need a replacement card.");
+        alert(t("memberCard.explainReplacementReason"));
         return;
       }
 
       if (!payload.freezeOldCard) {
-        alert("Please confirm that the old card should be frozen.");
+        alert(t("memberCard.confirmFreezeOldCard"));
         return;
       }
 
       const confirmed = window.confirm(
-        "The replacement fee is RM8 and your old card will be frozen immediately. Continue?"
+        t("memberCard.replacementConfirmation")
       );
 
       if (!confirmed) {
@@ -543,8 +545,8 @@ async function handleReceiptUpload(file: File) {
 
       alert(
         applicationType === "Replacement Card"
-          ? "Replacement card application submitted. RM8 payment is required."
-          : "Physical card application submitted successfully."
+          ? t("memberCard.replacementSubmitted")
+          : t("memberCard.firstCardSubmitted")
       );
 
       resetDeliveryForm();
@@ -553,7 +555,7 @@ async function handleReceiptUpload(file: File) {
     } catch (error: any) {
       alert(
         error?.message ||
-          "Unable to submit physical card application."
+          t("memberCard.unableToSubmitApplication")
       );
     } finally {
       setSubmitting(false);
@@ -570,8 +572,8 @@ async function handleReceiptUpload(file: File) {
 
     const confirmed = window.confirm(
       isReplacement
-        ? "Cancel this replacement application? Your old card will be restored to Active if it was frozen."
-        : "Cancel this physical card application?"
+        ? t("memberCard.cancelReplacementConfirmation")
+        : t("memberCard.cancelFirstCardConfirmation")
     );
 
     if (!confirmed) {
@@ -586,12 +588,12 @@ async function handleReceiptUpload(file: File) {
         applicationId: activeApplication.applicationId,
       });
 
-      alert("Application cancelled successfully.");
+      alert(t("memberCard.applicationCancelled"));
       await loadApplication();
     } catch (error: any) {
       alert(
         error?.message ||
-          "Unable to cancel application."
+          t("memberCard.unableToCancelApplication")
       );
     } finally {
       setCancelling(false);
@@ -606,7 +608,7 @@ async function handleReceiptUpload(file: File) {
             <div className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-slate-300 border-t-slate-950" />
 
             <p className="mt-4 text-sm font-black text-slate-500">
-              Loading Card Application...
+              {t("memberCard.loadingApplication")}
             </p>
           </div>
         </main>
@@ -622,18 +624,18 @@ async function handleReceiptUpload(file: File) {
             <p className="text-4xl">🔒</p>
 
             <h1 className="mt-4 text-2xl font-black text-slate-950">
-              Login Required
+              {t("memberCard.loginRequired")}
             </h1>
 
             <p className="mt-2 text-sm font-bold leading-6 text-slate-500">
-              Please login to manage your physical card application.
+              {t("memberCard.loginDescription")}
             </p>
 
             <Link
               href="/login"
               className="mt-6 block rounded-2xl bg-slate-950 py-4 text-sm font-black text-white no-underline"
             >
-              Member Login
+              {t("memberCard.memberLogin")}
             </Link>
           </div>
         </main>
@@ -660,7 +662,7 @@ async function handleReceiptUpload(file: File) {
             href="/member/dashboard"
             className="inline-flex rounded-full border border-slate-200 bg-white px-4 py-2.5 text-xs font-black text-slate-700 no-underline shadow-sm sm:px-5 sm:py-3 sm:text-sm"
           >
-            ← Back to Dashboard
+            ← {t("memberCard.backToDashboard")}
           </Link>
 
           <section className="relative mt-5 overflow-hidden rounded-[1.75rem] bg-slate-950 p-5 text-white shadow-2xl sm:mt-6 sm:rounded-[2rem] sm:p-7 md:rounded-[2.5rem] md:p-10">
@@ -668,32 +670,31 @@ async function handleReceiptUpload(file: File) {
 
             <div className="relative">
               <p className="text-[10px] font-black uppercase tracking-[0.22em] text-amber-300 sm:text-xs">
-                RewardHub Physical Card
+                {t("memberCard.rewardhubPhysicalCard")}
               </p>
 
               <h1 className="mt-3 text-3xl font-black sm:text-4xl md:text-5xl">
-                Physical Membership Card
+                {t("memberCard.physicalMembershipCard")}
               </h1>
 
               <p className="mt-2 max-w-2xl text-[11px] font-bold leading-5 text-slate-400 sm:text-sm">
-                Your first card is free. A lost, stolen or damaged card can be
-                replaced for RM8 after the old card is frozen.
+                {t("memberCard.heroDescription")}
               </p>
 
               <div className="mt-6 grid grid-cols-2 gap-3 sm:mt-8 sm:gap-4">
                 <HeroStat
-                  title="Current Status"
+                  title={t("memberCard.currentStatus")}
                   value={
                     activeApplication?.status ||
                     profileCardStatus ||
                     (hasExistingCard
-                      ? "Card Issued"
-                      : "Not Applied")
+                      ? t("memberCard.cardIssued")
+                      : t("memberCard.notApplied"))
                   }
                 />
 
                 <HeroStat
-                  title="Member ID"
+                  title={t("memberCard.memberId")}
                   value={memberId || "-"}
                 />
               </div>
@@ -703,7 +704,7 @@ async function handleReceiptUpload(file: File) {
           {loadError && (
             <section className="mt-5 rounded-[1.5rem] border border-red-100 bg-red-50 p-4 sm:mt-6 sm:rounded-[2rem] sm:p-5">
               <p className="text-sm font-black text-red-700">
-                Unable to load card information
+                {t("memberCard.unableToLoadCardInformation")}
               </p>
 
               <p className="mt-1 text-xs font-bold leading-5 text-red-600">
@@ -715,7 +716,7 @@ async function handleReceiptUpload(file: File) {
                 onClick={() => void loadApplication()}
                 className="mt-4 rounded-xl bg-red-600 px-5 py-3 text-xs font-black text-white"
               >
-                Try Again
+                {t("memberCard.tryAgain")}
               </button>
             </section>
           )}
@@ -819,7 +820,7 @@ async function handleReceiptUpload(file: File) {
                 }}
                 className="mt-3 w-full rounded-2xl bg-white py-4 text-sm font-black text-slate-600 shadow-sm"
               >
-                Close Replacement Form
+                {t("memberCard.closeReplacementForm")}
               </button>
             </>
           )}
@@ -832,11 +833,11 @@ async function handleReceiptUpload(file: File) {
                 <p className="text-4xl">💳</p>
 
                 <h2 className="mt-4 text-2xl font-black text-slate-950">
-                  Card Application Unavailable
+                  {t("memberCard.applicationUnavailable")}
                 </h2>
 
                 <p className="mt-2 text-sm font-bold text-slate-500">
-                  Please contact RewardHub support for assistance.
+                  {t("memberCard.contactSupport")}
                 </p>
               </section>
             )}
@@ -901,20 +902,22 @@ function ApplicationForm({
   submitting: boolean;
   onSubmit: () => void;
 }) {
+  const { t } = useLanguage();
+
   return (
     <section className="mt-5 rounded-[1.75rem] bg-white p-4 shadow-sm sm:mt-6 sm:rounded-[2rem] sm:p-6 lg:rounded-[2.5rem] lg:p-7">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h2 className="text-xl font-black text-slate-950 sm:text-2xl">
             {hasExistingCard
-              ? "Replacement Card Application"
-              : "First Card Application"}
+              ? t("memberCard.replacementCardApplication")
+              : t("memberCard.firstCardApplication")}
           </h2>
 
           <p className="mt-1 text-[11px] font-bold text-slate-500 sm:text-sm">
             {hasExistingCard
-              ? "Replacement cards cost RM8."
-              : "Your first physical card is free."}
+              ? t("memberCard.replacementCost")
+              : t("memberCard.firstCardFree")}
           </p>
         </div>
 
@@ -925,19 +928,18 @@ function ApplicationForm({
               : "bg-emerald-100 text-emerald-700"
           }`}
         >
-          {hasExistingCard ? "RM8" : "FREE"}
+          {hasExistingCard ? "RM8" : t("memberCard.free")}
         </span>
       </div>
 
       {hasExistingCard && (
         <div className="mt-5 rounded-[1.5rem] border border-red-100 bg-red-50 p-4 sm:rounded-[2rem] sm:p-5">
           <p className="text-xs font-black text-red-700 sm:text-sm">
-            Old Card Freeze Required
+            {t("memberCard.oldCardFreezeRequired")}
           </p>
 
           <p className="mt-1 text-[11px] font-bold leading-5 text-red-700/80 sm:text-sm">
-            Old Card ID: {profileCardId || "Not available"}. The old card will
-            be frozen immediately after submission.
+            {t("memberCard.oldCardId")}: {profileCardId || t("memberCard.notAvailable")}. {t("memberCard.oldCardFrozenAfterSubmission")}
           </p>
         </div>
       )}
@@ -950,19 +952,19 @@ function ApplicationForm({
         className="mt-5 space-y-4 sm:mt-6"
       >
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
-          <FieldCard label="Full Name">
+          <FieldCard label={t("memberCard.fullName")}>
             <input
               value={fullName}
               onChange={(event) =>
                 setFullName(event.target.value)
               }
               className={fieldClass}
-              placeholder="Full name"
+              placeholder={t("memberCard.fullNamePlaceholder")}
               autoComplete="name"
             />
           </FieldCard>
 
-          <FieldCard label="Phone">
+          <FieldCard label={t("memberCard.phone")}>
             <input
               value={phone}
               onChange={(event) =>
@@ -976,7 +978,7 @@ function ApplicationForm({
           </FieldCard>
         </div>
 
-        <FieldCard label="Email">
+        <FieldCard label={t("memberCard.email")}>
           <input
             type="email"
             value={email}
@@ -984,14 +986,14 @@ function ApplicationForm({
               setEmail(event.target.value)
             }
             className={fieldClass}
-            placeholder="Email address"
+            placeholder={t("memberCard.emailAddress")}
             autoComplete="email"
           />
         </FieldCard>
 
         {hasExistingCard && (
           <>
-            <FieldCard label="Reason for Replacement">
+            <FieldCard label={t("memberCard.reasonForReplacement")}>
               <textarea
                 rows={3}
                 value={lossReason}
@@ -1000,7 +1002,7 @@ function ApplicationForm({
                   setLossReason(event.target.value)
                 }
                 className={`${fieldClass} resize-none`}
-                placeholder="Example: Card lost, stolen or damaged"
+                placeholder={t("memberCard.replacementReasonPlaceholder")}
               />
 
               <p className="mt-2 text-right text-[10px] font-bold text-slate-400">
@@ -1020,19 +1022,18 @@ function ApplicationForm({
 
               <span>
                 <span className="block text-xs font-black text-red-700 sm:text-sm">
-                  Freeze my old card
+                  {t("memberCard.freezeMyOldCard")}
                 </span>
 
                 <span className="mt-1 block text-[11px] font-bold leading-5 text-red-700/80 sm:text-sm">
-                  I understand that the old card will stop working when this
-                  replacement request is submitted.
+                  {t("memberCard.freezeConfirmationText")}
                 </span>
               </span>
             </label>
           </>
         )}
 
-        <FieldCard label="Full Delivery Address">
+        <FieldCard label={t("memberCard.fullDeliveryAddress")}>
           <textarea
             rows={4}
             value={address}
@@ -1040,13 +1041,13 @@ function ApplicationForm({
               setAddress(event.target.value)
             }
             className={`${fieldClass} resize-none`}
-            placeholder="House / unit number, street name and building details"
+            placeholder={t("memberCard.addressPlaceholder")}
             autoComplete="street-address"
           />
         </FieldCard>
 
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
-          <FieldCard label="State">
+          <FieldCard label={t("memberCard.state")}>
             <select
               value={state}
               onChange={(event) =>
@@ -1054,7 +1055,7 @@ function ApplicationForm({
               }
               className={fieldClass}
             >
-              <option value="">Select State</option>
+              <option value="">{t("memberCard.selectState")}</option>
 
               {Object.keys(malaysiaAreas).map((item) => (
                 <option key={item} value={item}>
@@ -1064,7 +1065,7 @@ function ApplicationForm({
             </select>
           </FieldCard>
 
-          <FieldCard label="Area">
+          <FieldCard label={t("memberCard.area")}>
             <select
               value={area}
               onChange={(event) =>
@@ -1075,8 +1076,8 @@ function ApplicationForm({
             >
               <option value="">
                 {state
-                  ? "Select Area"
-                  : "Select State First"}
+                  ? t("memberCard.selectArea")
+                  : t("memberCard.selectStateFirst")}
               </option>
 
               {availableAreas.map((item) => (
@@ -1088,7 +1089,7 @@ function ApplicationForm({
           </FieldCard>
         </div>
 
-        <FieldCard label="Postcode">
+        <FieldCard label={t("memberCard.postcode")}>
           <input
             value={postcode}
             onChange={(event) =>
@@ -1099,14 +1100,14 @@ function ApplicationForm({
               )
             }
             className={fieldClass}
-            placeholder="Example: 84000"
+            placeholder={t("memberCard.postcodePlaceholder")}
             inputMode="numeric"
             autoComplete="postal-code"
             maxLength={5}
           />
         </FieldCard>
 
-        <FieldCard label="Delivery Note">
+        <FieldCard label={t("memberCard.deliveryNote")}>
           <textarea
             rows={3}
             maxLength={500}
@@ -1115,7 +1116,7 @@ function ApplicationForm({
               setDeliveryNote(event.target.value)
             }
             className={`${fieldClass} resize-none`}
-            placeholder="Example: Leave with guard, call before delivery..."
+            placeholder={t("memberCard.deliveryNotePlaceholder")}
           />
 
           <p className="mt-2 text-right text-[10px] font-bold text-slate-400">
@@ -1125,12 +1126,11 @@ function ApplicationForm({
 
         <div className="rounded-[1.5rem] border border-amber-100 bg-amber-50 p-4 sm:rounded-[2rem] sm:p-5">
           <p className="text-xs font-black text-amber-900">
-            Before submitting
+            {t("memberCard.beforeSubmitting")}
           </p>
 
           <p className="mt-1 text-[11px] font-bold leading-5 text-amber-800 sm:text-sm">
-            Check your recipient name, phone number, full address and postcode.
-            Only one active card application is allowed at a time.
+            {t("memberCard.beforeSubmittingDescription")}
           </p>
         </div>
 
@@ -1140,10 +1140,10 @@ function ApplicationForm({
           className="w-full rounded-xl bg-slate-950 py-4 text-sm font-black text-white shadow-xl transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50 sm:rounded-2xl sm:py-5"
         >
           {submitting
-            ? "Submitting Application..."
+            ? t("memberCard.submittingApplication")
             : hasExistingCard
-              ? "Submit Replacement Application — RM8"
-              : "Submit Free First Card Application"}
+              ? t("memberCard.submitReplacementApplication")
+              : t("memberCard.submitFirstCardApplication")}
         </button>
       </form>
     </section>
@@ -1159,21 +1159,23 @@ function IssuedCardPanel({
   cardStatus: string;
   onApplyReplacement: () => void;
 }) {
+  const { t } = useLanguage();
+
   return (
     <section className="mt-5 rounded-[1.75rem] bg-white p-6 shadow-sm sm:mt-6 sm:rounded-[2rem] sm:p-8">
       <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-700">
-            Physical Card Issued
+            {t("memberCard.physicalCardIssued")}
           </p>
 
           <h2 className="mt-2 text-2xl font-black text-slate-950">
-            Your card is ready to use
+            {t("memberCard.cardReadyToUse")}
           </h2>
 
           <p className="mt-2 text-sm font-bold text-slate-500">
-            Card ID: {cardId || "Not available"} • Status:{" "}
-            {cardStatus || "Active"}
+            {t("memberCard.cardId")}: {cardId || t("memberCard.notAvailable")} • {t("memberCard.status")}:{" "}
+            {cardStatus || t("memberCard.active")}
           </p>
         </div>
 
@@ -1182,18 +1184,17 @@ function IssuedCardPanel({
           onClick={onApplyReplacement}
           className="rounded-2xl bg-slate-950 px-6 py-4 text-sm font-black text-white"
         >
-          Report Lost / Replace Card
+          {t("memberCard.reportLostReplace")}
         </button>
       </div>
 
       <div className="mt-5 rounded-[1.5rem] border border-amber-100 bg-amber-50 p-4">
         <p className="text-xs font-black text-amber-900">
-          Replacement policy
+          {t("memberCard.replacementPolicy")}
         </p>
 
         <p className="mt-1 text-[11px] font-bold leading-5 text-amber-800 sm:text-sm">
-          A replacement card costs RM8. The old card must be frozen before a
-          new card can be issued.
+          {t("memberCard.replacementPolicyDescription")}
         </p>
       </div>
     </section>
@@ -1213,13 +1214,14 @@ function ActiveApplicationCard({
   onCancel: () => void;
   onReceiptUpload: (file: File) => void;
 }) {
+  const { t } = useLanguage();
   const normalizedStatus = normalizeStatus(application.status);
   const isReplacement =
     application.applicationType === "Replacement Card";
 
   const steps = isReplacement
     ? [
-        "Pending Payment",
+        t("memberCard.pendingPayment"),
         "Pending",
         "Approved",
         "Shipped",
@@ -1241,11 +1243,11 @@ function ActiveApplicationCard({
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
           <h2 className="text-xl font-black text-slate-950 sm:text-2xl">
-            Current Application
+            {t("memberCard.currentApplication")}
           </h2>
 
           <p className="mt-1 break-all text-[11px] font-bold text-slate-500 sm:text-sm">
-            {application.applicationType || "First Card"} •{" "}
+            {getApplicationTypeLabel(application.applicationType || "First Card", t)} •{" "}
             {application.applicationId}
           </p>
         </div>
@@ -1257,7 +1259,7 @@ function ActiveApplicationCard({
         <>
           <div className="mt-5 grid grid-cols-2 gap-3">
             <InfoCard
-              label="Replacement Fee"
+              label={t("memberCard.replacementFee")}
               value={`RM${Number(
                 application.replacementFee || 8
               ).toFixed(2)}`}
@@ -1265,10 +1267,10 @@ function ActiveApplicationCard({
             />
 
             <InfoCard
-              label="Payment Status"
+              label={t("memberCard.paymentStatus")}
               value={
                 application.paymentStatus ||
-                "Pending Payment"
+                t("memberCard.pendingPayment")
               }
               highlight
             />
@@ -1316,7 +1318,7 @@ function ActiveApplicationCard({
                       : "text-slate-400"
                   }`}
                 >
-                  {step}
+                  {getStatusLabel(step, t)}
                 </p>
               </div>
             );
@@ -1326,17 +1328,17 @@ function ActiveApplicationCard({
 
       <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
         <InfoCard
-          label="Recipient"
+          label={t("memberCard.recipient")}
           value={application.fullName}
         />
 
         <InfoCard
-          label="Phone"
+          label={t("memberCard.phone")}
           value={application.phone}
         />
 
         <InfoCard
-          label="State / Area"
+          label={t("memberCard.stateArea")}
           value={
             [application.area, application.state]
               .filter(Boolean)
@@ -1345,13 +1347,13 @@ function ActiveApplicationCard({
         />
 
         <InfoCard
-          label="Postcode"
+          label={t("memberCard.postcode")}
           value={application.postcode}
         />
 
         <div className="sm:col-span-2">
           <InfoCard
-            label="Delivery Address"
+            label={t("memberCard.deliveryAddress")}
             value={application.address}
           />
         </div>
@@ -1359,7 +1361,7 @@ function ActiveApplicationCard({
         {application.deliveryNote && (
           <div className="sm:col-span-2">
             <InfoCard
-              label="Delivery Note"
+              label={t("memberCard.deliveryNote")}
               value={application.deliveryNote}
             />
           </div>
@@ -1368,7 +1370,7 @@ function ActiveApplicationCard({
         {application.lossReason && (
           <div className="sm:col-span-2">
             <InfoCard
-              label="Replacement Reason"
+              label={t("memberCard.replacementReason")}
               value={application.lossReason}
             />
           </div>
@@ -1377,7 +1379,7 @@ function ActiveApplicationCard({
         {application.trackingNo && (
           <div className="sm:col-span-2">
             <InfoCard
-              label="Tracking Number"
+              label={t("memberCard.trackingNumber")}
               value={application.trackingNo}
               highlight
             />
@@ -1387,7 +1389,7 @@ function ActiveApplicationCard({
         {application.adminNote && (
           <div className="sm:col-span-2">
             <InfoCard
-              label="Admin Note"
+              label={t("memberCard.adminNote")}
               value={application.adminNote}
             />
           </div>
@@ -1396,7 +1398,7 @@ function ActiveApplicationCard({
 
       <div className="mt-5 rounded-2xl bg-slate-50 p-4 sm:p-5">
         <p className="text-[10px] font-black uppercase text-slate-400">
-          Submitted At
+          {t("memberCard.submittedAt")}
         </p>
 
         <p className="mt-2 text-xs font-black text-slate-950 sm:text-sm">
@@ -1413,8 +1415,8 @@ function ActiveApplicationCard({
           className="mt-5 w-full rounded-xl bg-red-50 py-4 text-xs font-black text-red-600 transition hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-50 sm:rounded-2xl sm:text-sm"
         >
           {cancelling
-            ? "Cancelling..."
-            : "Cancel Application"}
+            ? t("memberCard.cancelling")
+            : t("memberCard.cancelApplication")}
         </button>
       )}
     </section>
@@ -1426,15 +1428,16 @@ function ApplicationHistory({
 }: {
   applications: CardApplication[];
 }) {
+  const { t } = useLanguage();
+
   return (
     <section className="mt-5 rounded-[1.75rem] bg-white p-4 shadow-sm sm:mt-6 sm:rounded-[2rem] sm:p-6 lg:rounded-[2.5rem] lg:p-7">
       <h2 className="text-xl font-black text-slate-950 sm:text-2xl">
-        Application History
+        {t("memberCard.applicationHistory")}
       </h2>
 
       <p className="mt-1 text-[11px] font-bold text-slate-500 sm:text-sm">
-        Previous applications are listed here. The current active application
-        is shown above and is not repeated.
+        {t("memberCard.applicationHistoryDescription")}
       </p>
 
       {applications.length > 0 ? (
@@ -1451,7 +1454,7 @@ function ApplicationHistory({
                   </p>
 
                   <p className="mt-1 text-[10px] font-bold text-slate-400">
-                    {application.applicationType || "First Card"} •{" "}
+                    {getApplicationTypeLabel(application.applicationType || "First Card", t)} •{" "}
                     {formatDate(application.createdAt)}
                   </p>
                 </div>
@@ -1461,7 +1464,7 @@ function ApplicationHistory({
 
               <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <InfoCard
-                  label="Area"
+                  label={t("memberCard.area")}
                   value={
                     [application.area, application.state]
                       .filter(Boolean)
@@ -1470,7 +1473,7 @@ function ApplicationHistory({
                 />
 
                 <InfoCard
-                  label="Postcode"
+                  label={t("memberCard.postcode")}
                   value={application.postcode}
                 />
               </div>
@@ -1478,7 +1481,7 @@ function ApplicationHistory({
               {application.applicationType === "Replacement Card" && (
                 <div className="mt-3 grid grid-cols-2 gap-3">
                   <InfoCard
-                    label="Fee"
+                    label={t("memberCard.fee")}
                     value={`RM${Number(
                       application.replacementFee || 8
                     ).toFixed(2)}`}
@@ -1486,10 +1489,10 @@ function ApplicationHistory({
                   />
 
                   <InfoCard
-                    label="Payment"
+                    label={t("memberCard.payment")}
                     value={
                       application.paymentStatus ||
-                      "Pending Payment"
+                      t("memberCard.pendingPayment")
                     }
                     highlight
                   />
@@ -1499,7 +1502,7 @@ function ApplicationHistory({
               {application.trackingNo && (
                 <div className="mt-3">
                   <InfoCard
-                    label="Tracking Number"
+                    label={t("memberCard.trackingNumber")}
                     value={application.trackingNo}
                     highlight
                   />
@@ -1513,11 +1516,11 @@ function ApplicationHistory({
           <p className="text-3xl">💳</p>
 
           <h3 className="mt-3 text-xl font-black text-slate-950">
-            No previous applications
+            {t("memberCard.noPreviousApplications")}
           </h3>
 
           <p className="mt-2 text-xs font-bold text-slate-500 sm:text-sm">
-            Completed, cancelled or rejected applications will appear here.
+            {t("memberCard.previousApplicationsDescription")}
           </p>
         </div>
       )}
@@ -1618,6 +1621,7 @@ function StatusBadge({
 }: {
   status: string;
 }) {
+  const { t } = useLanguage();
   const value = normalizeStatus(status);
 
   const style =
@@ -1639,9 +1643,49 @@ function StatusBadge({
     <span
       className={`shrink-0 rounded-full px-3 py-1.5 text-[9px] font-black sm:px-4 sm:py-2 sm:text-xs ${style}`}
     >
-      {status || "Pending"}
+      {getStatusLabel(status || "Pending", t)}
     </span>
   );
+}
+
+
+function getApplicationTypeLabel(
+  value: string,
+  t: (key: string) => string
+) {
+  const normalized = String(value || "").trim().toLowerCase();
+
+  if (normalized === "replacement card") {
+    return t("memberCard.replacementCard");
+  }
+
+  return t("memberCard.firstCard");
+}
+
+function getStatusLabel(
+  value: string,
+  t: (key: string) => string
+) {
+  const normalized = normalizeStatus(value);
+
+  const statusKeys: Record<string, string> = {
+    "pending payment": "pendingPayment",
+    pending: "pending",
+    approved: "approved",
+    shipped: "shipped",
+    completed: "completed",
+    rejected: "rejected",
+    cancelled: "cancelled",
+    active: "active",
+    submitted: "submitted",
+    paid: "paid",
+  };
+
+  const key = statusKeys[normalized];
+
+  return key
+    ? t(`memberCard.${key}`)
+    : value || t("memberCard.pending");
 }
 
 function normalizeStatus(value: string) {
@@ -1683,6 +1727,7 @@ function ReplacementPaymentCard({
   uploading: boolean;
   onUpload: (file: File) => void;
 }) {
+  const { t } = useLanguage();
   const paymentStatus = normalizeStatus(
     application.paymentStatus
   );
@@ -1695,13 +1740,13 @@ function ReplacementPaymentCard({
     <section className="mt-5 overflow-hidden rounded-[1.75rem] border border-amber-200 bg-amber-50 sm:rounded-[2rem]">
       <div className="bg-slate-950 p-5 text-white sm:p-6">
         <p className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-300 sm:text-xs">
-          Replacement Card Payment
+          {t("memberCard.replacementCardPayment")}
         </p>
 
         <div className="mt-3 flex items-end justify-between gap-4">
           <div>
             <p className="text-sm font-bold text-slate-400">
-              Amount Payable
+              {t("memberCard.amountPayable")}
             </p>
 
             <p className="mt-1 text-4xl font-black">
@@ -1712,7 +1757,7 @@ function ReplacementPaymentCard({
           <StatusBadge
             status={
               application.paymentStatus ||
-              "Pending Payment"
+              t("memberCard.pendingPayment")
             }
           />
         </div>
@@ -1722,17 +1767,17 @@ function ReplacementPaymentCard({
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-3">
             <PaymentInfo
-              label="Bank Name"
+              label={t("memberCard.bankName")}
               value={replacementPayment.bankName}
             />
 
             <PaymentInfo
-              label="Account Name"
+              label={t("memberCard.accountName")}
               value={replacementPayment.accountName}
             />
 
             <PaymentInfo
-              label="Account Number"
+              label={t("memberCard.accountNumber")}
               value={replacementPayment.accountNumber}
             />
 
@@ -1744,23 +1789,23 @@ function ReplacementPaymentCard({
                     replacementPayment.accountNumber
                   );
 
-                  alert("Bank account copied.");
+                  alert(t("memberCard.bankAccountCopied"));
                 } catch {
                   alert(
-                    "Please copy manually:\n" +
+                    t("memberCard.copyManually") + "\n" +
                     replacementPayment.accountNumber
                   );
                 }
               }}
               className="w-full rounded-xl bg-white py-3 text-xs font-black text-slate-950 shadow-sm"
             >
-              Copy Bank Account
+              {t("memberCard.copyBankAccount")}
             </button>
           </div>
 
           <div className="rounded-[1.5rem] bg-white p-4 text-center">
             <p className="text-xs font-black text-slate-950">
-              Scan to Pay
+              {t("memberCard.scanToPay")}
             </p>
 
             <img
@@ -1779,11 +1824,11 @@ function ReplacementPaymentCard({
               </div>
 
               <p className="mt-3 text-sm font-black text-emerald-700">
-                Payment Receipt Submitted
+                {t("memberCard.paymentReceiptSubmitted")}
               </p>
 
               <p className="mt-1 text-xs font-bold text-slate-500">
-                RewardHub will verify your RM8 payment.
+                {t("memberCard.verifyPayment")}
               </p>
 
               {application.paymentReceiptUrl && (
@@ -1793,24 +1838,24 @@ function ReplacementPaymentCard({
                   rel="noopener noreferrer"
                   className="mt-4 inline-flex text-xs font-black text-slate-950"
                 >
-                  View Submitted Receipt
+                  {t("memberCard.viewSubmittedReceipt")}
                 </a>
               )}
             </div>
           ) : (
             <>
               <p className="text-sm font-black text-slate-950">
-                Upload Payment Receipt
+                {t("memberCard.uploadPaymentReceipt")}
               </p>
 
               <p className="mt-1 text-xs font-bold leading-5 text-slate-500">
-                Pay RM8 using the bank details above, then upload your receipt.
+                {t("memberCard.payAndUploadReceipt")}
               </p>
 
               <label className="mt-4 flex cursor-pointer items-center justify-center rounded-xl bg-slate-950 px-5 py-4 text-sm font-black text-white">
                 {uploading
-                  ? "Uploading Receipt..."
-                  : "Choose Receipt Image"}
+                  ? t("memberCard.uploadingReceipt")
+                  : t("memberCard.chooseReceiptImage")}
 
                 <input
                   type="file"

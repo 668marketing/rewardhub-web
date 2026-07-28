@@ -1,23 +1,26 @@
 "use client";
 
 import MemberLayout from "@/components/layout/MemberLayout";
+import { useLanguage } from "@/hooks/useLanguage";
 
 export default function ChangePasswordPage() {
+  const { t } = useLanguage();
+
   return (
     <MemberLayout>
       <main style={{ minHeight: "100vh", background: "#f8fafc", padding: "32px 20px" }}>
         <section style={{ maxWidth: "600px", margin: "0 auto", paddingBottom: "120px" }}>
           <h1 style={{ fontSize: "40px", fontWeight: 900, color: "#020617" }}>
-            Change Password
+            {t("memberChangePassword.title")}
           </h1>
 
           <div style={{ marginTop: 24, background: "white", borderRadius: 28, padding: 28, boxShadow: "0 12px 35px rgba(15,23,42,0.08)" }}>
-            <input placeholder="Current Password" type="password" style={inputStyle} />
-            <input placeholder="New Password" type="password" style={inputStyle} />
-            <input placeholder="Confirm New Password" type="password" style={inputStyle} />
+            <input placeholder={t("memberChangePassword.currentPassword")} type="password" style={inputStyle} />
+            <input placeholder={t("memberChangePassword.newPassword")} type="password" style={inputStyle} />
+            <input placeholder={t("memberChangePassword.confirmPassword")} type="password" style={inputStyle} />
 
             <button style={buttonStyle}>
-              Update Password
+              {t("memberChangePassword.updatePassword")}
             </button>
           </div>
         </section>

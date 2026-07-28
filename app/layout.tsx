@@ -3,6 +3,7 @@ import type {
   Viewport,
 } from "next";
 
+import LanguageProvider from "@/components/i18n/LanguageProvider";
 import PWARegister from "@/components/pwa/PWARegister";
 import SplashScreen from "@/components/pwa/SplashScreen";
 import SupportModal from "@/components/chat/SupportModal";
@@ -18,12 +19,14 @@ export const metadata: Metadata = {
   description:
     "RewardHub member rewards and merchant membership network.",
 
-  applicationName: "RewardHub",
+  applicationName:
+    "RewardHub",
 
   appleWebApp: {
     capable: true,
     title: "RewardHub",
-    statusBarStyle: "default",
+    statusBarStyle:
+      "default",
   },
 };
 
@@ -38,18 +41,24 @@ export const viewport: Viewport = {
 export default function RootLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode;
+  children:
+    React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html
+      lang="en"
+      suppressHydrationWarning
+    >
       <body>
-        <SplashScreen />
+        <LanguageProvider>
+          <SplashScreen />
 
-        <PWARegister />
+          <PWARegister />
 
-        {children}
+          {children}
 
-        <SupportModal />
+          <SupportModal />
+        </LanguageProvider>
       </body>
     </html>
   );

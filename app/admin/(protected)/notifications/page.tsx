@@ -898,8 +898,8 @@ export default function AdminNotificationsPage() {
             ) : null}
 
             {historyItems
-              .slice(0, 15)
-              .map((item) => (
+  .slice(0, 8)
+  .map((item) => (
                 <article
                   key={
                     item.notificationId

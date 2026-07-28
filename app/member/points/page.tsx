@@ -8,6 +8,7 @@ import {
 } from "react";
 import Link from "next/link";
 import MemberLayout from "@/components/layout/MemberLayout";
+import { useLanguage } from "@/hooks/useLanguage";
 import {
   getMemberWalletSummary,
   getMemberPointsHistory,
@@ -166,6 +167,8 @@ function RewardImage({
 }
 
 export default function PointsPage() {
+  const { t } = useLanguage();
+
   const [wallet, setWallet] =
     useState<any>(null);
 
@@ -231,7 +234,7 @@ export default function PointsPage() {
 
       if (!memberId) {
         setError(
-          "Member session not found. Please log in again."
+          t("memberPoints.memberSessionNotFound")
         );
         return;
       }
@@ -308,7 +311,7 @@ export default function PointsPage() {
 
       setError(
         err?.message ||
-          "Unable to load your rewards."
+          t("memberPoints.unableToLoadRewards")
       );
 
       setWallet({});
@@ -519,7 +522,7 @@ export default function PointsPage() {
 
     if (!memberId) {
       throw new Error(
-        "Member session not found"
+        t("memberPoints.memberSessionNotFoundShort")
       );
     }
 
@@ -546,13 +549,13 @@ export default function PointsPage() {
       unwrapApiData(result);
 
     let successMessage =
-      `${reward.title} redeemed successfully.`;
+      t("memberPoints.rewardRedeemedSuccessfully", { title: reward.title });
 
     if (
       resultData?.voucherCode
     ) {
       successMessage +=
-        ` Voucher Code: ${resultData.voucherCode}`;
+        ` ${t("memberPoints.voucherCode")}: ${resultData.voucherCode}`;
     }
 
     setRedemptionMessage(
@@ -563,14 +566,14 @@ export default function PointsPage() {
   } catch (err: any) {
     const rawMessage = String(
   err?.message ||
-    "Unable to redeem reward."
+    t("memberPoints.unableToRedeemReward")
 );
 
 const safeMessage =
   rawMessage.includes(
     "Backend returned non-JSON"
   )
-    ? "The reward service encountered an error. Please check your redemption history before trying again."
+    ? t("memberPoints.rewardServiceError")
     : rawMessage;
 
 setRedemptionMessage(
@@ -591,7 +594,7 @@ setRedemptionMessage(
             href="/member/dashboard"
             className="inline-flex rounded-full border border-slate-200 bg-white px-4 py-2.5 text-xs font-black text-slate-700 no-underline shadow-sm transition hover:border-slate-300 hover:bg-slate-50 sm:px-5 sm:py-3 sm:text-sm"
           >
-            ← Back to Dashboard
+            ← {t("memberPoints.backToDashboard")}
           </Link>
 
           <section className="mt-5 overflow-hidden rounded-[1.75rem] bg-slate-950 text-white shadow-2xl sm:mt-6 sm:rounded-[2.5rem]">
@@ -599,45 +602,42 @@ setRedemptionMessage(
               <div className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full bg-amber-400/10 blur-3xl" />
 
               <p className="relative text-[10px] font-black uppercase tracking-[0.24em] text-amber-300 sm:text-xs">
-                Rewards Wallet
+                {t("memberPoints.rewardsWallet")}
               </p>
 
               <h1 className="relative mt-3 text-3xl font-black leading-tight sm:text-4xl md:text-5xl">
-                Points & Rewards
+                {t("memberPoints.title")}
               </h1>
 
               <p className="relative mt-3 max-w-2xl text-xs font-bold leading-5 text-slate-400 sm:text-sm sm:leading-6">
-                Earn points when you spend
-                with RewardHub merchants,
-                then redeem official rewards
-                prepared by RewardHub.
+                {t("memberPoints.description")}
               </p>
 
               <div className="relative mt-6 grid grid-cols-2 gap-3 sm:mt-8 sm:gap-4 lg:grid-cols-4">
                 <StatCard
-                  title="Current Points"
+                  title={t("memberPoints.currentPoints")}
                   value={`${numberFormat(
                     currentPoints
-                  )} pts`}
+                  )} ${t("memberPoints.pointsUnit")}`}
                   highlight
                 />
 
                 <StatCard
-                  title="Reward Credits"
+                  title={t("memberPoints.rewardCredits")}
                   value={`RM${money(
                     rewardCredits
                   )}`}
                 />
 
                 <StatCard
-                  title="Total Earned"
+                  title={t("memberPoints.totalEarned")}
                   value={`${numberFormat(
                     totalEarned
-                  )} pts`}
+                  )} ${t("memberPoints.pointsUnit")}`}
                 />
 
                 <StatCard
-                  title="Cashback Saved"
+                  title={t("memberPoints.cashbackSaved")}
                   value={`RM${money(
                     cashbackSaved
                   )}`}
@@ -657,7 +657,7 @@ setRedemptionMessage(
                 onClick={loadPage}
                 className="mt-3 rounded-xl bg-red-700 px-4 py-2.5 text-xs font-black text-white"
               >
-                Try Again
+                {t("memberPoints.tryAgain")}
               </button>
             </div>
           )}
@@ -667,17 +667,17 @@ setRedemptionMessage(
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <p className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-600 sm:text-xs">
-                    Spendable Balance
+                    {t("memberPoints.spendableBalance")}
                   </p>
 
                   <h2 className="mt-2 text-xl font-black text-slate-950 sm:text-2xl">
-                    Reward Credits
+                    {t("memberPoints.rewardCredits")}
                   </h2>
                 </div>
 
                 <div className="rounded-2xl bg-slate-950 px-4 py-3 text-right text-white">
                   <p className="text-[9px] font-black text-amber-300 sm:text-xs">
-                    Available
+                    {t("memberPoints.available")}
                   </p>
 
                   <p className="mt-1 text-xl font-black sm:text-2xl">
@@ -690,18 +690,14 @@ setRedemptionMessage(
               </div>
 
               <p className="mt-4 text-xs font-bold leading-5 text-slate-500 sm:text-sm sm:leading-6">
-                Reward Credits can offset
-                payments at supported
-                merchants. Points are used
-                separately to redeem
-                RewardHub official rewards.
+                {t("memberPoints.rewardCreditsDescription")}
               </p>
 
               <Link
                 href="/member/pay"
                 className="mt-5 block rounded-2xl bg-slate-950 px-4 py-3.5 text-center text-xs font-black text-white no-underline transition hover:bg-slate-800 sm:text-sm"
               >
-                Use Reward Credits
+                {t("memberPoints.useRewardCredits")}
               </Link>
             </div>
 
@@ -709,17 +705,17 @@ setRedemptionMessage(
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <p className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-600 sm:text-xs">
-                    Loyalty Points
+                    {t("memberPoints.loyaltyPoints")}
                   </p>
 
                   <h2 className="mt-2 text-xl font-black text-slate-950 sm:text-2xl">
-                    How Points Work
+                    {t("memberPoints.howPointsWork")}
                   </h2>
                 </div>
 
                 <div className="rounded-2xl bg-amber-50 px-4 py-3 text-right">
                   <p className="text-[9px] font-black text-amber-700 sm:text-xs">
-                    Redeemed
+                    {t("memberPoints.redeemed")}
                   </p>
 
                   <p className="mt-1 text-xl font-black text-slate-950 sm:text-2xl">
@@ -732,23 +728,23 @@ setRedemptionMessage(
 
               <div className="mt-5 grid grid-cols-2 gap-3">
                 <InfoRow
-                  title="Earn Rate"
-                  detail="RM1 eligible spending earns 1 point."
+                  title={t("memberPoints.earnRate")}
+                  detail={t("memberPoints.earnRateDescription")}
                 />
 
                 <InfoRow
-                  title="Official Rewards"
-                  detail="Only RewardHub rewards can be redeemed using points."
+                  title={t("memberPoints.officialRewards")}
+                  detail={t("memberPoints.officialRewardsDescription")}
                 />
 
                 <InfoRow
-                  title="Non-transferable"
-                  detail="Points cannot be sent to another member."
+                  title={t("memberPoints.nonTransferable")}
+                  detail={t("memberPoints.nonTransferableDescription")}
                 />
 
                 <InfoRow
-                  title="Separate Balance"
-                  detail="Points and Reward Credits have different uses."
+                  title={t("memberPoints.separateBalance")}
+                  detail={t("memberPoints.separateBalanceDescription")}
                 />
               </div>
             </div>
@@ -763,14 +759,12 @@ setRedemptionMessage(
                   </span>
 
                   <h2 className="text-xl font-black text-slate-950 sm:text-2xl">
-                    New Rewards
+                    {t("memberPoints.newRewards")}
                   </h2>
                 </div>
 
                 <p className="mt-1 text-[11px] font-bold leading-5 text-slate-500 sm:mt-2 sm:text-sm">
-                  Rewards uploaded within
-                  the last 30 days appear
-                  here automatically.
+                  {t("memberPoints.newRewardsDescription")}
                 </p>
               </div>
 
@@ -794,7 +788,7 @@ setRedemptionMessage(
                   }}
                   className="shrink-0 text-xs font-black text-amber-700 sm:text-sm"
                 >
-                  View All →
+                  {t("memberPoints.viewAll")} →
                 </button>
               )}
             </div>
@@ -830,8 +824,8 @@ setRedemptionMessage(
               </div>
             ) : (
               <EmptyRewards
-                title="No new rewards yet"
-                description="New rewards will automatically appear here for 30 days after they are uploaded."
+                title={t("memberPoints.noNewRewards")}
+                description={t("memberPoints.noNewRewardsDescription")}
               />
             )}
           </section>
@@ -842,13 +836,11 @@ setRedemptionMessage(
           >
             <div>
               <h2 className="text-xl font-black text-slate-950 sm:text-2xl">
-                Browse Rewards
+                {t("memberPoints.browseRewards")}
               </h2>
 
               <p className="mt-1 text-[11px] font-bold leading-5 text-slate-500 sm:mt-2 sm:text-sm">
-                Explore vouchers, digital
-                rewards and physical gifts
-                prepared by RewardHub.
+                {t("memberPoints.browseRewardsDescription")}
               </p>
             </div>
 
@@ -914,7 +906,7 @@ setRedemptionMessage(
                       event.target.value
                     )
                   }
-                  placeholder="Search rewards, categories or brands..."
+                  placeholder={t("memberPoints.searchPlaceholder")}
                   className="w-full rounded-2xl border border-slate-200 bg-slate-50 py-3.5 pl-11 pr-4 text-xs font-bold text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-slate-400 focus:bg-white sm:py-4 sm:text-sm"
                 />
 
@@ -926,7 +918,7 @@ setRedemptionMessage(
                     }
                     className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-black text-slate-400"
                   >
-                    Clear
+                    {t("memberPoints.clear")}
                   </button>
                 )}
               </div>
@@ -942,35 +934,36 @@ setRedemptionMessage(
                 className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3.5 text-xs font-black text-slate-700 outline-none focus:border-slate-400 sm:min-w-[190px] sm:py-4 sm:text-sm"
               >
                 <option value="DEFAULT">
-                  Recommended
+                  {t("memberPoints.sortRecommended")}
                 </option>
 
                 <option value="NEWEST">
-                  Newest First
+                  {t("memberPoints.sortNewest")}
                 </option>
 
                 <option value="POINTS_LOW">
-                  Points: Low to High
+                  {t("memberPoints.sortPointsLow")}
                 </option>
 
                 <option value="POINTS_HIGH">
-                  Points: High to Low
+                  {t("memberPoints.sortPointsHigh")}
                 </option>
               </select>
             </div>
 
             <div className="mt-5 flex items-center justify-between gap-3 sm:mt-6">
               <p className="text-xs font-black text-slate-950 sm:text-sm">
-                {selectedCategory}
+                {selectedCategory === "All"
+                  ? t("memberPoints.categoryAll")
+                  : selectedCategory === "New"
+                    ? t("memberPoints.categoryNew")
+                    : selectedCategory}
               </p>
 
               <p className="text-[10px] font-bold text-slate-500 sm:text-xs">
-                {visibleRewards.length}{" "}
-                reward
-                {visibleRewards.length ===
-                1
-                  ? ""
-                  : "s"}
+                {t("memberPoints.rewardCount", {
+                  count: visibleRewards.length,
+                })}
               </p>
             </div>
 
@@ -1008,8 +1001,8 @@ setRedemptionMessage(
               </div>
             ) : (
               <EmptyRewards
-                title="No rewards found"
-                description="Try another category or clear your search."
+                title={t("memberPoints.noRewardsFound")}
+                description={t("memberPoints.noRewardsFoundDescription")}
               />
             )}
           </section>
@@ -1018,17 +1011,16 @@ setRedemptionMessage(
             <div className="flex items-end justify-between gap-4">
               <div>
                 <h2 className="text-xl font-black text-slate-950 sm:text-2xl">
-                  Points History
+                  {t("memberPoints.pointsHistory")}
                 </h2>
 
                 <p className="mt-1 text-[11px] font-bold text-slate-500 sm:mt-2 sm:text-sm">
-                  Your earned and redeemed
-                  points activity.
+                  {t("memberPoints.pointsHistoryDescription")}
                 </p>
               </div>
 
               <span className="rounded-full bg-slate-100 px-3 py-1.5 text-[10px] font-black text-slate-600 sm:px-4 sm:py-2 sm:text-xs">
-                {history.length} Records
+                {history.length} {t("memberPoints.records")}
               </span>
             </div>
 
@@ -1047,8 +1039,8 @@ setRedemptionMessage(
                       cleanUpper(
                         item.type
                       ) === "EARN"
-                        ? "Points Earned"
-                        : "Points Redeemed"
+                        ? t("memberPoints.pointsEarned")
+                        : t("memberPoints.pointsRedeemed")
                     }
                     detail={
                       item.description ||
@@ -1061,7 +1053,7 @@ setRedemptionMessage(
                       ? "+"
                       : ""}${Number(
                       item.points || 0
-                    )} pts`}
+                    )} ${t("memberPoints.pointsUnit")}`}
                     negative={
                       Number(
                         item.points
@@ -1080,21 +1072,18 @@ setRedemptionMessage(
                   0 && (
                   <div className="rounded-2xl bg-slate-50 p-6 text-center sm:rounded-3xl sm:p-8">
                     <p className="text-base font-black text-slate-950 sm:text-lg">
-                      No points history yet
+                      {t("memberPoints.noPointsHistory")}
                     </p>
 
                     <p className="mt-2 text-xs font-bold text-slate-500 sm:text-sm">
-                      Your earned and
-                      redeemed points will
-                      appear here.
+                      {t("memberPoints.noPointsHistoryDescription")}
                     </p>
                   </div>
                 )}
 
               {loading && (
                 <div className="rounded-2xl bg-slate-50 p-6 text-center text-xs font-bold text-slate-500 sm:rounded-3xl sm:p-8 sm:text-sm">
-                  Loading points
-                  history...
+                  {t("memberPoints.loadingPointsHistory")}
                 </div>
               )}
             </div>
@@ -1134,10 +1123,13 @@ function RewardCard({
   onOpen: () => void;
   compact?: boolean;
 }) {
+  const { t } = useLanguage();
+
   const unavailable =
     getRewardUnavailableText(
       reward,
-      currentPoints
+      currentPoints,
+      t
     );
 
   return (
@@ -1168,21 +1160,21 @@ function RewardCard({
         <div className="absolute left-2 top-2 flex max-w-[85%] flex-wrap gap-1.5 sm:left-3 sm:top-3">
           {reward.isNew && (
             <RewardBadge
-              label="NEW"
+              label={t("memberPoints.badgeNew")}
               styleName="bg-amber-400 text-slate-950"
             />
           )}
 
           {reward.featured && (
             <RewardBadge
-              label="FEATURED"
+              label={t("memberPoints.badgeFeatured")}
               styleName="bg-slate-950 text-white"
             />
           )}
 
           {reward.isHot && (
             <RewardBadge
-              label="HOT"
+              label={t("memberPoints.badgeHot")}
               styleName="bg-red-600 text-white"
             />
           )}
@@ -1212,32 +1204,29 @@ function RewardCard({
 
         <p className="mt-1 line-clamp-2 text-[9px] font-bold leading-4 text-slate-500 sm:text-xs sm:leading-5">
           {reward.description ||
-            "Official RewardHub reward."}
+            t("memberPoints.officialRewardFallback")}
         </p>
 
         <div className="mt-auto pt-4">
           <div className="flex items-end justify-between gap-2">
             <div>
               <p className="text-[9px] font-bold text-slate-400 sm:text-[10px]">
-                Redeem with
+                {t("memberPoints.redeemWith")}
               </p>
 
               <p className="mt-0.5 text-sm font-black text-slate-950 sm:text-lg">
                 {numberFormat(
                   reward.pointsRequired
-                )}{" "}
-                pts
+                )} {t("memberPoints.pointsUnit")}
               </p>
             </div>
 
             {reward.pointsShort >
               0 && (
               <p className="text-right text-[9px] font-black text-red-600 sm:text-[10px]">
-                Need{" "}
-                {numberFormat(
-                  reward.pointsShort
-                )}{" "}
-                more
+                {t("memberPoints.needMore", {
+                  points: numberFormat(reward.pointsShort),
+                })}
               </p>
             )}
           </div>
@@ -1252,7 +1241,7 @@ function RewardCard({
             }`}
           >
             {unavailable ||
-              "View & Redeem"}
+              t("memberPoints.viewAndRedeem")}
           </button>
         </div>
       </div>
@@ -1282,6 +1271,8 @@ function RewardDetailModal({
   ) => Promise<void>;
   onClose: () => void;
 }) {
+  const { t } = useLanguage();
+
   const [recipientName, setRecipientName] = useState("");
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
@@ -1290,15 +1281,25 @@ function RewardDetailModal({
 
   const unavailable = getRewardUnavailableText(
     reward,
-    currentPoints
+    currentPoints,
+    t
   );
 
-  const redemptionSucceeded = redemptionMessage
-    .toLowerCase()
-    .includes("successfully");
+  const redemptionSucceeded =
+    Boolean(redemptionMessage) &&
+    !formError &&
+    (
+      redemptionMessage.includes(
+        t("memberPoints.redemptionSuccessMarker")
+      ) ||
+      redemptionMessage.includes(
+        t("memberPoints.voucherCode")
+      )
+    );
 
   const voucherCode = extractVoucherCode(
-    redemptionMessage
+    redemptionMessage,
+    t("memberPoints.voucherCode")
   );
 
   useEffect(() => {
@@ -1332,25 +1333,26 @@ function RewardDetailModal({
 
     if (reward.shippingRequired) {
       if (!recipientName.trim()) {
-        setFormError("Please enter the recipient name.");
+        setFormError(t("memberPoints.enterRecipientName"));
         return;
       }
 
       if (!phone.trim()) {
-        setFormError("Please enter the phone number.");
+        setFormError(t("memberPoints.enterPhoneNumber"));
         return;
       }
 
       if (!address.trim()) {
-        setFormError("Please enter the delivery address.");
+        setFormError(t("memberPoints.enterDeliveryAddress"));
         return;
       }
     }
 
     const confirmed = window.confirm(
-      `Redeem "${reward.title}" for ${numberFormat(
-        reward.pointsRequired
-      )} points?`
+      t("memberPoints.confirmRedeem", {
+        title: reward.title,
+        points: numberFormat(reward.pointsRequired),
+      })
     );
 
     if (!confirmed) {
@@ -1371,7 +1373,7 @@ function RewardDetailModal({
     } catch (err: any) {
       setFormError(
         err?.message ||
-          "Unable to redeem this reward."
+          t("memberPoints.unableToRedeemThisReward")
       );
     }
   }
@@ -1388,7 +1390,7 @@ function RewardDetailModal({
       }, 1800);
     } catch {
       setFormError(
-        "Unable to copy the voucher code."
+        t("memberPoints.unableToCopyVoucher")
       );
     }
   }
@@ -1397,7 +1399,7 @@ function RewardDetailModal({
     <div className="fixed inset-0 z-[100] flex items-end justify-center bg-slate-950/70 p-0 backdrop-blur-sm sm:items-center sm:p-5">
       <button
         type="button"
-        aria-label="Close reward details"
+        aria-label={t("memberPoints.closeRewardDetails")}
         onClick={() => {
           if (!redeeming) {
             onClose();
@@ -1438,28 +1440,28 @@ function RewardDetailModal({
           <div className="absolute bottom-4 left-4 flex flex-wrap gap-2">
             {reward.isNew && (
               <RewardBadge
-                label="NEW"
+                label={t("memberPoints.badgeNew")}
                 styleName="bg-amber-400 text-slate-950"
               />
             )}
 
             {reward.featured && (
               <RewardBadge
-                label="FEATURED"
+                label={t("memberPoints.badgeFeatured")}
                 styleName="bg-slate-950 text-white"
               />
             )}
 
             {reward.isHot && (
               <RewardBadge
-                label="HOT"
+                label={t("memberPoints.badgeHot")}
                 styleName="bg-red-600 text-white"
               />
             )}
 
             {reward.isRecommended && (
               <RewardBadge
-                label="RECOMMENDED"
+                label={t("memberPoints.badgeRecommended")}
                 styleName="bg-emerald-600 text-white"
               />
             )}
@@ -1470,7 +1472,7 @@ function RewardDetailModal({
           <p className="text-[10px] font-black uppercase tracking-[0.18em] text-amber-700 sm:text-xs">
             {reward.brand ||
               reward.category ||
-              "RewardHub Official Reward"}
+              t("memberPoints.rewardHubOfficialReward")}
           </p>
 
           <h2 className="mt-2 text-2xl font-black leading-tight text-slate-950 sm:text-3xl">
@@ -1479,31 +1481,31 @@ function RewardDetailModal({
 
           <p className="mt-3 text-xs font-bold leading-6 text-slate-500 sm:text-sm">
             {reward.description ||
-              "Official reward prepared by RewardHub for eligible members."}
+              t("memberPoints.officialRewardDescriptionFallback")}
           </p>
 
           <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
             <DetailStat
-              title="Required"
+              title={t("memberPoints.required")}
               value={`${numberFormat(
                 reward.pointsRequired
-              )} pts`}
+              )} ${t("memberPoints.pointsUnit")}`}
             />
 
             <DetailStat
-              title="Your Points"
+              title={t("memberPoints.yourPoints")}
               value={`${numberFormat(
                 currentPoints
-              )} pts`}
+              )} ${t("memberPoints.pointsUnit")}`}
             />
 
             <DetailStat
-              title="Stock"
+              title={t("memberPoints.stock")}
               value={reward.stockLabel}
             />
 
             <DetailStat
-              title="Delivery"
+              title={t("memberPoints.delivery")}
               value={
                 reward.deliveryMethod ||
                 "-"
@@ -1514,13 +1516,14 @@ function RewardDetailModal({
           {reward.maxPerMember > 0 && (
             <div className="mt-4 rounded-2xl bg-slate-50 p-4">
               <p className="text-xs font-black text-slate-950">
-                Redemption Limit
+                {t("memberPoints.redemptionLimit")}
               </p>
 
               <p className="mt-1 text-[11px] font-bold leading-5 text-slate-500">
-                Maximum {reward.maxPerMember} redemption
-                {reward.maxPerMember > 1 ? "s" : ""} per member.
-                You have redeemed {reward.memberRedeemedQuantity}.
+                {t("memberPoints.redemptionLimitDescription", {
+                  max: reward.maxPerMember,
+                  redeemed: reward.memberRedeemedQuantity,
+                })}
               </p>
             </div>
           )}
@@ -1529,17 +1532,17 @@ function RewardDetailModal({
             !redemptionSucceeded && (
               <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 p-4 sm:p-5">
                 <p className="text-sm font-black text-amber-950">
-                  Delivery Information
+                  {t("memberPoints.deliveryInformation")}
                 </p>
 
                 <p className="mt-1 text-[11px] font-bold leading-5 text-amber-800">
-                  Enter the recipient details before confirming this physical reward.
+                  {t("memberPoints.deliveryInformationDescription")}
                 </p>
 
                 <div className="mt-4 space-y-3">
                   <label className="block">
                     <span className="text-[10px] font-black uppercase tracking-[0.12em] text-amber-900">
-                      Recipient Name
+                      {t("memberPoints.recipientName")}
                     </span>
 
                     <input
@@ -1550,14 +1553,14 @@ function RewardDetailModal({
                         )
                       }
                       disabled={redeeming}
-                      placeholder="Full name"
+                      placeholder={t("memberPoints.fullNamePlaceholder")}
                       className="mt-1.5 w-full rounded-xl border border-amber-200 bg-white px-4 py-3 text-xs font-bold text-slate-950 outline-none focus:border-amber-500 disabled:opacity-60 sm:text-sm"
                     />
                   </label>
 
                   <label className="block">
                     <span className="text-[10px] font-black uppercase tracking-[0.12em] text-amber-900">
-                      Phone Number
+                      {t("memberPoints.phoneNumber")}
                     </span>
 
                     <input
@@ -1569,14 +1572,14 @@ function RewardDetailModal({
                       }
                       disabled={redeeming}
                       inputMode="tel"
-                      placeholder="e.g. 0123456789"
+                      placeholder={t("memberPoints.phonePlaceholder")}
                       className="mt-1.5 w-full rounded-xl border border-amber-200 bg-white px-4 py-3 text-xs font-bold text-slate-950 outline-none focus:border-amber-500 disabled:opacity-60 sm:text-sm"
                     />
                   </label>
 
                   <label className="block">
                     <span className="text-[10px] font-black uppercase tracking-[0.12em] text-amber-900">
-                      Delivery Address
+                      {t("memberPoints.deliveryAddress")}
                     </span>
 
                     <textarea
@@ -1588,7 +1591,7 @@ function RewardDetailModal({
                       }
                       disabled={redeeming}
                       rows={3}
-                      placeholder="Complete delivery address"
+                      placeholder={t("memberPoints.addressPlaceholder")}
                       className="mt-1.5 w-full resize-none rounded-xl border border-amber-200 bg-white px-4 py-3 text-xs font-bold text-slate-950 outline-none focus:border-amber-500 disabled:opacity-60 sm:text-sm"
                     />
                   </label>
@@ -1612,8 +1615,8 @@ function RewardDetailModal({
                 }`}
               >
                 {redemptionSucceeded
-                  ? "Redemption Successful"
-                  : "Unable to Redeem"}
+                  ? t("memberPoints.redemptionSuccessful")
+                  : t("memberPoints.unableToRedeem")}
               </p>
 
               <p
@@ -1630,7 +1633,7 @@ function RewardDetailModal({
                 <div className="mt-3 flex items-center justify-between gap-3 rounded-xl bg-white p-3">
                   <div className="min-w-0">
                     <p className="text-[9px] font-black uppercase tracking-[0.14em] text-slate-400">
-                      Voucher Code
+                      {t("memberPoints.voucherCode")}
                     </p>
 
                     <p className="mt-1 break-all text-sm font-black text-slate-950">
@@ -1643,7 +1646,7 @@ function RewardDetailModal({
                     onClick={copyVoucherCode}
                     className="shrink-0 rounded-lg bg-slate-950 px-3 py-2 text-[10px] font-black text-white"
                   >
-                    {copied ? "Copied" : "Copy"}
+                    {copied ? t("memberPoints.copied") : t("memberPoints.copy")}
                   </button>
                 </div>
               )}
@@ -1665,11 +1668,11 @@ function RewardDetailModal({
               }`}
             >
               {redeeming
-                ? "Processing..."
+                ? t("memberPoints.processing")
                 : unavailable ||
-                  `Redeem ${numberFormat(
-                    reward.pointsRequired
-                  )} Points`}
+                  t("memberPoints.redeemPoints", {
+                    points: numberFormat(reward.pointsRequired),
+                  })}
             </button>
           )}
 
@@ -1679,14 +1682,14 @@ function RewardDetailModal({
               onClick={onClose}
               className="mt-5 w-full rounded-2xl bg-slate-950 px-4 py-4 text-sm font-black text-white"
             >
-              Done
+              {t("memberPoints.done")}
             </button>
           )}
 
           {!redemptionSucceeded &&
             reward.canRedeem && (
               <p className="mt-3 text-center text-[10px] font-bold leading-5 text-slate-400 sm:text-xs">
-                Points and stock will be updated immediately after confirmation.
+                {t("memberPoints.pointsStockUpdateNote")}
               </p>
             )}
         </div>
@@ -1887,14 +1890,18 @@ function EmptyRewards({
 
 function getRewardUnavailableText(
   reward: MemberRewardItem,
-  currentPoints: number
+  currentPoints: number,
+  t: (
+    key: string,
+    values?: Record<string, string | number>
+  ) => string
 ) {
   if (
     reward.unavailableReason ===
       "OUT_OF_STOCK" ||
     !reward.stockAvailable
   ) {
-    return "Out of Stock";
+    return t("memberPoints.outOfStock");
   }
 
   if (
@@ -1902,7 +1909,7 @@ function getRewardUnavailableText(
       "MEMBER_LIMIT_REACHED" ||
     reward.reachedMemberLimit
   ) {
-    return "Limit Reached";
+    return t("memberPoints.limitReached");
   }
 
   if (
@@ -1911,13 +1918,15 @@ function getRewardUnavailableText(
     currentPoints <
       reward.pointsRequired
   ) {
-    return `Need ${numberFormat(
-      Math.max(
-        reward.pointsRequired -
-          currentPoints,
-        0
-      )
-    )} More`;
+    return t("memberPoints.needMore", {
+      points: numberFormat(
+        Math.max(
+          reward.pointsRequired -
+            currentPoints,
+          0
+        )
+      ),
+    });
   }
 
   return "";
@@ -1974,12 +1983,21 @@ function rewardIcon(
 }
 
 function extractVoucherCode(
-  message: string
+  message: string,
+  label = "Voucher Code"
 ) {
+  const escapedLabel = label.replace(
+    /[.*+?^${}()|[\]\\]/g,
+    "\\$&"
+  );
+
   const match = String(
     message || ""
   ).match(
-    /Voucher Code:\s*(.+)$/i
+    new RegExp(
+      `${escapedLabel}:\\s*(.+)$`,
+      "i"
+    )
   );
 
   return match

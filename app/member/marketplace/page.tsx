@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import MemberLayout from "@/components/layout/MemberLayout";
+import { useLanguage } from "@/hooks/useLanguage";
 import {
   fetchMarketplaceMerchants,
   checkFavouriteMerchant,
@@ -118,6 +119,7 @@ const areaOptions: Record<string, string[]> = {
 };
 
 export default function MemberMarketplacePage() {
+  const { t } = useLanguage();
   const [merchants, setMerchants] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -234,7 +236,7 @@ export default function MemberMarketplacePage() {
         "";
 
       if (!memberId) {
-        alert("Please login first");
+        alert(t("memberMarketplace.loginFirst"));
         return;
       }
 
@@ -256,7 +258,7 @@ export default function MemberMarketplacePage() {
         [merchantId]: Boolean(data?.isFavourite),
       }));
     } catch (err: any) {
-      alert(err?.message || "Failed to update favourite");
+      alert(err?.message || t("memberMarketplace.updateFavouriteFailed"));
     } finally {
       setSavingFavId("");
     }
@@ -346,35 +348,34 @@ export default function MemberMarketplacePage() {
             href="/member/dashboard"
             className="inline-flex rounded-full border border-slate-200 bg-white px-4 py-2.5 text-xs font-black text-slate-700 no-underline shadow-sm sm:px-5 sm:py-3 sm:text-sm"
           >
-            ← Back to Dashboard
+            ← {t("memberMarketplace.backToDashboard")}
           </Link>
 
           <div className="mt-5 rounded-[1.75rem] bg-slate-950 p-5 text-white shadow-2xl sm:mt-6 sm:rounded-[2rem] sm:p-7 md:rounded-[2.5rem] md:p-9">
             <p className="text-[10px] font-black uppercase tracking-[0.22em] text-amber-300 sm:text-xs sm:tracking-[0.25em]">
-              RewardHub Marketplace
+              {t("memberMarketplace.eyebrow")}
             </p>
 
             <h1 className="mt-3 text-3xl font-black leading-tight sm:text-4xl md:text-5xl">
-              Discover Member Merchants
+              {t("memberMarketplace.title")}
             </h1>
 
             <p className="mt-3 max-w-2xl text-xs font-bold leading-5 text-slate-400 sm:text-sm sm:leading-6">
-              Search merchants by category, state and area, then enjoy
-              RewardHub member benefits.
+              {t("memberMarketplace.description")}
             </p>
 
             <div className="mt-6 grid grid-cols-3 gap-3 sm:mt-8 sm:gap-4">
               <MarketplaceStat
-                title="Active Merchants"
+                title={t("memberMarketplace.activeMerchants")}
                 value={merchants.length}
               />
               <MarketplaceStat
-                title="Categories"
+                title={t("memberMarketplace.categories")}
                 value={mainCategories.length - 1}
               />
               <MarketplaceStat
-                title="Reward Credits"
-                value="Accepted"
+                title={t("memberMarketplace.rewardCredits")}
+                value={t("memberMarketplace.accepted")}
               />
             </div>
           </div>
@@ -383,7 +384,7 @@ export default function MemberMarketplacePage() {
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search merchant, category, area or location"
+              placeholder={t("memberMarketplace.searchPlaceholder")}
               className="w-full rounded-xl border border-slate-200 px-4 py-3 text-xs font-bold text-slate-700 outline-none focus:border-slate-950 sm:rounded-2xl sm:px-5 sm:py-4 sm:text-sm"
             />
 
@@ -396,7 +397,7 @@ export default function MemberMarketplacePage() {
                 }}
                 className="w-full min-w-0 rounded-xl border border-slate-200 bg-white px-3 py-3 text-xs font-black text-slate-700 outline-none focus:border-slate-950 sm:rounded-2xl sm:px-5 sm:py-4 sm:text-sm"
               >
-                <option value="">All States</option>
+                <option value="">{t("memberMarketplace.allStates")}</option>
                 {Object.keys(areaOptions).map((stateName) => (
                   <option key={stateName} value={stateName}>
                     {stateName}
@@ -411,7 +412,7 @@ export default function MemberMarketplacePage() {
                 className="w-full min-w-0 rounded-xl border border-slate-200 bg-white px-3 py-3 text-xs font-black text-slate-700 outline-none focus:border-slate-950 disabled:bg-slate-100 disabled:text-slate-400 sm:rounded-2xl sm:px-5 sm:py-4 sm:text-sm"
               >
                 <option value="">
-                  {selectedState ? "All Areas" : "Select State First"}
+                  {selectedState ? t("memberMarketplace.allAreas") : t("memberMarketplace.selectStateFirst")}
                 </option>
 
                 {(areaOptions[selectedState] || []).map((areaName: string) => (
@@ -435,7 +436,7 @@ export default function MemberMarketplacePage() {
                         : "border-slate-200 bg-white text-slate-700 hover:bg-slate-950 hover:text-white"
                     }`}
                   >
-                    {item}
+                    {getCategoryLabel(item, t)}
                   </button>
                 )
               )}
@@ -447,13 +448,13 @@ export default function MemberMarketplacePage() {
                 }
                 className="shrink-0 whitespace-nowrap rounded-full border border-amber-300 bg-amber-50 px-3 py-2 text-[10px] font-black text-amber-800 shadow-sm hover:bg-amber-100 sm:px-5 sm:py-3 sm:text-sm"
               >
-                {showAllCategories ? "Show Less" : "More Categories"}
+                {showAllCategories ? t("memberMarketplace.showLess") : t("memberMarketplace.moreCategories")}
               </button>
             </div>
 
             <div className="mt-4 flex items-center justify-between gap-4 sm:mt-5">
               <p className="text-[10px] font-bold text-slate-500 sm:text-sm">
-                Showing {filteredMerchants.length} merchants
+                {t("memberMarketplace.showing")} {filteredMerchants.length} {t("memberMarketplace.merchants")}
               </p>
 
               <button
@@ -461,18 +462,18 @@ export default function MemberMarketplacePage() {
                 onClick={resetFilters}
                 className="rounded-full border border-slate-200 bg-white px-4 py-2.5 text-[10px] font-black text-slate-700 shadow-sm sm:px-5 sm:py-3 sm:text-sm"
               >
-                View All
+                {t("memberMarketplace.viewAll")}
               </button>
             </div>
           </div>
 
           <div className="mt-5 rounded-[1.75rem] bg-white p-4 shadow-sm sm:mt-6 sm:rounded-[2.5rem] sm:p-7">
             <h2 className="text-2xl font-black text-slate-950 sm:text-3xl">
-              All Merchants
+              {t("memberMarketplace.allMerchants")}
             </h2>
 
             <p className="mt-1 text-[11px] font-bold text-slate-500 sm:mt-2 sm:text-sm">
-              Browse all available RewardHub merchants.
+              {t("memberMarketplace.browseDescription")}
             </p>
 
             <div className="mt-5 grid grid-cols-2 gap-3 sm:mt-6 sm:gap-4 xl:grid-cols-3">
@@ -495,15 +496,49 @@ export default function MemberMarketplacePage() {
             </div>
 
             {!loading && filteredMerchants.length === 0 && (
-              <EmptyState text="No merchants found." />
+              <EmptyState text={t("memberMarketplace.noMerchantsFound")} />
             )}
 
-            {loading && <EmptyState text="Loading marketplace..." />}
+            {loading && <EmptyState text={t("memberMarketplace.loadingMarketplace")} />}
           </div>
         </section>
       </main>
     </MemberLayout>
   );
+}
+
+
+function getCategoryLabel(
+  value: string,
+  t: (key: string) => string
+) {
+  const categoryKeys: Record<string, string> = {
+    All: "all",
+    "Food & Beverage": "foodBeverage",
+    Cafe: "cafe",
+    Retail: "retail",
+    Fashion: "fashion",
+    Beauty: "beauty",
+    "Health & Wellness": "healthWellness",
+    Fitness: "fitness",
+    "Hotel & Travel": "hotelTravel",
+    Education: "education",
+    "Home & Living": "homeLiving",
+    Automotive: "automotive",
+    Pets: "pets",
+    Electronics: "electronics",
+    "Online Store": "onlineStore",
+    "Professional Services": "professionalServices",
+    Entertainment: "entertainment",
+    Wholesale: "wholesale",
+    Other: "other",
+  };
+
+  const key = categoryKeys[value];
+
+  return key
+    ? t(`memberMarketplace.categoriesList.${key}`)
+    : value;
 }
 
 function MerchantCard({
@@ -520,12 +555,14 @@ function MerchantCard({
     merchantId: string
   ) => void;
 }) {
+  const { t } = useLanguage();
+
   const name =
     merchant?.displayName ||
     merchant?.businessName ||
     merchant?.DISPLAY_NAME ||
     merchant?.BUSINESS_NAME ||
-    "Merchant";
+    t("memberMarketplace.merchant");
 
   const merchantId =
     merchant?.merchantId ||
@@ -563,7 +600,7 @@ function MerchantCard({
       .join(", ") ||
     merchant?.address ||
     merchant?.location ||
-    "Malaysia";
+    t("memberMarketplace.malaysia");
 
   return (
     <Link
@@ -579,8 +616,8 @@ function MerchantCard({
           disabled={saving}
           aria-label={
             isFavourite
-              ? "Remove from favourites"
-              : "Add to favourites"
+              ? t("memberMarketplace.removeFromFavourites")
+              : t("memberMarketplace.addToFavourites")
           }
           className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white text-base shadow-md transition hover:scale-110 disabled:opacity-50 sm:h-11 sm:w-11 sm:text-xl"
         >
@@ -593,7 +630,7 @@ function MerchantCard({
       </h3>
 
       <p className="mt-1 truncate text-[10px] font-bold text-slate-500 sm:text-sm">
-        {merchant?.category || merchant?.CATEGORY || "Merchant"}
+        {merchant?.category || merchant?.CATEGORY || t("memberMarketplace.merchant")}
       </p>
 
       <p className="mt-1 line-clamp-1 text-[9px] font-bold text-slate-400 sm:text-xs">
@@ -602,50 +639,51 @@ function MerchantCard({
 
       <div className="mt-3 grid grid-cols-2 gap-2 sm:mt-5 sm:gap-3">
         <InfoBox
-          title="Cashback"
+          title={t("memberMarketplace.cashback")}
           value={`${cashback}%`}
           green
         />
 
         <InfoBox
-          title="Rating"
-          value={rating > 0 ? `★ ${rating.toFixed(1)}` : "New"}
+          title={t("memberMarketplace.rating")}
+          value={rating > 0 ? `★ ${rating.toFixed(1)}` : t("memberMarketplace.newMerchant")}
           amber
         />
       </div>
 
       <p className="mt-2 text-[9px] font-bold text-slate-500 sm:mt-3 sm:text-xs">
         {reviews > 0
-          ? `${reviews} Review${reviews === 1 ? "" : "s"}`
-          : "No reviews yet"}
+          ? `${reviews} ${reviews === 1 ? t("memberMarketplace.review") : t("memberMarketplace.reviews")}`
+          : t("memberMarketplace.noReviewsYet")}
       </p>
 
       <div className="mt-3 flex flex-wrap gap-1.5 sm:mt-4 sm:gap-2">
         <span className="rounded-full bg-emerald-50 px-2 py-1 text-[9px] font-black text-emerald-700 sm:px-3 sm:text-xs">
-          Rewards
+          {t("memberMarketplace.rewards")}
         </span>
 
         {acceptsCredits && (
           <span className="rounded-full bg-blue-50 px-2 py-1 text-[9px] font-black text-blue-700 sm:px-3 sm:text-xs">
-            Credits
+            {t("memberMarketplace.credits")}
           </span>
         )}
       </div>
 
       <p className="mt-3 text-[10px] font-black text-slate-950 sm:mt-5 sm:text-sm">
-        View Details →
+        {t("memberMarketplace.viewDetails")} →
       </p>
     </Link>
   );
 }
 
 function MerchantLogo({ merchant }: { merchant: any }) {
+  const { t } = useLanguage();
   const name =
     merchant?.displayName ||
     merchant?.businessName ||
     merchant?.DISPLAY_NAME ||
     merchant?.BUSINESS_NAME ||
-    "Merchant";
+    t("memberMarketplace.merchant");
 
   const logoUrl =
     merchant?.logoUrl ||
@@ -656,10 +694,15 @@ function MerchantLogo({ merchant }: { merchant: any }) {
     <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-slate-950 text-base font-black text-white sm:h-16 sm:w-16 sm:rounded-2xl sm:text-xl">
       {logoUrl ? (
         <img
-          src={logoUrl}
-          alt={name}
-          className="h-full w-full object-cover"
-        />
+  src={getDisplayImageUrl(
+    logoUrl
+  )}
+  alt={name}
+  className="h-full w-full object-cover"
+  loading="lazy"
+  decoding="async"
+  referrerPolicy="no-referrer"
+/>
       ) : (
         name.slice(0, 2).toUpperCase()
       )}
@@ -723,4 +766,65 @@ function EmptyState({ text }: { text: string }) {
       {text}
     </div>
   );
+}
+function getDriveFileId(
+  value: string
+) {
+  const url = String(
+    value || ""
+  ).trim();
+
+  if (!url) {
+    return "";
+  }
+
+  const patterns = [
+    /[?&]id=([a-zA-Z0-9_-]+)/i,
+    /\/file\/d\/([a-zA-Z0-9_-]+)/i,
+    /\/d\/([a-zA-Z0-9_-]+)/i,
+    /googleusercontent\.com\/d\/([a-zA-Z0-9_-]+)/i,
+  ];
+
+  for (const pattern of patterns) {
+    const match =
+      url.match(pattern);
+
+    if (match?.[1]) {
+      return match[1];
+    }
+  }
+
+  return "";
+}
+
+function getDisplayImageUrl(
+  value: string
+) {
+  const url = String(
+    value || ""
+  ).trim();
+
+  if (!url) {
+    return "";
+  }
+
+  if (
+    url.startsWith(
+      "/api/drive-image"
+    )
+  ) {
+    return url;
+  }
+
+  const fileId =
+    getDriveFileId(url);
+
+  if (fileId) {
+    return (
+      "/api/drive-image?id=" +
+      encodeURIComponent(fileId)
+    );
+  }
+
+  return url;
 }

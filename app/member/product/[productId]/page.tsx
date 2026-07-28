@@ -12,6 +12,7 @@ import {
 import Link from "next/link";
 
 import MemberLayout from "@/components/layout/MemberLayout";
+import { useLanguage } from "@/hooks/useLanguage";
 import { getProductDetail } from "@/lib/api";
 
 type ProductImageItem = {
@@ -193,7 +194,12 @@ function getProductImages(
 }
 
 function getProductStatus(
-  product: ProductDetail
+  product: ProductDetail,
+  labels: {
+    unavailable: string;
+    outOfStock: string;
+    available: string;
+  }
 ) {
   const status =
     String(
@@ -213,7 +219,7 @@ function getProductStatus(
     status === "UNAVAILABLE"
   ) {
     return {
-      label: "Unavailable",
+      label: labels.unavailable,
       available: false,
     };
   }
@@ -224,13 +230,13 @@ function getProductStatus(
       stock === 0)
   ) {
     return {
-      label: "Out of stock",
+      label: labels.outOfStock,
       available: false,
     };
   }
 
   return {
-    label: "Available",
+    label: labels.available,
     available: true,
   };
 }
@@ -238,6 +244,9 @@ function getProductStatus(
 export default function ProductDetailPage() {
   const router =
     useRouter();
+
+  const { t } =
+    useLanguage();
 
   const params =
     useParams<{
@@ -281,7 +290,7 @@ export default function ProductDetailPage() {
     async function loadProduct() {
       if (!productId) {
         setError(
-          "Product ID is missing."
+          t("memberProductDetail.productIdMissing")
         );
         setLoading(false);
         return;
@@ -303,7 +312,7 @@ export default function ProductDetailPage() {
 
         if (!productData) {
           throw new Error(
-            "Product not found."
+            t("memberProductDetail.productNotFound")
           );
         }
 
@@ -327,7 +336,7 @@ export default function ProductDetailPage() {
             loadError instanceof
               Error
               ? loadError.message
-              : "Unable to load product."
+              : t("memberProductDetail.unableToLoadProduct")
           );
         }
       } finally {
@@ -342,7 +351,7 @@ export default function ProductDetailPage() {
     return () => {
       cancelled = true;
     };
-  }, [productId]);
+  }, [productId, t]);
 
   const images = useMemo(
     () =>
@@ -371,7 +380,7 @@ export default function ProductDetailPage() {
         <ProductErrorPage
           message={
             error ||
-            "Product not found."
+            t("memberProductDetail.productNotFound")
           }
           onBack={() =>
             router.back()
@@ -396,7 +405,7 @@ export default function ProductDetailPage() {
       merchant.displayName ||
         merchant.businessName ||
         merchant.merchantName ||
-        "RewardHub Merchant"
+        t("memberProductDetail.rewardHubMerchant")
     ).trim();
 
   const productName =
@@ -404,7 +413,7 @@ export default function ProductDetailPage() {
       product.productName ||
         product.name ||
         product.title ||
-        "Product"
+        t("memberProductDetail.product")
     ).trim();
 
   const merchantLogo =
@@ -462,7 +471,18 @@ export default function ProductDetailPage() {
 
   const productStatus =
     getProductStatus(
-      product
+      product,
+      {
+        unavailable: t(
+          "memberProductDetail.unavailable"
+        ),
+        outOfStock: t(
+          "memberProductDetail.outOfStock"
+        ),
+        available: t(
+          "memberProductDetail.available"
+        ),
+      }
     );
 
   const activeImage =
@@ -502,11 +522,11 @@ export default function ProductDetailPage() {
                 />
               </svg>
 
-              Back to Merchant
+              {t("memberProductDetail.backToMerchant")}
             </Link>
 
             <div className="hidden items-center gap-2 text-xs font-black uppercase tracking-[0.16em] text-slate-400 sm:flex">
-              <span>Marketplace</span>
+              <span>{t("memberProductDetail.marketplace")}</span>
               <span>/</span>
               <span className="max-w-[240px] truncate text-slate-600">
                 {productName}
@@ -520,17 +540,13 @@ export default function ProductDetailPage() {
               {/* Product gallery */}
               <div className="border-b border-slate-200 bg-[#0a1220] p-3 sm:p-5 lg:border-b-0 lg:border-r">
                 <div className="relative overflow-hidden rounded-[22px] bg-[#101a2b] sm:rounded-[28px]">
-                  <div className="relative aspect-square w-full">
+                  <div className="relative aspect-[4/3] w-full">
                     {activeImage ? (
                       <img
-                        src={
-                          activeImage
-                        }
-                        alt={
-                          productName
-                        }
-                        className="h-full w-full object-cover"
-                      />
+  src={getDisplayImageUrl(activeImage)}
+  alt={productName}
+  className="h-full w-full object-contain"
+/>
                     ) : (
                       <ProductPlaceholder />
                     )}
@@ -549,7 +565,7 @@ export default function ProductDetailPage() {
 
                       {hasDiscount ? (
                         <span className="rounded-full bg-amber-400 px-3 py-1.5 text-xs font-black text-slate-950 shadow-lg">
-                          Save{" "}
+                          {t("memberProductDetail.save")}{" "}
                           {
                             discountPercentage
                           }
@@ -559,7 +575,7 @@ export default function ProductDetailPage() {
                     </div>
 
                     <div className="absolute bottom-4 left-4 rounded-full border border-white/15 bg-black/35 px-3 py-1.5 text-[11px] font-black uppercase tracking-[0.14em] text-white backdrop-blur-lg">
-                      RewardHub Product
+                      {t("memberProductDetail.rewardHubProduct")}
                     </div>
                   </div>
                 </div>
@@ -594,12 +610,10 @@ export default function ProductDetailPage() {
                               }`}
                             >
                               <img
-                                src={
-                                  image
-                                }
-                                alt=""
-                                className="h-full w-full object-cover"
-                              />
+  src={getDisplayImageUrl(image)}
+  alt=""
+  className="h-full w-full object-cover"
+/>
                             </button>
                           );
                         }
@@ -614,15 +628,15 @@ export default function ProductDetailPage() {
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="rounded-full bg-amber-50 px-3 py-1.5 text-[11px] font-black uppercase tracking-[0.16em] text-amber-700 ring-1 ring-inset ring-amber-200">
                       {product.category ||
-                        "RewardHub Product"}
+                        t("memberProductDetail.rewardHubProduct")}
                     </span>
 
                     <span className="rounded-full bg-emerald-50 px-3 py-1.5 text-[11px] font-black text-emerald-700 ring-1 ring-inset ring-emerald-200">
-                      Earn{" "}
+                      {t("memberProductDetail.earn")}{" "}
                       {formatNumber(
                         pointsEarned
                       )}{" "}
-                      pts
+                      {t("memberProductDetail.pts")}
                     </span>
                   </div>
 
@@ -639,7 +653,7 @@ export default function ProductDetailPage() {
                     }
                     category={
                       merchant.category ||
-                      "RewardHub Merchant"
+                      t("memberProductDetail.rewardHubMerchant")
                     }
                     logoUrl={
                       merchantLogo
@@ -656,7 +670,7 @@ export default function ProductDetailPage() {
                   <div className="flex items-start justify-between gap-5">
                     <div>
                       <p className="text-xs font-black uppercase tracking-[0.16em] text-slate-400">
-                        Product Price
+                        {t("memberProductDetail.productPrice")}
                       </p>
 
                       <div className="mt-2 flex flex-wrap items-end gap-x-3 gap-y-1">
@@ -680,7 +694,7 @@ export default function ProductDetailPage() {
 
                     <div className="rounded-2xl bg-white/8 px-3 py-2 text-right">
                       <p className="text-[10px] font-black uppercase tracking-[0.14em] text-slate-500">
-                        Marketing
+                        {t("memberProductDetail.marketing")}
                       </p>
 
                       <p className="mt-1 text-lg font-black text-amber-300">
@@ -694,15 +708,15 @@ export default function ProductDetailPage() {
 
                   <div className="mt-5 grid grid-cols-2 gap-3 border-t border-white/10 pt-5">
                     <PriceBenefit
-                      label="Points earned"
+                      label={t("memberProductDetail.pointsEarned")}
                       value={`${formatNumber(
                         pointsEarned
-                      )} pts`}
+                      )} ${t("memberProductDetail.pts")}`}
                     />
 
                     <PriceBenefit
-                      label="Payment method"
-                      value="RewardHub Pay"
+                      label={t("memberProductDetail.paymentMethod")}
+                      value={t("memberProductDetail.rewardHubPay")}
                     />
                   </div>
                 </div>
@@ -712,44 +726,44 @@ export default function ProductDetailPage() {
                   <div className="flex items-end justify-between gap-4">
                     <div>
                       <p className="text-xs font-black uppercase tracking-[0.16em] text-slate-400">
-                        Member Benefits
+                        {t("memberProductDetail.memberBenefits")}
                       </p>
 
                       <h2 className="mt-1 text-xl font-black tracking-tight text-slate-950">
-                        Cashback by tier
+                        {t("memberProductDetail.cashbackByTier")}
                       </h2>
                     </div>
 
                     <span className="text-xs font-bold text-slate-400">
-                      Based on merchant budget
+                      {t("memberProductDetail.basedOnMerchantBudget")}
                     </span>
                   </div>
 
                   <div className="mt-4 grid grid-cols-3 gap-2.5 sm:gap-3">
                     <TierBenefitCard
-                      tier="Silver"
+                      tier={t("memberProductDetail.silver")}
                       value={`${money(
                         silverRate
                       )}%`}
-                      subtitle="Entry tier"
+                      subtitle={t("memberProductDetail.entryTier")}
                       tone="silver"
                     />
 
                     <TierBenefitCard
-                      tier="Gold"
+                      tier={t("memberProductDetail.gold")}
                       value={`${money(
                         goldRate
                       )}%`}
-                      subtitle="Gold member"
+                      subtitle={t("memberProductDetail.goldMember")}
                       tone="gold"
                     />
 
                     <TierBenefitCard
-                      tier="Platinum"
+                      tier={t("memberProductDetail.platinum")}
                       value={`${money(
                         platinumRate
                       )}%`}
-                      subtitle="Top tier"
+                      subtitle={t("memberProductDetail.topTier")}
                       tone="platinum"
                     />
                   </div>
@@ -793,11 +807,11 @@ export default function ProductDetailPage() {
 
                 <div>
                   <p className="text-xs font-black uppercase tracking-[0.16em] text-slate-400">
-                    Product Information
+                    {t("memberProductDetail.productInformation")}
                   </p>
 
                   <h2 className="mt-1 text-2xl font-black tracking-tight text-slate-950">
-                    Description
+                    {t("memberProductDetail.description")}
                   </h2>
                 </div>
               </div>
@@ -805,31 +819,31 @@ export default function ProductDetailPage() {
               <div className="mt-6 rounded-[22px] bg-slate-50 p-5 sm:p-6">
                 <p className="whitespace-pre-line text-sm font-semibold leading-7 text-slate-600 sm:text-base sm:leading-8">
                   {product.description ||
-                    "This product is currently available from this RewardHub merchant. Please contact the merchant if you need additional product information before making payment."}
+                    t("memberProductDetail.defaultDescription")}
                 </p>
               </div>
 
               <div className="mt-6 grid gap-3 sm:grid-cols-3">
                 <ProductInfoItem
-                  label="Category"
+                  label={t("memberProductDetail.category")}
                   value={
                     product.category ||
-                    "General"
+                    t("memberProductDetail.general")
                   }
                 />
 
                 <ProductInfoItem
-                  label="Availability"
+                  label={t("memberProductDetail.availability")}
                   value={
                     productStatus.label
                   }
                 />
 
                 <ProductInfoItem
-                  label="Points"
+                  label={t("memberProductDetail.points")}
                   value={`${formatNumber(
                     pointsEarned
-                  )} pts`}
+                  )} ${t("memberProductDetail.pts")}`}
                 />
               </div>
             </section>
@@ -843,7 +857,7 @@ export default function ProductDetailPage() {
               <div className="relative">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-black uppercase tracking-[0.18em] text-amber-300">
-                    Merchant
+                    {t("memberProductDetail.merchant")}
                   </span>
 
                   <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white/8 transition group-hover:translate-x-1">
@@ -869,7 +883,7 @@ export default function ProductDetailPage() {
 
                     <p className="mt-1 truncate text-sm font-bold text-slate-400">
                       {merchant.category ||
-                        "RewardHub Merchant"}
+                        t("memberProductDetail.rewardHubMerchant")}
                     </p>
                   </div>
                 </div>
@@ -892,7 +906,7 @@ export default function ProductDetailPage() {
 
                 <div className="mt-7 border-t border-white/10 pt-5">
                   <p className="text-sm font-black text-amber-300">
-                    View merchant profile
+                    {t("memberProductDetail.viewMerchantProfile")}
                   </p>
                 </div>
               </div>
@@ -905,7 +919,7 @@ export default function ProductDetailPage() {
           <div className="mx-auto flex max-w-3xl items-center gap-3">
             <div className="min-w-0 flex-1">
               <p className="text-[10px] font-black uppercase tracking-[0.14em] text-slate-400">
-                Total price
+                {t("memberProductDetail.totalPrice")}
               </p>
 
               <p className="mt-0.5 truncate text-xl font-black text-slate-950">
@@ -941,8 +955,8 @@ export default function ProductDetailPage() {
               }`}
             >
               {productStatus.available
-                ? "Pay Now"
-                : "Unavailable"}
+                ? t("memberProductDetail.payNow")
+                : t("memberProductDetail.unavailable")}
             </Link>
           </div>
         </div>
@@ -956,10 +970,12 @@ function PayButton({
 }: {
   available: boolean;
 }) {
+  const { t } =
+    useLanguage();
   if (!available) {
     return (
       <div className="flex min-h-16 items-center justify-center rounded-[20px] bg-slate-200 px-6 text-center text-sm font-black text-slate-500">
-        This product is currently unavailable
+        {t("memberProductDetail.currentlyUnavailable")}
       </div>
     );
   }
@@ -971,11 +987,11 @@ function PayButton({
     >
       <div>
         <p className="text-xs font-black uppercase tracking-[0.14em] text-amber-900/65">
-          RewardHub Payment
+          {t("memberProductDetail.rewardHubPayment")}
         </p>
 
         <p className="mt-1 text-base font-black">
-          Pay with Member QR
+          {t("memberProductDetail.payWithMemberQr")}
         </p>
       </div>
 
@@ -999,6 +1015,9 @@ function MerchantMiniProfile({
   logoUrl: string;
   verified: boolean;
 }) {
+  const { t } =
+    useLanguage();
+
   return (
     <Link
       href={href}
@@ -1019,7 +1038,7 @@ function MerchantMiniProfile({
           {verified ? (
             <span
               className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-emerald-500 text-[9px] text-white"
-              title="Verified Merchant"
+              title={t("memberProductDetail.verifiedMerchant")}
             >
               ✓
             </span>
@@ -1057,10 +1076,10 @@ function MerchantLogo({
   if (logoUrl) {
     return (
       <img
-        src={logoUrl}
-        alt={name}
-        className={`${sizeClass} shrink-0 border border-slate-200 bg-white object-cover`}
-      />
+  src={getDisplayImageUrl(logoUrl)}
+  alt={name}
+  className={`${sizeClass} shrink-0 border border-slate-200 bg-white object-cover`}
+/>  
     );
   }
 
@@ -1189,6 +1208,9 @@ function StatusBadge({
 }
 
 function ProductPlaceholder() {
+  const { t } =
+    useLanguage();
+
   return (
     <div className="flex h-full w-full flex-col items-center justify-center bg-gradient-to-br from-[#111d30] to-[#07101c] text-center">
       <div className="flex h-24 w-24 items-center justify-center rounded-[30px] border border-white/10 bg-white/5 text-5xl shadow-2xl">
@@ -1196,7 +1218,7 @@ function ProductPlaceholder() {
       </div>
 
       <p className="mt-5 text-sm font-black uppercase tracking-[0.16em] text-slate-400">
-        Product image
+        {t("memberProductDetail.productImage")}
       </p>
     </div>
   );
@@ -1237,6 +1259,9 @@ function ProductErrorPage({
   message: string;
   onBack: () => void;
 }) {
+  const { t } =
+    useLanguage();
+
   return (
     <main className="min-h-screen bg-[#f4f6fa] px-4 py-8 sm:px-6 lg:px-8">
       <section className="mx-auto max-w-3xl rounded-[30px] border border-slate-200 bg-white p-6 shadow-sm sm:p-10">
@@ -1245,7 +1270,7 @@ function ProductErrorPage({
           onClick={onBack}
           className="rounded-full border border-slate-200 bg-white px-4 py-2.5 text-sm font-black text-slate-700 transition hover:bg-slate-50"
         >
-          ← Back
+          ← {t("memberProductDetail.back")}
         </button>
 
         <div className="mt-8 rounded-[26px] border border-rose-200 bg-rose-50 p-7 text-center">
@@ -1254,7 +1279,7 @@ function ProductErrorPage({
           </div>
 
           <h1 className="mt-4 text-2xl font-black text-slate-950">
-            Unable to open product
+            {t("memberProductDetail.unableToOpenProduct")}
           </h1>
 
           <p className="mt-2 text-sm font-bold leading-6 text-rose-700">
@@ -1300,4 +1325,51 @@ function formatNumber(
         0,
     }
   ).format(number);
+}
+
+function getDriveFileId(
+  value: string
+) {
+  const url = String(value || "").trim();
+
+  if (!url) return "";
+
+  const patterns = [
+    /[?&]id=([a-zA-Z0-9_-]+)/i,
+    /\/file\/d\/([a-zA-Z0-9_-]+)/i,
+    /\/d\/([a-zA-Z0-9_-]+)/i,
+    /googleusercontent\.com\/d\/([a-zA-Z0-9_-]+)/i,
+  ];
+
+  for (const pattern of patterns) {
+    const match = url.match(pattern);
+
+    if (match?.[1]) {
+      return match[1];
+    }
+  }
+
+  return "";
+}
+
+function getDisplayImageUrl(
+  value: string
+) {
+  const url = String(value || "").trim();
+
+  if (!url) {
+    return "";
+  }
+
+  if (url.startsWith("/api/drive-image")) {
+    return url;
+  }
+
+  const fileId = getDriveFileId(url);
+
+  if (fileId) {
+    return `/api/drive-image?id=${encodeURIComponent(fileId)}`;
+  }
+
+  return url;
 }

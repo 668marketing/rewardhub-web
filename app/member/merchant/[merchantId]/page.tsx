@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import MemberLayout from "@/components/layout/MemberLayout";
+import { useLanguage } from "@/hooks/useLanguage";
 import MerchantGallery from "@/components/merchant/MerchantGallery";
 import {
   getMerchantDetail,
@@ -16,6 +17,7 @@ import {
 } from "@/lib/api";
 
 export default function MemberMerchantDetailPage() {
+  const { t } = useLanguage();
   const params = useParams();
   const merchantId = String(params?.merchantId || "");
 
@@ -206,7 +208,7 @@ export default function MemberMerchantDetailPage() {
         "";
 
       if (!memberId) {
-        alert("Please login again.");
+        alert(t("memberMerchantDetail.loginAgain"));
         return;
       }
 
@@ -229,7 +231,7 @@ export default function MemberMerchantDetailPage() {
     } catch (error: any) {
       alert(
         error?.message ||
-          "Failed to update favourite"
+          t("memberMerchantDetail.updateFavouriteFailed")
       );
     } finally {
       setSavingFavourite(false);
@@ -244,7 +246,7 @@ export default function MemberMerchantDetailPage() {
             <div className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-slate-300 border-t-slate-900" />
 
             <p className="mt-5 text-sm font-black text-slate-500">
-              Loading Merchant...
+              {t("memberMerchantDetail.loadingMerchant")}
             </p>
           </div>
         </div>
@@ -258,18 +260,18 @@ export default function MemberMerchantDetailPage() {
         <div className="flex min-h-[60vh] items-center justify-center px-4">
           <div className="text-center">
             <h2 className="text-2xl font-black text-slate-900">
-              Merchant Not Found
+              {t("memberMerchantDetail.merchantNotFound")}
             </h2>
 
             <p className="mt-3 text-sm font-bold text-slate-500">
-              This merchant does not exist or has been removed.
+              {t("memberMerchantDetail.merchantNotFoundDescription")}
             </p>
 
             <Link
               href="/member/marketplace"
               className="mt-6 inline-flex rounded-2xl bg-slate-950 px-6 py-3 text-sm font-black text-white no-underline"
             >
-              Back to Marketplace
+              {t("memberMerchantDetail.backToMarketplace")}
             </Link>
           </div>
         </div>
@@ -282,17 +284,17 @@ export default function MemberMerchantDetailPage() {
     merchant?.businessName ||
     merchant?.DISPLAY_NAME ||
     merchant?.BUSINESS_NAME ||
-    "Merchant";
+    t("memberMerchantDetail.merchant");
 
   const category =
     merchant?.category ||
     merchant?.CATEGORY ||
-    "Merchant";
+    t("memberMerchantDetail.merchant");
 
   const address =
     merchant?.address ||
     merchant?.ADDRESS ||
-    "Malaysia";
+    t("memberMerchantDetail.malaysia");
 
   const marketingBudget = Number(
     merchant?.marketingBudget ??
@@ -341,7 +343,7 @@ export default function MemberMerchantDetailPage() {
             href="/member/marketplace"
             className="inline-flex rounded-full border border-slate-200 bg-white px-4 py-2.5 text-xs font-black text-slate-700 no-underline shadow-sm sm:px-5 sm:py-3 sm:text-sm"
           >
-            ← Back to Marketplace
+            ← {t("memberMerchantDetail.backToMarketplace")}
           </Link>
 
           <div className="relative mt-5 aspect-[16/9] min-h-[220px] overflow-hidden rounded-[1.75rem] bg-slate-950 sm:mt-6 sm:min-h-[300px] sm:rounded-[2rem] lg:min-h-[460px]">
@@ -369,10 +371,10 @@ export default function MemberMerchantDetailPage() {
               className="absolute right-4 top-4 rounded-full bg-white/95 px-3 py-2 text-[10px] font-black text-slate-950 shadow-xl transition hover:scale-105 disabled:opacity-50 sm:right-6 sm:top-6 sm:px-5 sm:py-3 sm:text-sm"
             >
               {savingFavourite
-                ? "Saving..."
+                ? t("memberMerchantDetail.saving")
                 : isFavourite
-                  ? "❤️ Favourite"
-                  : "🤍 Favourite"}
+                  ? `❤️ ${t("memberMerchantDetail.favourite")}`
+                  : `🤍 ${t("memberMerchantDetail.favourite")}`}
             </button>
 
             <div className="absolute inset-x-4 bottom-4 flex items-end gap-3 sm:inset-x-8 sm:bottom-8 sm:gap-5">
@@ -380,7 +382,7 @@ export default function MemberMerchantDetailPage() {
 
               <div className="min-w-0 flex-1">
                 <p className="text-[9px] font-black uppercase tracking-[0.18em] text-amber-300 sm:text-xs sm:tracking-[0.25em]">
-                  RewardHub Merchant
+                  {t("memberMerchantDetail.rewardHubMerchant")}
                 </p>
 
                 <h1 className="mt-1 break-words text-2xl font-black leading-tight text-white sm:mt-2 sm:text-4xl lg:text-5xl">
@@ -388,7 +390,7 @@ export default function MemberMerchantDetailPage() {
                 </h1>
 
                 <p className="mt-1 break-words text-[10px] font-bold text-white/85 sm:mt-2 sm:text-sm">
-                  ⭐ {rating.average.toFixed(1)} ({rating.total} reviews) •{" "}
+                  ⭐ {rating.average.toFixed(1)} ({rating.total} {t("memberMerchantDetail.reviews")}) •{" "}
                   {category}
                 </p>
               </div>
@@ -397,13 +399,13 @@ export default function MemberMerchantDetailPage() {
 
           <section className="mt-5 rounded-[1.5rem] bg-white p-4 shadow-sm sm:mt-6 sm:rounded-[2rem] sm:p-6">
             <h2 className="text-xl font-black text-slate-950 sm:text-2xl">
-              About Merchant
+              {t("memberMerchantDetail.aboutMerchant")}
             </h2>
 
             <p className="mt-2 text-[11px] font-bold leading-6 text-slate-500 sm:mt-3 sm:text-sm sm:leading-7">
               {merchant?.description ||
                 merchant?.DESCRIPTION ||
-                `${name} is a RewardHub partner merchant. Members can enjoy instant cashback, collect points and use Reward Credits when supported by the merchant.`}
+                `${name} ${t("memberMerchantDetail.defaultMerchantDescription")}`}
             </p>
           </section>
 
@@ -411,36 +413,35 @@ export default function MemberMerchantDetailPage() {
             <div className="lg:col-span-2">
               <section className="rounded-[1.5rem] bg-white p-4 shadow-sm sm:rounded-[2rem] sm:p-6">
                 <h2 className="text-xl font-black text-slate-950 sm:text-2xl">
-                  Member Rewards
+                  {t("memberMerchantDetail.memberRewards")}
                 </h2>
 
                 <p className="mt-1 text-[11px] font-bold leading-5 text-slate-500 sm:mt-2 sm:text-sm sm:leading-6">
-                  Cashback is calculated based on this merchant&apos;s Marketing
-                  Budget and your membership tier.
+                  {t("memberMerchantDetail.rewardsDescription")}
                 </p>
 
                 <div className="mt-5 grid grid-cols-3 gap-3 sm:mt-6 sm:gap-4">
                   <RewardBox
-                    title="Silver"
+                    title={t("memberMerchantDetail.silver")}
                     value={`${money(silverRate)}%`}
                   />
                   <RewardBox
-                    title="Gold"
+                    title={t("memberMerchantDetail.gold")}
                     value={`${money(goldRate)}%`}
                   />
                   <RewardBox
-                    title="Platinum"
+                    title={t("memberMerchantDetail.platinum")}
                     value={`${money(platinumRate)}%`}
                   />
                 </div>
 
                 <div className="mt-4 flex flex-wrap gap-2 sm:mt-5">
                   <Badge
-                    text={`Marketing Budget ${marketingBudget}%`}
+                    text={`${t("memberMerchantDetail.marketingBudget")} ${marketingBudget}%`}
                   />
 
                   {acceptCredits && (
-                    <Badge text="Reward Credits Accepted" />
+                    <Badge text={t("memberMerchantDetail.rewardCreditsAccepted")} />
                   )}
                 </div>
               </section>
@@ -448,7 +449,7 @@ export default function MemberMerchantDetailPage() {
               {merchant?.promotion?.active && (
                 <section className="mt-5 rounded-[1.5rem] bg-amber-50 p-4 sm:mt-6 sm:rounded-[2rem] sm:p-6">
                   <p className="text-[9px] font-black uppercase tracking-[0.18em] text-amber-700 sm:text-xs sm:tracking-[0.25em]">
-                    Current Promotion
+                    {t("memberMerchantDetail.currentPromotion")}
                   </p>
 
                   <h2 className="mt-1 text-xl font-black text-slate-950 sm:mt-2 sm:text-2xl">
@@ -461,7 +462,7 @@ export default function MemberMerchantDetailPage() {
 
                   {merchant.promotion.endDate && (
                     <p className="mt-3 text-[10px] font-black text-amber-700 sm:mt-4 sm:text-xs">
-                      Valid until {merchant.promotion.endDate}
+                      {t("memberMerchantDetail.validUntil")} {merchant.promotion.endDate}
                     </p>
                   )}
                 </section>
@@ -470,11 +471,11 @@ export default function MemberMerchantDetailPage() {
 
             <section className="rounded-[1.5rem] bg-slate-950 p-4 text-white sm:rounded-[2rem] sm:p-6">
               <p className="text-[9px] font-black uppercase tracking-[0.18em] text-amber-300 sm:text-xs sm:tracking-[0.25em]">
-                Store Info
+                {t("memberMerchantDetail.storeInfo")}
               </p>
 
               <Info
-                title="📞 Contact"
+                title={`📞 ${t("memberMerchantDetail.contact")}`}
                 value={
                   merchant?.ownerPhone ||
                   merchant?.phone ||
@@ -485,7 +486,7 @@ export default function MemberMerchantDetailPage() {
               />
 
               <Info
-                title="📍 Address"
+                title={`📍 ${t("memberMerchantDetail.address")}`}
                 value={[
                   merchant?.address ||
                     merchant?.ADDRESS,
@@ -501,28 +502,28 @@ export default function MemberMerchantDetailPage() {
               />
 
               <Info
-                title="🕒 Opening Hours"
+                title={`🕒 ${t("memberMerchantDetail.openingHours")}`}
                 value={
                   openTime && closeTime
                     ? `${openTime} - ${closeTime}`
-                    : "Opening hours not added"
+                    : t("memberMerchantDetail.openingHoursNotAdded")
                 }
               />
 
               <Info
-                title="🌴 Rest Day"
+                title={`🌴 ${t("memberMerchantDetail.restDay")}`}
                 value={
                   restDay ||
-                  "Not specified"
+                  t("memberMerchantDetail.notSpecified")
                 }
               />
 
               <Info
-                title="Status"
+                title={t("memberMerchantDetail.status")}
                 value={
                   isOpen
-                    ? "🟢 Open Now"
-                    : "🔴 Closed Now"
+                    ? `🟢 ${t("memberMerchantDetail.openNow")}`
+                    : `🔴 ${t("memberMerchantDetail.closedNow")}`
                 }
               />
 
@@ -532,7 +533,7 @@ export default function MemberMerchantDetailPage() {
                 rel="noopener noreferrer"
                 className="mt-5 block rounded-xl bg-white py-3 text-center text-xs font-black text-slate-950 no-underline sm:mt-6 sm:rounded-2xl sm:py-4 sm:text-sm"
               >
-                📍 Open Google Maps
+                📍 {t("memberMerchantDetail.openGoogleMaps")}
               </a>
             </section>
           </div>
@@ -544,17 +545,16 @@ export default function MemberMerchantDetailPage() {
               <div className="flex items-start justify-between gap-4">
                 <div className="min-w-0">
                   <h2 className="text-xl font-black text-slate-950 sm:text-2xl">
-                    Products & Offers
+                    {t("memberMerchantDetail.productsOffers")}
                   </h2>
 
                   <p className="mt-1 text-[11px] font-bold text-slate-500 sm:mt-2 sm:text-sm">
-                    Browse products, services, packages or vouchers from this
-                    merchant.
+                    {t("memberMerchantDetail.productsDescription")}
                   </p>
                 </div>
 
                 <span className="shrink-0 rounded-full bg-slate-50 px-3 py-1.5 text-[10px] font-black text-slate-500 sm:px-4 sm:py-2 sm:text-xs">
-                  {products.length} Items
+                  {products.length} {t("memberMerchantDetail.items")}
                 </span>
               </div>
 
@@ -572,13 +572,13 @@ export default function MemberMerchantDetailPage() {
                         )}
                         alt={
                           item?.productName ||
-                          "Product"
+                          t("memberMerchantDetail.product")
                         }
                         className="aspect-[4/3] w-full object-cover"
                       />
                     ) : (
                       <div className="flex aspect-[4/3] items-center justify-center bg-slate-200 text-xs font-black text-slate-400">
-                        NO IMAGE
+                        {t("memberMerchantDetail.noImage")}
                       </div>
                     )}
 
@@ -587,12 +587,12 @@ export default function MemberMerchantDetailPage() {
                         <div className="min-w-0">
                           <p className="text-[9px] font-black uppercase tracking-[0.14em] text-amber-600 sm:text-xs sm:tracking-[0.2em]">
                             {item?.category ||
-                              "Product"}
+                              t("memberMerchantDetail.product")}
                           </p>
 
                           <h3 className="mt-1 line-clamp-2 text-sm font-black leading-tight text-slate-950 sm:mt-2 sm:text-xl">
                             {item?.productName ||
-                              "Product"}
+                              t("memberMerchantDetail.product")}
                           </h3>
                         </div>
 
@@ -603,21 +603,21 @@ export default function MemberMerchantDetailPage() {
 
                       <p className="mt-2 line-clamp-3 text-[10px] font-bold leading-4 text-slate-500 sm:mt-3 sm:text-sm sm:leading-6">
                         {item?.description ||
-                          "Available at this RewardHub merchant."}
+                          t("memberMerchantDetail.productDefaultDescription")}
                       </p>
 
                       <div className="mt-3 flex flex-wrap gap-1.5 sm:mt-4 sm:gap-2">
                         <span className="rounded-full bg-emerald-50 px-2 py-1 text-[9px] font-black text-emerald-700 sm:px-3 sm:text-xs">
-                          Earn{" "}
+                          {t("memberMerchantDetail.earn")}{" "}
                           {item?.pointsEarned ||
                             Math.floor(
                               item?.price || 0
                             )}{" "}
-                          pts
+                          {t("memberMerchantDetail.pts")}
                         </span>
 
                         <span className="rounded-full bg-amber-50 px-2 py-1 text-[9px] font-black text-amber-700 sm:px-3 sm:text-xs">
-                          Member Cashback
+                          {t("memberMerchantDetail.memberCashback")}
                         </span>
                       </div>
                     </div>
@@ -631,16 +631,16 @@ export default function MemberMerchantDetailPage() {
             <div className="flex items-start justify-between gap-4">
               <div>
                 <h2 className="text-xl font-black text-slate-950 sm:text-2xl">
-                  Member Reviews
+                  {t("memberMerchantDetail.memberReviews")}
                 </h2>
 
                 <p className="mt-1 text-[11px] font-bold text-slate-500 sm:mt-2 sm:text-sm">
-                  Verified feedback from RewardHub members.
+                  {t("memberMerchantDetail.verifiedFeedback")}
                 </p>
               </div>
 
               <span className="shrink-0 rounded-full bg-slate-50 px-3 py-1.5 text-[10px] font-black text-slate-500 sm:px-4 sm:py-2 sm:text-xs">
-                {reviews.length} Reviews
+                {reviews.length} {t("memberMerchantDetail.reviews")}
               </span>
             </div>
 
@@ -663,7 +663,7 @@ export default function MemberMerchantDetailPage() {
                 )
               ) : (
                 <div className="rounded-2xl bg-slate-50 p-6 text-center text-xs font-bold text-slate-500 sm:rounded-3xl sm:p-8 sm:text-sm">
-                  No reviews yet.
+                  {t("memberMerchantDetail.noReviewsYet")}
                 </div>
               )}
             </div>
@@ -679,12 +679,14 @@ function MerchantLogo({
 }: {
   merchant: any;
 }) {
+  const { t } = useLanguage();
+
   const name =
     merchant?.displayName ||
     merchant?.businessName ||
     merchant?.DISPLAY_NAME ||
     merchant?.BUSINESS_NAME ||
-    "Merchant";
+    t("memberMerchantDetail.merchant");
 
   const logoUrl =
     merchant?.logoUrl ||
@@ -763,6 +765,8 @@ function ReviewCard({
 }: {
   review: any;
 }) {
+  const { t } = useLanguage();
+
   const rating = Math.max(
     0,
     Math.min(
@@ -784,7 +788,7 @@ function ReviewCard({
   const memberName =
     review?.memberName ||
     review?.MEMBER_NAME ||
-    "Member";
+    t("memberMerchantDetail.member");
 
   const createdAt =
     review?.createdAt ||
@@ -810,7 +814,7 @@ function ReviewCard({
           </p>
 
           <p className="mt-1 text-[10px] font-black text-emerald-700 sm:text-xs">
-            Verified Purchase
+            {t("memberMerchantDetail.verifiedPurchase")}
           </p>
         </div>
 
@@ -823,7 +827,7 @@ function ReviewCard({
         <p className="text-[11px] font-bold leading-5 text-slate-600 sm:text-sm sm:leading-6">
           {review?.comment ||
             review?.COMMENT ||
-            "No comment added."}
+            t("memberMerchantDetail.noCommentAdded")}
         </p>
       </div>
 
@@ -831,7 +835,7 @@ function ReviewCard({
         <div className="mt-4 rounded-2xl border border-emerald-100 bg-emerald-50 p-4 sm:p-5">
           <div className="flex items-center justify-between gap-4">
             <p className="text-[10px] font-black uppercase tracking-[0.14em] text-emerald-700 sm:text-xs">
-              Merchant Reply
+              {t("memberMerchantDetail.merchantReply")}
             </p>
 
             {updatedAt && (
@@ -959,8 +963,64 @@ function checkIsOpen(
   );
 }
 
-function getDisplayImageUrl(
-  url: string
+function getDriveFileId(
+  value: string
 ) {
-  return url || "";
+  const url = String(
+    value || ""
+  ).trim();
+
+  if (!url) {
+    return "";
+  }
+
+  const patterns = [
+    /[?&]id=([a-zA-Z0-9_-]+)/i,
+    /\/file\/d\/([a-zA-Z0-9_-]+)/i,
+    /\/d\/([a-zA-Z0-9_-]+)/i,
+    /googleusercontent\.com\/d\/([a-zA-Z0-9_-]+)/i,
+  ];
+
+  for (const pattern of patterns) {
+    const match =
+      url.match(pattern);
+
+    if (match?.[1]) {
+      return match[1];
+    }
+  }
+
+  return "";
+}
+
+function getDisplayImageUrl(
+  value: string
+) {
+  const url = String(
+    value || ""
+  ).trim();
+
+  if (!url) {
+    return "";
+  }
+
+  if (
+    url.startsWith(
+      "/api/drive-image"
+    )
+  ) {
+    return url;
+  }
+
+  const fileId =
+    getDriveFileId(url);
+
+  if (fileId) {
+    return (
+      "/api/drive-image?id=" +
+      encodeURIComponent(fileId)
+    );
+  }
+
+  return url;
 }

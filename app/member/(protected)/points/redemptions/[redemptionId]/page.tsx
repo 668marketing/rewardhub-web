@@ -23,6 +23,8 @@ import {
   useState,
 } from "react";
 
+import { useLanguage } from "@/hooks/useLanguage";
+
 import {
   getMemberRewardRedemptionDetail,
   type MemberRewardRedemptionDetail,
@@ -142,8 +144,17 @@ function parseDateValue(
   return date;
 }
 
+function getDateLocale(
+  language: string
+) {
+  if (language === "zh") return "zh-CN";
+  if (language === "ms") return "ms-MY";
+  return "en-MY";
+}
+
 function formatDateTime(
-  value: string
+  value: string,
+  language: string
 ) {
   const date =
     parseDateValue(
@@ -155,7 +166,7 @@ function formatDateTime(
   }
 
   return new Intl.DateTimeFormat(
-    "en-MY",
+    getDateLocale(language),
     {
       day: "2-digit",
       month: "short",
@@ -337,6 +348,9 @@ export default function MemberRewardRedemptionDetailPage() {
   const router =
     useRouter();
 
+  const { t, language } =
+    useLanguage();
+
   const params =
     useParams<{
       redemptionId:
@@ -385,7 +399,7 @@ export default function MemberRewardRedemptionDetailPage() {
 
         if (!memberId) {
           setError(
-            "Member session is unavailable. Please sign in again."
+            t("memberRewardRedemptionDetail.sessionUnavailable")
           );
           setLoading(false);
           return;
@@ -393,7 +407,7 @@ export default function MemberRewardRedemptionDetailPage() {
 
         if (!redemptionId) {
           setError(
-            "Redemption ID is missing."
+            t("memberRewardRedemptionDetail.redemptionIdMissing")
           );
           setLoading(false);
           return;
@@ -431,7 +445,7 @@ export default function MemberRewardRedemptionDetailPage() {
           setError(
             loadError instanceof Error
               ? loadError.message
-              : "Unable to load redemption."
+              : t("memberRewardRedemptionDetail.unableToLoad")
           );
         } finally {
           setLoading(false);
@@ -440,7 +454,7 @@ export default function MemberRewardRedemptionDetailPage() {
           );
         }
       },
-      [redemptionId]
+      [redemptionId, t]
     );
 
   useEffect(
@@ -523,7 +537,7 @@ export default function MemberRewardRedemptionDetailPage() {
       );
     } catch {
       setError(
-        "Unable to copy. Please press and hold the value to copy manually."
+        t("memberRewardRedemptionDetail.unableToCopy")
       );
     }
   }
@@ -535,7 +549,7 @@ export default function MemberRewardRedemptionDetailPage() {
           <Loader2 className="mx-auto h-8 w-8 animate-spin text-slate-950" />
 
           <p className="mt-4 text-sm font-bold text-slate-500">
-            Loading redemption details...
+            {t("memberRewardRedemptionDetail.loadingDetails")}
           </p>
         </div>
       </main>
@@ -552,7 +566,7 @@ export default function MemberRewardRedemptionDetailPage() {
           <AlertTriangle className="mx-auto h-9 w-9 text-red-500" />
 
           <h1 className="mt-4 text-xl font-black text-slate-950">
-            Unable to load redemption
+            {t("memberRewardRedemptionDetail.unableToLoad")}
           </h1>
 
           <p className="mt-3 text-sm font-semibold leading-6 text-red-600">
@@ -569,7 +583,7 @@ export default function MemberRewardRedemptionDetailPage() {
               }
               className="rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-black text-slate-800"
             >
-              Back to Points
+              {t("memberRewardRedemptionDetail.backToPoints")}
             </button>
 
             <button
@@ -579,7 +593,7 @@ export default function MemberRewardRedemptionDetailPage() {
               }
               className="rounded-2xl bg-slate-950 px-5 py-3 text-sm font-black text-white"
             >
-              Try Again
+              {t("memberRewardRedemptionDetail.tryAgain")}
             </button>
           </div>
         </div>
@@ -603,7 +617,7 @@ export default function MemberRewardRedemptionDetailPage() {
             className="inline-flex min-h-10 items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-xs font-black text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 sm:min-h-12 sm:gap-2 sm:rounded-2xl sm:px-4 sm:py-3 sm:text-sm"
           >
             <ArrowLeft className="h-4 w-4" />
-            Back
+            {t("memberRewardRedemptionDetail.back")}
           </button>
 
           <button
@@ -625,7 +639,7 @@ export default function MemberRewardRedemptionDetailPage() {
                   : ""
               }`}
             />
-            Refresh
+            {t("memberRewardRedemptionDetail.refresh")}
           </button>
         </div>
 
@@ -659,7 +673,7 @@ export default function MemberRewardRedemptionDetailPage() {
 
                   <span className="inline-flex rounded-full border border-white/15 bg-white/10 px-2.5 py-1 text-[9px] font-black uppercase tracking-wide text-white sm:px-3 sm:text-[11px]">
                     {item.deliveryMethod ||
-                      "Reward"}
+                      t("memberRewardRedemptionDetail.reward")}
                   </span>
                 </div>
 
@@ -695,16 +709,16 @@ export default function MemberRewardRedemptionDetailPage() {
           <div className="grid gap-4 p-4 sm:gap-6 sm:p-8">
             <div className="grid grid-cols-3 gap-2 sm:gap-4">
               <InfoCard
-                label="Points Used"
+                label={t("memberRewardRedemptionDetail.pointsUsed")}
                 value={`${Number(
                   item.pointsUsed
                 ).toLocaleString(
-                  "en-MY"
-                )} pts`}
+                  getDateLocale(language)
+                )} ${t("memberRewardRedemptionDetail.pts")}`}
               />
 
               <InfoCard
-                label="Delivery"
+                label={t("memberRewardRedemptionDetail.delivery")}
                 value={
                   item.deliveryMethod ||
                   "-"
@@ -712,7 +726,7 @@ export default function MemberRewardRedemptionDetailPage() {
               />
 
               <InfoCard
-                label="Quantity"
+                label={t("memberRewardRedemptionDetail.quantity")}
                 value={String(
                   item.quantity ||
                   1
@@ -722,7 +736,7 @@ export default function MemberRewardRedemptionDetailPage() {
 
             {item.voucherCode && (
               <CopyBox
-                label="Voucher Code"
+                label={t("memberRewardRedemptionDetail.voucherCode")}
                 value={
                   item.voucherCode
                 }
@@ -747,18 +761,18 @@ export default function MemberRewardRedemptionDetailPage() {
 
                 <div>
                   <h2 className="text-base font-black text-slate-950 sm:text-lg">
-                    Fulfilment
+                    {t("memberRewardRedemptionDetail.fulfilment")}
                   </h2>
 
                   <p className="mt-0.5 text-[11px] font-semibold leading-4 text-slate-500 sm:mt-1 sm:text-xs">
-                    Courier and parcel tracking information
+                    {t("memberRewardRedemptionDetail.fulfilmentDescription")}
                   </p>
                 </div>
               </div>
 
               <div className="mt-4 grid grid-cols-2 gap-2 sm:mt-5 sm:gap-4">
                 <InfoCard
-                  label="Courier"
+                  label={t("memberRewardRedemptionDetail.courier")}
                   value={
                     item.courier ||
                     "-"
@@ -766,7 +780,7 @@ export default function MemberRewardRedemptionDetailPage() {
                 />
 
                 <InfoCard
-                  label="Tracking Number"
+                  label={t("memberRewardRedemptionDetail.trackingNumber")}
                   value={
                     item.trackingNo ||
                     "-"
@@ -795,8 +809,8 @@ export default function MemberRewardRedemptionDetailPage() {
 
                     {copied ===
                     "tracking"
-                      ? "Copied"
-                      : "Copy Tracking Number"}
+                      ? t("memberRewardRedemptionDetail.copied")
+                      : t("memberRewardRedemptionDetail.copyTrackingNumber")}
                   </button>
 
                   <a
@@ -808,12 +822,12 @@ export default function MemberRewardRedemptionDetailPage() {
                     className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-slate-950 px-3 py-3 text-xs font-black text-white shadow-sm transition hover:bg-slate-800 sm:min-h-12 sm:rounded-2xl sm:px-4 sm:py-3.5 sm:text-sm"
                   >
                     <ExternalLink className="h-4 w-4" />
-                    Track Parcel
+                    {t("memberRewardRedemptionDetail.trackParcel")}
                   </a>
                 </div>
               ) : (
                 <div className="mt-3 rounded-xl border border-dashed border-slate-300 bg-white px-3 py-3 text-xs font-bold leading-5 text-slate-500 sm:mt-4 sm:rounded-2xl sm:px-4 sm:py-4 sm:text-sm">
-                  Tracking information will appear here after the reward is shipped.
+                  {t("memberRewardRedemptionDetail.trackingPending")}
                 </div>
               )}
             </section>
@@ -826,13 +840,13 @@ export default function MemberRewardRedemptionDetailPage() {
                   </div>
 
                   <h2 className="text-base font-black text-slate-950 sm:text-lg">
-                    Delivery Information
+                    {t("memberRewardRedemptionDetail.deliveryInformation")}
                   </h2>
                 </div>
 
                 <div className="mt-4 grid grid-cols-2 gap-2 sm:mt-5 sm:gap-4">
                   <InfoCard
-                    label="Recipient"
+                    label={t("memberRewardRedemptionDetail.recipient")}
                     value={
                       item.recipientName ||
                       "-"
@@ -840,7 +854,7 @@ export default function MemberRewardRedemptionDetailPage() {
                   />
 
                   <InfoCard
-                    label="Phone"
+                    label={t("memberRewardRedemptionDetail.phone")}
                     value={
                       item.phone ||
                       "-"
@@ -850,7 +864,7 @@ export default function MemberRewardRedemptionDetailPage() {
 
                 <div className="mt-3 rounded-xl border border-slate-200 bg-slate-50 p-3 sm:mt-4 sm:rounded-2xl sm:p-4">
                   <p className="text-[10px] font-black uppercase tracking-wide text-slate-400 sm:text-xs">
-                    Address
+                    {t("memberRewardRedemptionDetail.address")}
                   </p>
 
                   <p className="mt-1.5 whitespace-pre-wrap break-words text-xs font-bold leading-5 text-slate-700 sm:mt-2 sm:text-sm sm:leading-6">
@@ -867,24 +881,25 @@ export default function MemberRewardRedemptionDetailPage() {
                 </div>
 
                 <h2 className="text-base font-black text-slate-950 sm:text-lg">
-                  Status Timeline
+                  {t("memberRewardRedemptionDetail.statusTimeline")}
                 </h2>
               </div>
 
               <div className="mt-5 sm:mt-6">
                 <Timeline
-                  title="Redeemed"
-                  description="Your points were deducted and the redemption order was created."
+                  title={t("memberRewardRedemptionDetail.redeemed")}
+                  description={t("memberRewardRedemptionDetail.redeemedDescription")}
                   date={
                     item.redeemedAt
                   }
                   active
                   completed
+                  language={language}
                 />
 
                 <Timeline
-                  title="Processing"
-                  description="RewardHub is preparing your reward."
+                  title={t("memberRewardRedemptionDetail.processing")}
+                  description={t("memberRewardRedemptionDetail.processingDescription")}
                   date={
                     item.processedAt
                   }
@@ -898,14 +913,15 @@ export default function MemberRewardRedemptionDetailPage() {
                       item.processedAt
                     )
                   }
+                  language={language}
                 />
 
                 <Timeline
-                  title="Shipped"
+                  title={t("memberRewardRedemptionDetail.shipped")}
                   description={
                     item.trackingNo
-                      ? `${item.courier || "Courier"} · ${item.trackingNo}`
-                      : "Courier and tracking information will appear after shipment."
+                      ? `${item.courier || t("memberRewardRedemptionDetail.courier")} · ${item.trackingNo}`
+                      : t("memberRewardRedemptionDetail.shippedDescription")
                   }
                   date={
                     item.shippedAt
@@ -916,11 +932,12 @@ export default function MemberRewardRedemptionDetailPage() {
                   completed={Boolean(
                     item.shippedAt
                   )}
+                  language={language}
                 />
 
                 <Timeline
-                  title="Completed"
-                  description="The reward order has been completed."
+                  title={t("memberRewardRedemptionDetail.completed")}
+                  description={t("memberRewardRedemptionDetail.completedDescription")}
                   date={
                     item.completedAt
                   }
@@ -932,6 +949,7 @@ export default function MemberRewardRedemptionDetailPage() {
                     status ===
                     "COMPLETED"
                   }
+                  language={language}
                   last
                 />
               </div>
@@ -940,7 +958,7 @@ export default function MemberRewardRedemptionDetailPage() {
             {item.cancelReason && (
               <div className="rounded-[22px] border border-red-200 bg-red-50 p-4 sm:rounded-[28px] sm:p-5">
                 <p className="text-xs font-black uppercase tracking-wide text-red-500">
-                  Cancellation Reason
+                  {t("memberRewardRedemptionDetail.cancellationReason")}
                 </p>
 
                 <p className="mt-2 text-sm font-bold leading-6 text-red-700">
@@ -1032,6 +1050,8 @@ function CopyBox({
   copied: boolean;
   onCopy: () => void;
 }) {
+  const { t } =
+    useLanguage();
   return (
     <div className="rounded-[22px] border border-emerald-200 bg-emerald-50 p-4 sm:rounded-[28px] sm:p-6">
       <p className="text-xs font-black uppercase tracking-wide text-emerald-700">
@@ -1051,12 +1071,12 @@ function CopyBox({
           {copied ? (
             <>
               <CheckCircle2 className="h-4 w-4" />
-              Copied
+              {t("memberRewardRedemptionDetail.copied")}
             </>
           ) : (
             <>
               <Clipboard className="h-4 w-4" />
-              Copy
+              {t("memberRewardRedemptionDetail.copy")}
             </>
           )}
         </button>
@@ -1070,6 +1090,8 @@ function StatusBadge({
 }: {
   status: string;
 }) {
+  const { t } =
+    useLanguage();
   const normalized =
     normalizeStatus(
       status
@@ -1114,7 +1136,13 @@ function StatusBadge({
     <span
       className={`inline-flex rounded-full border px-2.5 py-1 text-[9px] font-black uppercase tracking-wide sm:px-3 sm:text-[11px] ${classes}`}
     >
-      {status || "Pending"}
+      {status
+        ? t(
+            `memberRewardRedemptionDetail.status.${normalizeStatus(
+              status
+            ).toLowerCase()}`
+          )
+        : t("memberRewardRedemptionDetail.status.pending")}
     </span>
   );
 }
@@ -1125,6 +1153,7 @@ function Timeline({
   date,
   active,
   completed,
+  language,
   last = false,
 }: {
   title: string;
@@ -1132,6 +1161,7 @@ function Timeline({
   date: string;
   active: boolean;
   completed: boolean;
+  language: string;
   last?: boolean;
 }) {
   return (
@@ -1174,7 +1204,8 @@ function Timeline({
 
           <p className="text-[10px] font-bold text-slate-400 sm:text-xs">
             {formatDateTime(
-              date
+              date,
+              language
             )}
           </p>
         </div>

@@ -4,8 +4,10 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { getTransactionHistory } from "@/lib/api";
 import MemberLayout from "@/components/layout/MemberLayout";
+import { useLanguage } from "@/hooks/useLanguage";
 
 export default function TransactionsPage() {
+  const { t } = useLanguage();
   const [items, setItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -39,7 +41,7 @@ export default function TransactionsPage() {
       setItems(list);
     } catch (err) {
       console.error(err);
-      alert("Failed to load transactions");
+      alert(t("memberTransactions.failedToLoadTransactions"));
     } finally {
       setLoading(false);
     }
@@ -101,34 +103,36 @@ export default function TransactionsPage() {
             href="/member/dashboard"
             className="inline-flex rounded-full border border-slate-200 bg-white px-5 py-3 text-sm font-black text-slate-700 no-underline shadow-sm"
           >
-            ← Back to Dashboard
+            ← {t("memberTransactions.backToDashboard")}
           </Link>
 
           <div className="mt-5 rounded-[1.75rem] bg-slate-950 p-5 text-white shadow-2xl sm:mt-6 sm:rounded-[2rem] sm:p-7 md:rounded-[2.5rem] md:p-9">
             <p className="text-xs font-black uppercase tracking-[0.25em] text-amber-300">
-              Member Transactions
+              {t("memberTransactions.memberTransactions")}
             </p>
 
             <h1 className="mt-3 text-3xl font-black sm:text-4xl md:text-5xl">
-              Transaction History
+              {t("memberTransactions.transactionHistory")}
             </h1>
 
             <p className="mt-3 max-w-2xl text-sm font-bold text-slate-400">
-              Track your spending, instant cashback, Reward Credits used and
-              points earned.
+              {t("memberTransactions.description")}
             </p>
 
             <div className="mt-8 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
-              <StatCard title="Total Paid" value={`RM${money(totalSpent)}`} />
+              <StatCard title={t("memberTransactions.totalPaid")} value={`RM${money(totalSpent)}`} />
               <StatCard
-                title="Cashback Saved"
+                title={t("memberTransactions.cashbackSaved")}
                 value={`RM${money(totalCashback)}`}
               />
               <StatCard
-                title="Credits Used"
+                title={t("memberTransactions.creditsUsed")}
                 value={`RM${money(totalCreditsUsed)}`}
               />
-              <StatCard title="Points Earned" value={`${totalPoints} pts`} />
+              <StatCard
+                title={t("memberTransactions.pointsEarned")}
+                value={`${totalPoints} ${t("memberTransactions.pointsUnit")}`}
+              />
             </div>
           </div>
 
@@ -136,10 +140,10 @@ export default function TransactionsPage() {
             <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
               <div>
                 <h2 className="text-2xl font-black text-slate-950">
-                  All Transactions
+                  {t("memberTransactions.allTransactions")}
                 </h2>
                 <p className="mt-1 text-[11px] font-medium text-slate-500 sm:text-xs lg:text-sm">
-                  Showing {filtered.length} transaction(s)
+                  {t("memberTransactions.showingTransactions", { count: filtered.length })}
                 </p>
               </div>
 
@@ -147,7 +151,7 @@ export default function TransactionsPage() {
                 <input
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Search merchant / transaction"
+                  placeholder={t("memberTransactions.searchPlaceholder")}
                   className="rounded-2xl border border-slate-200 px-5 py-4 text-sm font-bold outline-none focus:border-slate-950"
                 />
 
@@ -156,11 +160,11 @@ export default function TransactionsPage() {
                   onChange={(e) => setStatus(e.target.value)}
                   className="rounded-2xl border border-slate-200 px-5 py-4 text-sm font-bold outline-none focus:border-slate-950"
                 >
-                  <option value="All">All Status</option>
-                  <option value="Completed">Completed</option>
-                  <option value="Pending">Pending</option>
-                  <option value="Cancelled">Cancelled</option>
-                  <option value="Refunded">Refunded</option>
+                  <option value="All">{t("memberTransactions.allStatus")}</option>
+                  <option value="Completed">{t("memberTransactions.completed")}</option>
+                  <option value="Pending">{t("memberTransactions.pending")}</option>
+                  <option value="Cancelled">{t("memberTransactions.cancelled")}</option>
+                  <option value="Refunded">{t("memberTransactions.refunded")}</option>
                 </select>
               </div>
             </div>
@@ -172,13 +176,13 @@ export default function TransactionsPage() {
 
               {!loading && filtered.length === 0 && (
                 <div className="rounded-3xl bg-slate-50 p-10 text-center text-sm font-bold text-slate-500">
-                  No transactions found.
+                  {t("memberTransactions.noTransactionsFound")}
                 </div>
               )}
 
               {loading && (
                 <div className="rounded-3xl bg-slate-50 p-10 text-center text-sm font-bold text-slate-500">
-                  Loading transactions...
+                  {t("memberTransactions.loadingTransactions")}
                 </div>
               )}
             </div>
@@ -190,11 +194,12 @@ export default function TransactionsPage() {
 }
 
 function TransactionCard({ tx }: { tx: any }) {
+  const { t } = useLanguage();
   const merchantName =
     tx.merchantName ||
     tx.businessName ||
     tx.merchantId ||
-    "Unknown Merchant";
+    t("memberTransactions.unknownMerchant");
 
   const originalAmount = Number(
     tx.grossAmount || tx.originalAmount || tx.amount || 0
@@ -216,6 +221,7 @@ function TransactionCard({ tx }: { tx: any }) {
 
   const points = Number(tx.pointsEarned || 0);
   const status = tx.status || "Completed";
+  const localizedStatus = getStatusLabel(status, t);
 
   return (
     <div className="rounded-[2rem] border border-slate-100 bg-white p-6 shadow-sm transition hover:shadow-md">
@@ -232,7 +238,7 @@ function TransactionCard({ tx }: { tx: any }) {
   </h3>
 
   <div className="mt-2">
-    <StatusBadge status={status} />
+    <StatusBadge status={status} label={localizedStatus} />
   </div>
 </div>
 
@@ -248,7 +254,7 @@ function TransactionCard({ tx }: { tx: any }) {
 
         <div className="text-left lg:text-right">
           <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-400">
-            Final Paid
+            {t("memberTransactions.finalPaid")}
           </p>
           <p className="mt-1 text-xl font-black text-slate-950 sm:text-2xl lg:text-3xl">
             RM{money(finalPaid)}
@@ -257,16 +263,20 @@ function TransactionCard({ tx }: { tx: any }) {
       </div>
 
       <div className="mt-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <MiniStat title="Original" value={`RM${money(originalAmount)}`} />
-        <MiniStat title="Cashback Saved" value={`RM${money(cashback)}`} green />
-        <MiniStat title="Credits Used" value={`RM${money(creditsUsed)}`} />
-        <MiniStat title="Points Earned" value={`${points} pts`} blue />
+        <MiniStat title={t("memberTransactions.original")} value={`RM${money(originalAmount)}`} />
+        <MiniStat title={t("memberTransactions.cashbackSaved")} value={`RM${money(cashback)}`} green />
+        <MiniStat title={t("memberTransactions.creditsUsed")} value={`RM${money(creditsUsed)}`} />
+        <MiniStat
+          title={t("memberTransactions.pointsEarned")}
+          value={`${points} ${t("memberTransactions.pointsUnit")}`}
+          blue
+        />
       </div>
 
       {status === "Completed" &&
   (tx.reviewed ? (
     <div className="mt-5 rounded-2xl border border-emerald-200 bg-emerald-50 py-3 text-center text-xs font-black text-emerald-700 sm:py-4 sm:text-sm">
-      ⭐ Reviewed
+      ⭐ {t("memberTransactions.reviewed")}
     </div>
   ) : (
     <Link
@@ -277,7 +287,7 @@ function TransactionCard({ tx }: { tx: any }) {
       )}`}
       className="mt-5 block rounded-2xl bg-slate-950 py-3 text-center text-xs font-black text-white no-underline sm:py-4 sm:text-sm"
     >
-      Leave Review
+      {t("memberTransactions.leaveReview")}
     </Link>
   ))}
     </div>
@@ -304,7 +314,7 @@ function MiniStat({
  </div>);
 }
 
-function StatusBadge({ status }: { status: string }) {
+function StatusBadge({ status, label }: { status: string; label: string }) {
   const style =
     status === "Completed"
       ? "bg-emerald-100 text-emerald-700"
@@ -318,9 +328,40 @@ function StatusBadge({ status }: { status: string }) {
     <span
   className={`inline-flex rounded-full px-2.5 py-1 text-[10px] font-black sm:px-3 sm:text-xs ${style}`}
 >
-      {status}
+      {label}
     </span>
   );
+}
+
+
+function getStatusLabel(
+  status: string,
+  t: (
+    key: string,
+    values?: Record<string, string | number>
+  ) => string
+) {
+  const normalized = String(status || "")
+    .trim()
+    .toLowerCase();
+
+  if (normalized === "completed") {
+    return t("memberTransactions.completed");
+  }
+
+  if (normalized === "pending") {
+    return t("memberTransactions.pending");
+  }
+
+  if (normalized === "cancelled") {
+    return t("memberTransactions.cancelled");
+  }
+
+  if (normalized === "refunded") {
+    return t("memberTransactions.refunded");
+  }
+
+  return status || t("memberTransactions.completed");
 }
 
 function money(value: any) {

@@ -4,10 +4,12 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import MemberLayout from "@/components/layout/MemberLayout";
+import { useLanguage } from "@/hooks/useLanguage";
 import { addMerchantReview } from "@/lib/api";
 
 export default function ReviewPage() {
   const router = useRouter();
+  const { t } = useLanguage();
 
   const [transactionId, setTransactionId] = useState("");
   const [merchantId, setMerchantId] = useState("");
@@ -34,7 +36,9 @@ export default function ReviewPage() {
 
   async function submit() {
     if (!transactionId || !merchantId) {
-      alert("Missing transaction details.");
+      alert(
+        t("memberReview.missingTransactionDetails")
+      );
       return;
     }
 
@@ -48,21 +52,19 @@ export default function ReviewPage() {
       "";
 
     if (!memberId) {
-      alert("Please login again.");
+      alert(t("memberReview.loginAgain"));
       return;
     }
 
     if (rating < 1 || rating > 5) {
-      alert("Please select a rating.");
+      alert(t("memberReview.selectRating"));
       return;
     }
 
     const cleanComment = comment.trim();
 
     if (cleanComment.length > 1000) {
-      alert(
-        "Comment must not exceed 1000 characters."
-      );
+      alert(t("memberReview.commentTooLong"));
       return;
     }
 
@@ -74,10 +76,12 @@ export default function ReviewPage() {
         memberId,
         merchantId,
         rating,
-        comment: cleanComment
+        comment: cleanComment,
       });
 
-      alert("Review submitted successfully");
+      alert(
+        t("memberReview.submittedSuccessfully")
+      );
 
       router.push(
         `/member/merchant/${merchantId}`
@@ -85,7 +89,7 @@ export default function ReviewPage() {
     } catch (error: any) {
       alert(
         error?.message ||
-          "Unable to submit review."
+          t("memberReview.unableToSubmit")
       );
     } finally {
       setLoading(false);
@@ -96,7 +100,7 @@ export default function ReviewPage() {
     return (
       <MemberLayout>
         <main className="min-h-screen bg-[#f6f7fb] px-4 py-10 text-center text-sm font-black text-slate-500">
-          Loading review page...
+          {t("memberReview.loadingPage")}
         </main>
       </MemberLayout>
     );
@@ -110,7 +114,7 @@ export default function ReviewPage() {
             href="/member/transactions"
             className="inline-flex rounded-full border border-slate-200 bg-white px-4 py-2.5 text-xs font-black text-slate-700 no-underline shadow-sm sm:px-5 sm:py-3 sm:text-sm"
           >
-            ← Back to History
+            ← {t("memberReview.backToHistory")}
           </Link>
 
           <div className="mt-5 rounded-[1.75rem] bg-white p-5 shadow-xl sm:mt-6 sm:rounded-[2rem] sm:p-8 md:p-10">
@@ -120,17 +124,17 @@ export default function ReviewPage() {
               </div>
 
               <h1 className="mt-4 text-3xl font-black text-slate-950 sm:mt-5 sm:text-4xl">
-                Leave Review
+                {t("memberReview.title")}
               </h1>
 
               <p className="mt-2 text-[11px] font-bold leading-5 text-slate-500 sm:text-sm">
-                Share your experience with this merchant.
+                {t("memberReview.description")}
               </p>
             </div>
 
             <div className="mt-6 rounded-[1.5rem] bg-slate-50 p-4 sm:mt-8 sm:rounded-3xl sm:p-5">
               <p className="text-[10px] font-black uppercase tracking-[0.14em] text-slate-400 sm:text-xs">
-                Transaction ID
+                {t("memberReview.transactionId")}
               </p>
 
               <p className="mt-2 break-all text-xs font-black text-slate-950 sm:text-sm">
@@ -140,7 +144,7 @@ export default function ReviewPage() {
 
             <div className="mt-7 sm:mt-8">
               <p className="text-center text-base font-black text-slate-950 sm:text-lg">
-                Your Rating
+                {t("memberReview.yourRating")}
               </p>
 
               <div className="mt-4 flex justify-center gap-2 sm:gap-3">
@@ -152,7 +156,9 @@ export default function ReviewPage() {
                       onClick={() =>
                         setRating(star)
                       }
-                      aria-label={`${star} star rating`}
+                      aria-label={`${star} ${t(
+                        "memberReview.starRating"
+                      )}`}
                       className="text-3xl transition active:scale-90 sm:text-5xl"
                     >
                       {star <= rating
@@ -164,14 +170,15 @@ export default function ReviewPage() {
               </div>
 
               <p className="mt-3 text-center text-xs font-bold text-slate-500 sm:text-sm">
-                {rating} / 5 Stars
+                {rating} / 5{" "}
+                {t("memberReview.stars")}
               </p>
             </div>
 
             <div className="mt-7 sm:mt-8">
               <div className="flex items-center justify-between gap-4">
                 <p className="text-base font-black text-slate-950 sm:text-lg">
-                  Comment
+                  {t("memberReview.comment")}
                 </p>
 
                 <p className="text-[10px] font-bold text-slate-400 sm:text-xs">
@@ -186,7 +193,9 @@ export default function ReviewPage() {
                   setComment(event.target.value)
                 }
                 className="mt-3 min-h-32 w-full resize-none rounded-[1.5rem] border border-slate-200 bg-white p-4 text-sm font-bold text-slate-800 outline-none transition focus:border-slate-950 focus:ring-2 focus:ring-slate-950/10 sm:min-h-36 sm:rounded-3xl sm:p-5"
-                placeholder="Write something about your experience..."
+                placeholder={t(
+                  "memberReview.commentPlaceholder"
+                )}
               />
             </div>
 
@@ -201,8 +210,8 @@ export default function ReviewPage() {
               className="mt-7 w-full rounded-xl bg-slate-950 py-4 text-sm font-black text-white shadow-xl disabled:cursor-not-allowed disabled:opacity-40 sm:mt-8 sm:rounded-2xl sm:py-5"
             >
               {loading
-                ? "Submitting..."
-                : "Submit Review"}
+                ? t("memberReview.submitting")
+                : t("memberReview.submitReview")}
             </button>
           </div>
         </section>

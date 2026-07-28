@@ -5,6 +5,7 @@ import Link from "next/link";
 import { QRCodeSVG } from "qrcode.react";
 import MemberLayout from "@/components/layout/MemberLayout";
 import { getMemberCommissionSummary } from "@/lib/api";
+import { useLanguage } from "@/hooks/useLanguage";
 
 type ReferralType = "MEMBER" | "MERCHANT";
 
@@ -64,6 +65,7 @@ type CommissionSummary = {
 };
 
 export default function CommissionPage() {
+  const { t } = useLanguage();
   const [summary, setSummary] =
     useState<CommissionSummary | null>(null);
 
@@ -132,7 +134,7 @@ export default function CommissionPage() {
     member?.displayName ||
     member?.fullName ||
     member?.name ||
-    "Member";
+    t("memberCommission.member");
 
   const memberReferralUrl =
     origin && memberId !== "-"
@@ -213,7 +215,7 @@ export default function CommissionPage() {
       );
 
       alert(
-        "Unable to copy the link. Please copy it manually."
+        t("memberCommission.unableToCopy")
       );
     }
   }
@@ -226,33 +228,28 @@ export default function CommissionPage() {
             href="/member/dashboard"
             className="inline-flex rounded-full border border-slate-200 bg-white px-4 py-2.5 text-xs font-black text-slate-700 no-underline shadow-sm transition hover:bg-slate-50 sm:px-5 sm:py-3 sm:text-sm"
           >
-            ← Back to Dashboard
+            ← {t("memberCommission.backToDashboard")}
           </Link>
 
           <div className="mt-5 overflow-hidden rounded-[1.75rem] bg-slate-950 p-5 text-white shadow-2xl sm:mt-6 sm:rounded-[2rem] sm:p-7 md:rounded-[2.5rem] md:p-9">
             <div className="flex items-start justify-between gap-4">
               <div className="min-w-0">
                 <p className="text-[10px] font-black uppercase tracking-[0.22em] text-amber-300 sm:text-xs sm:tracking-[0.25em]">
-                  Referral Center
+                  {t("memberCommission.referralCenter")}
                 </p>
 
                 <h1 className="mt-3 text-3xl font-black sm:text-4xl md:text-5xl">
-                  Invite & Earn
+                  {t("memberCommission.inviteAndEarn")}
                 </h1>
 
                 <p className="mt-3 max-w-2xl text-xs font-bold leading-5 text-slate-400 sm:text-sm sm:leading-6">
-                  Invite members and merchants to
-                  RewardHub. Earn member referral
-                  credits from your three-level
-                  network and permanent merchant
-                  referral credits from merchants
-                  introduced by you.
+                  {t("memberCommission.heroDescription")}
                 </p>
               </div>
 
               <div className="shrink-0 rounded-xl bg-white/10 px-3 py-3 sm:rounded-2xl sm:px-6 sm:py-5">
                 <p className="text-[9px] font-black text-slate-400 sm:text-xs">
-                  Referrer ID
+                  {t("memberCommission.referrerId")}
                 </p>
 
                 <p className="mt-1 max-w-[110px] truncate text-sm font-black text-amber-300 sm:max-w-none sm:text-2xl">
@@ -263,26 +260,26 @@ export default function CommissionPage() {
 
             <div className="mt-6 grid grid-cols-2 gap-3 sm:mt-8 sm:gap-4 lg:grid-cols-4">
               <StatCard
-                title="Total Credits Earned"
+                title={t("memberCommission.totalCreditsEarned")}
                 value={`RM${money(
                   totalEarned
                 )}`}
               />
 
               <StatCard
-                title="Available Reward Credits"
+                title={t("memberCommission.availableRewardCredits")}
                 value={`RM${money(
                   availableRewardCredits
                 )}`}
               />
 
               <StatCard
-                title="Referral Members"
+                title={t("memberCommission.referralMembers")}
                 value={totalReferralMembers}
               />
 
               <StatCard
-                title="Referred Merchants"
+                title={t("memberCommission.referredMerchants")}
                 value={referredMerchantCount}
               />
             </div>
@@ -291,12 +288,11 @@ export default function CommissionPage() {
           <div className="mt-5 grid grid-cols-1 gap-5 sm:mt-6 lg:grid-cols-3 lg:gap-6">
             <div className="rounded-[1.75rem] bg-white p-4 shadow-sm sm:rounded-[2rem] sm:p-6 lg:rounded-[2.5rem] lg:p-7">
               <h2 className="text-xl font-black text-slate-950 sm:text-2xl">
-                My Referral QR
+                {t("memberCommission.myReferralQr")}
               </h2>
 
               <p className="mt-1 text-[11px] font-bold text-slate-500 sm:mt-2 sm:text-sm">
-                Let new members scan this QR
-                code to register under you.
+                {t("memberCommission.qrDescription")}
               </p>
 
               <div className="mt-5 flex justify-center rounded-[1.5rem] bg-slate-50 p-4 sm:mt-6 sm:rounded-[2rem] sm:p-6">
@@ -309,7 +305,7 @@ export default function CommissionPage() {
                   />
                 ) : (
                   <div className="flex h-[200px] w-[200px] items-center justify-center rounded-2xl bg-slate-100 text-xs font-bold text-slate-400">
-                    Loading QR...
+                    {t("memberCommission.loadingQr")}
                   </div>
                 )}
               </div>
@@ -324,12 +320,12 @@ export default function CommissionPage() {
                   onClick={() =>
                     copyLink(
                       memberReferralUrl,
-                      "Member referral link copied"
+                      t("memberCommission.memberLinkCopied")
                     )
                   }
                   className="w-full rounded-xl bg-slate-950 px-3 py-3 text-[10px] font-black text-white transition hover:bg-slate-800 sm:rounded-2xl sm:py-4 sm:text-sm"
                 >
-                  Copy Member Link
+                  {t("memberCommission.copyMemberLink")}
                 </button>
 
                 <button
@@ -337,12 +333,12 @@ export default function CommissionPage() {
                   onClick={() =>
                     copyLink(
                       merchantReferralUrl,
-                      "Merchant referral link copied"
+                      t("memberCommission.merchantLinkCopied")
                     )
                   }
                   className="w-full rounded-xl bg-amber-500 px-3 py-3 text-[10px] font-black text-white transition hover:bg-amber-600 sm:rounded-2xl sm:py-4 sm:text-sm"
                 >
-                  Copy Merchant Link
+                  {t("memberCommission.copyMerchantLink")}
                 </button>
               </div>
             </div>
@@ -350,41 +346,37 @@ export default function CommissionPage() {
             <div className="rounded-[1.75rem] bg-white p-4 shadow-sm sm:rounded-[2rem] sm:p-6 lg:col-span-2 lg:rounded-[2.5rem] lg:p-7">
               <div className="space-y-4 sm:space-y-5">
                 <ReferralLinkCard
-                  label="Member Referral Link"
+                  label={t("memberCommission.memberReferralLink")}
                   value={memberReferralUrl}
                 />
 
                 <ReferralLinkCard
-                  label="Merchant Referral Link"
+                  label={t("memberCommission.merchantReferralLink")}
                   value={merchantReferralUrl}
                   amber
                 />
               </div>
 
               <p className="mt-4 text-[11px] font-bold leading-5 text-slate-500 sm:mt-5 sm:text-sm sm:leading-6">
-                Share the member link with new
-                members or the merchant link with
-                business owners. Their completed
-                RewardHub activity can generate
-                Reward Credits for you.
+                {t("memberCommission.shareDescription")}
               </p>
 
               <div className="mt-5 grid grid-cols-3 gap-3 sm:mt-6 sm:gap-4">
                 <Info
-                  title="Level 1"
-                  subtitle="Direct referrals"
+                  title={t("memberCommission.level1")}
+                  subtitle={t("memberCommission.directReferrals")}
                   value={directCount}
                 />
 
                 <Info
-                  title="Level 2"
-                  subtitle="Second level"
+                  title={t("memberCommission.level2")}
+                  subtitle={t("memberCommission.secondLevel")}
                   value={level2Count}
                 />
 
                 <Info
-                  title="Level 3"
-                  subtitle="Third level"
+                  title={t("memberCommission.level3")}
+                  subtitle={t("memberCommission.thirdLevel")}
                   value={level3Count}
                 />
               </div>
@@ -392,15 +384,15 @@ export default function CommissionPage() {
               <div className="mt-5 grid grid-cols-1 gap-3 sm:mt-6 sm:grid-cols-2 sm:gap-4">
                 <EarningCard
                   icon="👥"
-                  title="Member Referral Credits"
-                  description="Credits earned from your three-level member referral network."
+                  title={t("memberCommission.memberReferralCredits")}
+                  description={t("memberCommission.memberReferralCreditsDescription")}
                   value={memberReferralEarned}
                 />
 
                 <EarningCard
                   icon="🏪"
-                  title="Merchant Referral Credits"
-                  description="Permanent 1% credits from transactions made at merchants introduced by you."
+                  title={t("memberCommission.merchantReferralCredits")}
+                  description={t("memberCommission.merchantReferralCreditsDescription")}
                   value={merchantReferralEarned}
                   amber
                 />
@@ -408,15 +400,11 @@ export default function CommissionPage() {
 
               <div className="mt-5 rounded-[1.5rem] bg-amber-50 p-4 sm:mt-6 sm:rounded-[2rem] sm:p-5">
                 <p className="text-xs font-black text-amber-800 sm:text-sm">
-                  Reward Credits Rule
+                  {t("memberCommission.rewardCreditsRule")}
                 </p>
 
                 <p className="mt-2 text-[11px] font-bold leading-5 text-amber-700 sm:text-sm sm:leading-7">
-                  Released referral commissions
-                  become Reward Credits. Reward
-                  Credits can be used to offset
-                  spending at participating
-                  RewardHub merchants.
+                  {t("memberCommission.rewardCreditsRuleDescription")}
                 </p>
               </div>
             </div>
@@ -426,12 +414,11 @@ export default function CommissionPage() {
             <div className="flex items-center justify-between gap-4">
               <div className="min-w-0">
                 <h2 className="text-xl font-black text-slate-950 sm:text-2xl">
-                  Referral Credit History
+                  {t("memberCommission.referralCreditHistory")}
                 </h2>
 
                 <p className="mt-1 text-[11px] font-bold text-slate-500 sm:text-sm">
-                  Credits generated from members
-                  and merchants referred by you.
+                  {t("memberCommission.historyDescription")}
                 </p>
               </div>
 
@@ -439,7 +426,7 @@ export default function CommissionPage() {
                 href="/member/points"
                 className="shrink-0 rounded-xl bg-slate-950 px-3 py-3 text-[10px] font-black text-white no-underline transition hover:bg-slate-800 sm:rounded-2xl sm:px-6 sm:py-4 sm:text-sm"
               >
-                View Credits
+                {t("memberCommission.viewCredits")}
               </Link>
             </div>
 
@@ -464,13 +451,13 @@ export default function CommissionPage() {
               {!loading &&
                 history.length === 0 && (
                   <div className="rounded-2xl bg-slate-50 p-6 text-center text-xs font-bold text-slate-500 sm:rounded-3xl sm:p-10 sm:text-sm">
-                    No referral credits yet.
+                    {t("memberCommission.noReferralCredits")}
                   </div>
                 )}
 
               {loading && (
                 <div className="rounded-2xl bg-slate-50 p-6 text-center text-xs font-bold text-slate-500 sm:rounded-3xl sm:p-10 sm:text-sm">
-                  Loading referral history...
+                  {t("memberCommission.loadingReferralHistory")}
                 </div>
               )}
             </div>
@@ -490,6 +477,8 @@ function ReferralLinkCard({
   value: string;
   amber?: boolean;
 }) {
+  const { t } = useLanguage();
+
   return (
     <div
       className={`rounded-xl p-3 sm:rounded-2xl sm:p-5 ${
@@ -516,7 +505,7 @@ function ReferralLinkCard({
         }`}
       >
         {value ||
-          "Loading referral link..."}
+          t("memberCommission.loadingReferralLink")}
       </p>
     </div>
   );
@@ -527,6 +516,7 @@ function HistoryRow({
 }: {
   item: ReferralHistoryItem;
 }) {
+  const { t } = useLanguage();
   const amount = Number(
     item.amount || 0
   );
@@ -555,8 +545,8 @@ function HistoryRow({
         item.memberName ||
         item.fromMemberId) ||
     (isMerchant
-      ? "Referred Merchant"
-      : "Referred Member");
+      ? t("memberCommission.referredMerchant")
+      : t("memberCommission.referredMember"));
 
   const sourceId =
     item.sourceId ||
@@ -566,14 +556,14 @@ function HistoryRow({
     "";
 
   const title = isMerchant
-    ? "Merchant Referral Credit"
-    : `Level ${
+    ? t("memberCommission.merchantReferralCredit")
+    : `${t("memberCommission.level")} ${
         level || "-"
-      } Referral Credit`;
+      } ${t("memberCommission.referralCredit")}`;
 
   const description = isMerchant
-    ? "Permanent 1% merchant referral reward"
-    : `Member referral reward from Level ${
+    ? t("memberCommission.permanentMerchantReward")
+    : `${t("memberCommission.memberReferralRewardFromLevel")} ${
         level || "-"
       }`;
 
@@ -611,6 +601,11 @@ function HistoryRow({
 
               <ReferralTypeBadge
                 isMerchant={isMerchant}
+                label={
+                  isMerchant
+                    ? t("memberCommission.merchant")
+                    : t("memberCommission.member")
+                }
               />
             </div>
 
@@ -625,26 +620,27 @@ function HistoryRow({
             <div className="mt-2">
               <StatusBadge
                 status={status}
+                label={getStatusLabel(status, t)}
               />
             </div>
 
             <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-[9px] font-bold text-slate-400 sm:text-xs">
               {sourceId && (
                 <span>
-                  Source: {sourceId}
+                  {t("memberCommission.source")}: {sourceId}
                 </span>
               )}
 
               {item.transactionId && (
                 <span>
-                  Transaction:{" "}
+                  {t("memberCommission.transaction")}:{" "}
                   {item.transactionId}
                 </span>
               )}
 
               {transactionAmount > 0 && (
                 <span>
-                  Spending: RM
+                  {t("memberCommission.spending")}: RM
                   {money(
                     transactionAmount
                   )}
@@ -653,7 +649,7 @@ function HistoryRow({
 
               {commissionRate > 0 && (
                 <span>
-                  Rate:{" "}
+                  {t("memberCommission.rate")}:{" "}
                   {formatRate(
                     commissionRate
                   )}
@@ -672,7 +668,7 @@ function HistoryRow({
 
         <div className="shrink-0 text-right">
           <p className="text-[9px] font-black uppercase tracking-[0.08em] text-slate-400 sm:text-xs sm:tracking-[0.2em]">
-            Credit Amount
+            {t("memberCommission.creditAmount")}
           </p>
 
           <p className="mt-1 text-lg font-black text-emerald-700 sm:text-2xl">
@@ -685,9 +681,11 @@ function HistoryRow({
 }
 
 function ReferralTypeBadge({
-  isMerchant
+  isMerchant,
+  label
 }: {
   isMerchant: boolean;
+  label: string;
 }) {
   return (
     <span
@@ -697,9 +695,7 @@ function ReferralTypeBadge({
           : "bg-blue-100 text-blue-700"
       }`}
     >
-      {isMerchant
-        ? "Merchant"
-        : "Member"}
+      {label}
     </span>
   );
 }
@@ -813,9 +809,11 @@ function Info({
 }
 
 function StatusBadge({
-  status
+  status,
+  label
 }: {
   status: string;
+  label: string;
 }) {
   const normalizedStatus =
     String(
@@ -834,9 +832,32 @@ function StatusBadge({
     <span
       className={`inline-flex rounded-full px-2.5 py-1 text-[10px] font-black sm:px-3 sm:text-xs ${style}`}
     >
-      {status}
+      {label}
     </span>
   );
+}
+
+function getStatusLabel(
+  status: string,
+  t: (key: string) => string
+) {
+  const normalizedStatus = String(
+    status || ""
+  ).toLowerCase();
+
+  if (normalizedStatus === "released") {
+    return t("memberCommission.released");
+  }
+
+  if (normalizedStatus === "completed") {
+    return t("memberCommission.completed");
+  }
+
+  if (normalizedStatus === "pending") {
+    return t("memberCommission.pending");
+  }
+
+  return status;
 }
 
 function money(value: unknown) {

@@ -154,24 +154,25 @@ async function callRewardHub(
   }
 
   const responsePayload =
-  result.data ||
-  result.result;
+  result.data ??
+  result.result ??
+  null;
 
 if (
   responsePayload &&
-  typeof responsePayload ===
-    "object" &&
-  "data" in responsePayload
+  typeof responsePayload === "object"
 ) {
-  const nestedPayload =
-    responsePayload as {
-      data?: unknown;
-    };
+  const payload =
+    responsePayload as Record<
+      string,
+      unknown
+    >;
 
-  return (
-    nestedPayload.data ??
-    responsePayload
-  );
+  if ("data" in payload) {
+    return payload.data;
+  }
+
+  return payload;
 }
 
 return responsePayload;

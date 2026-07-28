@@ -256,28 +256,64 @@ export default function MerchantGallery({
   );
 }
 
-function getDriveFileId(url: string) {
-  if (!url) return "";
+function getDriveFileId(
+  value: string
+) {
+  const url = String(
+    value || ""
+  ).trim();
 
-  const idFromQuery = url.match(
-    /[?&]id=([^&]+)/
-  );
-
-  if (idFromQuery?.[1]) {
-    return idFromQuery[1];
+  if (!url) {
+    return "";
   }
 
-  const idFromPath = url.match(
-    /\/d\/([^/]+)/
-  );
+  const patterns = [
+    /[?&]id=([a-zA-Z0-9_-]+)/i,
+    /\/file\/d\/([a-zA-Z0-9_-]+)/i,
+    /\/d\/([a-zA-Z0-9_-]+)/i,
+    /googleusercontent\.com\/d\/([a-zA-Z0-9_-]+)/i,
+  ];
 
-  if (idFromPath?.[1]) {
-    return idFromPath[1];
+  for (const pattern of patterns) {
+    const match =
+      url.match(pattern);
+
+    if (match?.[1]) {
+      return match[1];
+    }
   }
 
   return "";
 }
 
-function getDisplayImageUrl(url: string) {
-  return url || "";
+function getDisplayImageUrl(
+  value: string
+) {
+  const url = String(
+    value || ""
+  ).trim();
+
+  if (!url) {
+    return "";
+  }
+
+  if (
+    url.startsWith(
+      "/api/drive-image"
+    )
+  ) {
+    return url;
+  }
+
+  const fileId =
+    getDriveFileId(url);
+
+  if (fileId) {
+    return (
+      "/api/drive-image?id=" +
+      encodeURIComponent(fileId)
+    );
+  }
+
+  return url;
 }

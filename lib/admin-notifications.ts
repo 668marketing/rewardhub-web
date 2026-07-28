@@ -107,32 +107,41 @@ async function readApiResponse<T>(
   response: Response,
   fallbackMessage: string
 ): Promise<T> {
-  let result:
-    ApiResponse<T>;
+  let result: ApiResponse<T>;
 
   try {
-    result =
-      (await response.json()) as
-        ApiResponse<T>;
+    result = (await response.json()) as ApiResponse<T>;
   } catch {
     throw new Error(
-      "Notification API returned an invalid response."
+      "Notification API returned an invalid JSON response."
     );
   }
 
-  if (
-    !response.ok ||
-    !result.success ||
-    !result.data
-  ) {
+  if (!response.ok) {
     throw new Error(
-      result.error ||
-      result.message ||
-      fallbackMessage
+      result?.error ||
+        result?.message ||
+        fallbackMessage
     );
   }
 
-  return result.data;
+  if (!result || result.success !== true) {
+    throw new Error(
+      result?.error ||
+        result?.message ||
+        fallbackMessage
+    );
+  }
+
+  if (!Object.prototype.hasOwnProperty.call(result, "data")) {
+    throw new Error(
+      result?.error ||
+        result?.message ||
+        "Notification API response is missing data."
+    );
+  }
+
+  return result.data as T;
 }
 
 /* ============================================================

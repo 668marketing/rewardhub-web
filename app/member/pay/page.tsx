@@ -6,67 +6,71 @@ import MemberLayout from "@/components/layout/MemberLayout";
 import { QRCodeSVG } from "qrcode.react";
 import QRCode from "qrcode";
 import { getMemberDashboard } from "@/lib/api";
+import { useLanguage } from "@/hooks/useLanguage";
 
 export default function PayPage() {
+  const { t } = useLanguage();
   const [member, setMember] = useState<any>(null);
   const [memberQrValue, setMemberQrValue] = useState("");
 
   useEffect(() => {
-  async function load() {
-    const storedMember = JSON.parse(localStorage.getItem("member") || "{}");
-    const memberId = storedMember?.memberId || storedMember?.MEMBER_ID || "";
+    async function load() {
+      const storedMember = JSON.parse(localStorage.getItem("member") || "{}");
+      const memberId = storedMember?.memberId || storedMember?.MEMBER_ID || "";
 
-    if (!memberId) {
-      setMember(storedMember);
-      return;
-    }
+      function updateMemberQr(memberData: any) {
+        const latestMemberId = memberData?.memberId || memberData?.MEMBER_ID || memberId || "";
+        const latestCardId =
+          memberData?.cardId ||
+          memberData?.CARD_ID ||
+          memberData?.memberCardId ||
+          memberData?.MEMBER_CARD_ID ||
+          "";
 
-    try {
-      const res = await getMemberDashboard({ memberId });
+        if (!latestCardId) {
+          setMemberQrValue("");
+          return;
+        }
 
-      const data =
-        res?.data?.data ||
-        res?.data ||
-        res?.result ||
-        res;
-
-      const freshMember = {
-        ...storedMember,
-        ...data.profile,
-        ...data.wallet,
-      };
-
-      setMember(freshMember);
-      localStorage.setItem("member", JSON.stringify(freshMember));
-
-      const cardId =
-        freshMember?.cardId ||
-        freshMember?.CARD_ID ||
-        freshMember?.memberCardId ||
-        freshMember?.MEMBER_CARD_ID ||
-        "";
-
-      if (cardId) {
         setMemberQrValue(
           JSON.stringify({
             type: "member_card",
             app: "RewardHub",
-            cardId,
-            memberId,
+            cardId: latestCardId,
+            memberId: latestMemberId,
           })
         );
       }
-    } catch (err) {
-      console.error("Failed to refresh member pay data:", err);
-      setMember(storedMember);
-    }
-  }
 
-  load();
-}, []);
+      if (!memberId) {
+        setMember(storedMember);
+        updateMemberQr(storedMember);
+        return;
+      }
+
+      try {
+        const res = await getMemberDashboard({ memberId });
+        const data = res?.data?.data || res?.data || res?.result || res;
+        const freshMember = {
+          ...storedMember,
+          ...(data?.profile || {}),
+          ...(data?.wallet || {}),
+        };
+
+        setMember(freshMember);
+        localStorage.setItem("member", JSON.stringify(freshMember));
+        updateMemberQr(freshMember);
+      } catch (err) {
+        console.error("Failed to refresh member pay data:", err);
+        setMember(storedMember);
+        updateMemberQr(storedMember);
+      }
+    }
+
+    load();
+  }, []);
 
   const memberId = member?.memberId || member?.MEMBER_ID || "-";
-
   const cardId =
     member?.cardId ||
     member?.CARD_ID ||
@@ -80,27 +84,22 @@ export default function PayPage() {
     member?.name ||
     member?.FULL_NAME ||
     member?.DISPLAY_NAME ||
-    "RewardHub Member";
+    t("memberPay.fallbackMember");
 
-  const memberTier =
-    member?.tier || member?.memberTier || member?.MEMBER_TIER || "Silver";
-
-  const rewardCredits = Number(
-    member?.rewardCredits || member?.rewardCreditBalance || 0
-  );
-
+  const memberTier = member?.tier || member?.memberTier || member?.MEMBER_TIER || "Silver";
+  const localizedTier = getTierLabel(String(memberTier), t);
+  const rewardCredits = Number(member?.rewardCredits || member?.rewardCreditBalance || 0);
   const points = Number(member?.points || member?.pointsBalance || 0);
+  const cashbackSaved = Number(member?.cashbackSaved || member?.totalCashback || 0);
 
-  const cashbackSaved = Number(
-    member?.cashbackSaved || member?.totalCashback || 0
-  );
-
-  const cashbackRate =
+  const tierKey =
     String(memberTier).toLowerCase() === "platinum"
-      ? "Marketing Budget × 30%"
+      ? "memberPay.marketingBudget30"
       : String(memberTier).toLowerCase() === "gold"
-      ? "Marketing Budget × 20%"
-      : "Marketing Budget × 10%";
+      ? "memberPay.marketingBudget20"
+      : "memberPay.marketingBudget10";
+
+  const cashbackRate = t(tierKey);
 
   async function downloadPremiumCard() {
     if (!memberQrValue) return;
@@ -113,7 +112,6 @@ export default function PayPage() {
     if (!ctx) return;
 
     const logo = await loadImage("/rewardhub-logo.png");
-
     const bg = ctx.createLinearGradient(0, 0, 1080, 1920);
     bg.addColorStop(0, "#020617");
     bg.addColorStop(0.5, "#030712");
@@ -131,33 +129,30 @@ export default function PayPage() {
     ctx.restore();
 
     ctx.drawImage(logo, 335, 120, 410, 150);
-
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.fillStyle = "#facc15";
     ctx.font = "bold 34px Arial";
-    ctx.fillText("REWARDHUB MEMBER PAY", 540, 335);
+    ctx.fillText(t("memberPay.cardTitle").toUpperCase(), 540, 335);
 
     ctx.fillStyle = "#ffffff";
     ctx.font = "bold 82px Arial";
-    ctx.fillText("Scan to Pay", 540, 440);
+    ctx.fillText(t("memberPay.scanToPay"), 540, 440);
 
     ctx.fillStyle = "#e5e7eb";
     ctx.font = "bold 30px Arial";
-    ctx.fillText("Show this QR to any RewardHub Merchant", 540, 515);
+    ctx.fillText(t("memberPay.cardInstruction"), 540, 515);
 
     const qrDataUrl = await QRCode.toDataURL(memberQrValue, {
       width: 760,
       margin: 1,
       errorCorrectionLevel: "H",
     });
-
     const qrImg = await loadImage(qrDataUrl);
 
     ctx.fillStyle = "#ffffff";
     roundRect(ctx, 160, 600, 760, 760, 42);
     ctx.fill();
-
     ctx.drawImage(qrImg, 185, 625, 710, 710);
 
     ctx.fillStyle = "#020617";
@@ -165,24 +160,22 @@ export default function PayPage() {
     ctx.fill();
     ctx.drawImage(logo, 480, 910, 120, 120);
 
-    drawInfo(ctx, 145, 1440, "🪪", "Member ID", memberId);
-    drawInfo(ctx, 145, 1520, "👤", "Member Name", memberName);
-    drawInfo(ctx, 145, 1600, "👑", "Member Tier", memberTier);
-    
+    drawInfo(ctx, 145, 1440, "🪪", t("memberPay.memberId"), String(memberId));
+    drawInfo(ctx, 145, 1520, "👤", t("memberPay.memberName"), String(memberName));
+    drawInfo(ctx, 145, 1600, "👑", t("memberPay.memberTier"), String(localizedTier));
 
     const gold = ctx.createLinearGradient(145, 1740, 935, 1835);
-gold.addColorStop(0, "#f59e0b");
-gold.addColorStop(0.5, "#fde047");
-gold.addColorStop(1, "#f59e0b");
+    gold.addColorStop(0, "#f59e0b");
+    gold.addColorStop(0.5, "#fde047");
+    gold.addColorStop(1, "#f59e0b");
+    ctx.fillStyle = gold;
+    roundRect(ctx, 145, 1740, 790, 95, 28);
+    ctx.fill();
 
-ctx.fillStyle = gold;
-roundRect(ctx, 145, 1740, 790, 95, 28);
-ctx.fill();
-
-ctx.fillStyle = "#020617";
-ctx.font = "bold 30px Arial";
-ctx.textAlign = "center";
-ctx.fillText("Secure • Fast • Rewarding", 540, 1787);
+    ctx.fillStyle = "#020617";
+    ctx.font = "bold 30px Arial";
+    ctx.textAlign = "center";
+    ctx.fillText(t("memberPay.secureFastRewarding"), 540, 1787);
 
     const link = document.createElement("a");
     link.download = `rewardhub-${cardId}-pay-qr.png`;
@@ -198,31 +191,26 @@ ctx.fillText("Secure • Fast • Rewarding", 540, 1787);
             href="/member/dashboard"
             className="inline-flex rounded-full border border-slate-200 bg-white px-5 py-3 text-sm font-black text-slate-700 no-underline shadow-sm"
           >
-            ← Back to Dashboard
+            ← {t("memberPay.backToDashboard")}
           </Link>
 
           <div className="mt-5 rounded-[1.75rem] bg-slate-950 p-5 text-white shadow-2xl sm:mt-6 sm:rounded-[2rem] sm:p-7 md:rounded-[2.5rem] md:p-8">
             <div className="flex flex-col gap-5 md:flex-row md:items-start md:justify-between">
               <div>
                 <p className="text-xs font-black uppercase tracking-[0.25em] text-amber-300">
-                  RewardHub Pay
+                  {t("memberPay.rewardHubPay")}
                 </p>
-
                 <h1 className="mt-3 text-3xl font-black sm:text-4xl md:text-5xl">
-                  Scan to Pay
+                  {t("memberPay.scanToPay")}
                 </h1>
-
                 <p className="mt-3 max-w-xl text-sm font-bold text-slate-400">
-                  Show this QR to the merchant. Your tier, Reward Credits and
-                  cashback rules will be detected automatically.
+                  {t("memberPay.scanDescription")}
                 </p>
               </div>
 
               <div className="rounded-2xl bg-white/10 px-5 py-4">
-                <p className="text-xs font-black text-slate-400">Current Tier</p>
-                <p className="mt-1 text-xl font-black text-amber-300">
-                  {memberTier}
-                </p>
+                <p className="text-xs font-black text-slate-400">{t("memberPay.currentTier")}</p>
+                <p className="mt-1 text-xl font-black text-amber-300">{localizedTier}</p>
               </div>
             </div>
 
@@ -241,95 +229,80 @@ ctx.fillText("Secure • Fast • Rewarding", 540, 1787);
                   }}
                 />
               ) : (
-                <div className="flex h-[320px] items-center justify-center rounded-[1.5rem] bg-slate-50 text-center font-bold text-slate-500">
-                  Card ID not found. Please login again.
+                <div className="flex h-[320px] items-center justify-center rounded-[1.5rem] bg-slate-50 px-6 text-center font-bold text-slate-500">
+                  {t("memberPay.cardIdNotFound")}
                 </div>
               )}
             </div>
 
             <div className="mt-4 grid grid-cols-3 gap-2">
-              <MiniInfo title="Member ID" value={memberId} />
-              <MiniInfo
-                title="Reward Credits"
-                value={`RM${money(rewardCredits)}`}
-              />
-              <MiniInfo title="Points" value={`${points} pts`} />
+              <MiniInfo title={t("memberPay.memberId")} value={memberId} />
+              <MiniInfo title={t("memberPay.rewardCredits")} value={`RM${money(rewardCredits)}`} />
+              <MiniInfo title={t("memberPay.points")} value={t("memberPay.pointsValue", { points })} />
             </div>
 
             <button
+              type="button"
               onClick={downloadPremiumCard}
               disabled={!memberQrValue}
-              className="mt-5 w-full rounded-2xl bg-gradient-to-r from-amber-500 to-yellow-300 py-3 sm:py-4 text-sm font-black text-slate-950 shadow-xl disabled:opacity-40"
+              className="mt-5 w-full rounded-2xl bg-gradient-to-r from-amber-500 to-yellow-300 py-3 text-sm font-black text-slate-950 shadow-xl disabled:cursor-not-allowed disabled:opacity-40 sm:py-4"
             >
-              ⬇ Download Premium QR Card
+              ⬇ {t("memberPay.downloadPremiumCard")}
             </button>
           </div>
 
           <div className="mt-5 grid grid-cols-1 gap-5 sm:mt-6 lg:grid-cols-2 lg:gap-6">
             <div className="rounded-[1.75rem] bg-white p-4 shadow-sm sm:rounded-[2rem] sm:p-5 lg:rounded-[2.5rem] lg:p-6">
-              <h2 className="text-2xl font-black text-slate-950">
-                Payment Profile
-              </h2>
-
+              <h2 className="text-2xl font-black text-slate-950">{t("memberPay.paymentProfile")}</h2>
               <p className="mt-2 text-xs leading-5 text-slate-500 sm:text-sm">
-                Merchant will see this profile when scanning your QR.
+                {t("memberPay.paymentProfileDescription")}
               </p>
-
               <div className="mt-5 grid grid-cols-1 gap-5 lg:grid-cols-2 lg:gap-6">
-                <InfoCard title="Member Name" value={memberName} />
-                <InfoCard title="Member ID" value={memberId} />
-                <InfoCard title="Card ID" value={cardId} />
-                <InfoCard title="Current Tier" value={memberTier} />
+                <InfoCard title={t("memberPay.memberName")} value={memberName} />
+                <InfoCard title={t("memberPay.memberId")} value={memberId} />
+                <InfoCard title={t("memberPay.cardId")} value={cardId} />
+                <InfoCard title={t("memberPay.currentTier")} value={localizedTier} />
               </div>
             </div>
 
             <div className="rounded-[1.75rem] bg-white p-4 shadow-sm sm:rounded-[2rem] sm:p-5 lg:rounded-[2.5rem] lg:p-6">
-              <h2 className="text-2xl font-black text-slate-950">
-                Available Benefits
-              </h2>
-
+              <h2 className="text-2xl font-black text-slate-950">{t("memberPay.availableBenefits")}</h2>
               <p className="mt-2 text-xs leading-5 text-slate-500 sm:text-sm">
-                Your available RewardHub benefits for payment.
+                {t("memberPay.availableBenefitsDescription")}
               </p>
 
-             <div className="mt-5 grid grid-cols-2 gap-3 sm:gap-4">
+              <div className="mt-5 grid grid-cols-2 gap-3 sm:gap-4">
                 <BenefitCard
-                  title="Reward Credits"
+                  title={t("memberPay.rewardCredits")}
                   value={`RM${money(rewardCredits)}`}
-                  desc="Can be used to offset your payment."
+                  desc={t("memberPay.rewardCreditsDescription")}
                   dark
                 />
-
                 <BenefitCard
-                  title="Points"
-                  value={`${points} pts`}
-                  desc="Loyalty points earned from RewardHub activity."
+                  title={t("memberPay.points")}
+                  value={t("memberPay.pointsValue", { points })}
+                  desc={t("memberPay.pointsDescription")}
                 />
-
                 <BenefitCard
-                  title="Cashback Saved"
+                  title={t("memberPay.cashbackSaved")}
                   value={`RM${money(cashbackSaved)}`}
-                  desc="Total instant discount you have saved."
+                  desc={t("memberPay.cashbackSavedDescription")}
                 />
-
                 <BenefitCard
-                  title="Cashback Rate"
+                  title={t("memberPay.cashbackRate")}
                   value={cashbackRate}
-                  desc="Based on merchant Marketing Budget and your tier."
+                  desc={t("memberPay.cashbackRateDescription")}
                 />
               </div>
             </div>
           </div>
 
-          <div className="mt-6 rounded-[2.5rem] bg-white p-6 shadow-sm">
-            <h2 className="text-2xl font-black text-slate-950">
-              How RewardHub Pay Works
-            </h2>
-
+          <div className="mt-6 rounded-[1.75rem] bg-white p-4 shadow-sm sm:rounded-[2rem] sm:p-6 lg:rounded-[2.5rem]">
+            <h2 className="text-2xl font-black text-slate-950">{t("memberPay.howItWorks")}</h2>
             <div className="mt-5 grid grid-cols-1 gap-4 lg:grid-cols-3">
-              <StepCard step="01" title="Show QR" desc="Open this page." />
-              <StepCard step="02" title="Merchant Scans" desc="Merchant enters amount." />
-              <StepCard step="03" title="Pay Less" desc="Cashback and credits apply." />
+              <StepCard step="01" title={t("memberPay.stepShowQr")} desc={t("memberPay.stepShowQrDescription")} />
+              <StepCard step="02" title={t("memberPay.stepMerchantScans")} desc={t("memberPay.stepMerchantScansDescription")} />
+              <StepCard step="03" title={t("memberPay.stepPayLess")} desc={t("memberPay.stepPayLessDescription")} />
             </div>
           </div>
         </section>
@@ -341,13 +314,8 @@ ctx.fillText("Secure • Fast • Rewarding", 540, 1787);
 function MiniInfo({ title, value }: { title: string; value: any }) {
   return (
     <div className="min-w-0 rounded-xl bg-white/10 p-3 sm:rounded-2xl sm:p-4">
-      <p className="truncate text-[11px] font-black text-slate-300 sm:text-xs">
-        {title}
-      </p>
-
-      <p className="mt-1 break-words text-xs font-black leading-tight text-white sm:text-lg">
-        {value}
-      </p>
+      <p className="truncate text-[11px] font-black text-slate-300 sm:text-xs">{title}</p>
+      <p className="mt-1 break-words text-xs font-black leading-tight text-white sm:text-lg">{value}</p>
     </div>
   );
 }
@@ -355,43 +323,39 @@ function MiniInfo({ title, value }: { title: string; value: any }) {
 function InfoCard({ title, value }: { title: string; value: any }) {
   return (
     <div className="rounded-xl bg-slate-50 p-3 sm:rounded-2xl sm:p-4">
-      <p className="text-xs font-black uppercase tracking-[0.15em] text-slate-400">
-        {title}
-      </p>
-      <p className="mt-2 break-all text-sm font-black text-slate-950 sm:text-lg">
-        {value || "-"}
-      </p>
+      <p className="text-xs font-black uppercase tracking-[0.15em] text-slate-400">{title}</p>
+      <p className="mt-2 break-all text-sm font-black text-slate-950 sm:text-lg">{value || "-"}</p>
     </div>
   );
 }
 
-function BenefitCard({ title, value, desc, dark = false }: any) {
+function BenefitCard({
+  title,
+  value,
+  desc,
+  dark = false,
+}: {
+  title: string;
+  value: string;
+  desc: string;
+  dark?: boolean;
+}) {
   return (
-    <div
-      className={`rounded-xl p-3 sm:rounded-2xl sm:p-5 ${
-        dark ? "bg-slate-950 text-white" : "bg-slate-50 text-slate-950"
-      }`}
-    >
-      <p
-        className={`text-xs font-black uppercase tracking-[0.15em] ${
-          dark ? "text-amber-300" : "text-slate-400"
-        }`}
-      >
+    <div className={`rounded-xl p-3 sm:rounded-2xl sm:p-5 ${dark ? "bg-slate-950 text-white" : "bg-slate-50 text-slate-950"}`}>
+      <p className={`text-xs font-black uppercase tracking-[0.15em] ${dark ? "text-amber-300" : "text-slate-400"}`}>
         {title}
       </p>
-      <p className="mt-2 text-base font-black text-slate-950 sm:text-lg"></p>
-      <p
-        className={`mt-2 text-sm font-bold leading-6 ${
-          dark ? "text-slate-300" : "text-slate-500"
-        }`}
-      >
+      <p className={`mt-2 break-words text-base font-black sm:text-lg ${dark ? "text-white" : "text-slate-950"}`}>
+        {value}
+      </p>
+      <p className={`mt-2 text-sm font-bold leading-6 ${dark ? "text-slate-300" : "text-slate-500"}`}>
         {desc}
       </p>
     </div>
   );
 }
 
-function StepCard({ step, title, desc }: any) {
+function StepCard({ step, title, desc }: { step: string; title: string; desc: string }) {
   return (
     <div className="rounded-2xl bg-slate-50 p-5">
       <p className="text-sm font-black text-amber-600">{step}</p>
@@ -399,6 +363,17 @@ function StepCard({ step, title, desc }: any) {
       <p className="mt-1 text-sm font-bold text-slate-500">{desc}</p>
     </div>
   );
+}
+
+function getTierLabel(
+  tier: string,
+  t: (key: string, values?: Record<string, string | number>) => string
+) {
+  const normalized = tier.toLowerCase();
+  if (normalized === "platinum") return t("memberPay.platinum");
+  if (normalized === "gold") return t("memberPay.gold");
+  if (normalized === "silver") return t("memberPay.silver");
+  return tier;
 }
 
 function drawInfo(
@@ -412,18 +387,14 @@ function drawInfo(
   ctx.fillStyle = "rgba(255,255,255,0.08)";
   roundRect(ctx, x, y - 38, 790, 68, 18);
   ctx.fill();
-
   ctx.textBaseline = "middle";
   ctx.textAlign = "left";
-
   ctx.fillStyle = "#facc15";
   ctx.font = "bold 28px Arial";
   ctx.fillText(icon, x + 28, y - 3);
-
   ctx.fillStyle = "#ffffff";
   ctx.font = "26px Arial";
   ctx.fillText(label, x + 85, y - 3);
-
   ctx.textAlign = "right";
   ctx.font = "bold 29px Arial";
   ctx.fillText(value || "-", x + 755, y - 3);
