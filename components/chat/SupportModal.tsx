@@ -883,6 +883,9 @@ function buildTawkAttributes(
     "current-page":
       getCurrentPage(),
 
+    userID:
+      auth.userId,
+
     "rewardhub-user-id":
       auth.userId,
   };
@@ -1624,15 +1627,58 @@ export default function SupportModal() {
           );
         }
 
+        const secureIdentity = {
+          userId:
+            auth.userId,
+          hash:
+            auth.hash,
+        };
+
         await callTawkSetAttributes(
           tawk,
           currentIdentity,
-          {
-            userId:
-              auth.userId,
-            hash:
-              auth.hash,
-          }
+          secureIdentity
+        );
+
+        /*
+         * Tawk login refreshes and reconnects the visitor session.
+         * Re-send attributes after short delays so the new authenticated
+         * session receives them even when login propagation is asynchronous.
+         */
+        window.setTimeout(
+          () => {
+            void callTawkSetAttributes(
+              tawk,
+              getCurrentIdentity(),
+              secureIdentity
+            ).catch(
+              (error) => {
+                console.error(
+                  "[RewardHub Tawk] Delayed attribute sync failed (1s):",
+                  error
+                );
+              }
+            );
+          },
+          1000
+        );
+
+        window.setTimeout(
+          () => {
+            void callTawkSetAttributes(
+              tawk,
+              getCurrentIdentity(),
+              secureIdentity
+            ).catch(
+              (error) => {
+                console.error(
+                  "[RewardHub Tawk] Delayed attribute sync failed (3s):",
+                  error
+                );
+              }
+            );
+          },
+          3000
         );
 
         window.sessionStorage.setItem(
