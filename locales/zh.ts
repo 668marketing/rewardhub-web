@@ -873,5 +873,521 @@ memberRewardRedemptionDetail: {
   },
 },
 
+merchantCollect: {
+  collectPayment: "收款",
+
+  identifyMember: "1. 识别会员",
+  identifyMemberDescription:
+    "扫描会员二维码或感应会员卡。",
+
+  scanMemberQr: "扫描会员二维码",
+  tapMemberCard: "感应会员卡",
+
+  cardStatus: "卡片状态",
+  tapMemberCardToStart:
+    "请感应会员卡开始",
+  clickCardBox:
+    "点击卡号输入框，然后让会员感应会员卡",
+  qrScanned:
+    "二维码已扫描，正在查找会员...",
+  searchingMember:
+    "正在查找会员...",
+  memberFound: "找到会员",
+  cardNotFound: "找不到此会员卡",
+
+  memberId: "会员编号",
+  memberTier: "会员等级",
+
+  enterAmount: "2. 输入金额",
+
+  cashback: "返现",
+  points: "积分",
+  customerPays: "顾客需支付",
+
+  rewardCredits: "3. 奖励金",
+
+  rewardCreditsDescription:
+    "奖励金用于消费抵扣，不属于付款方式。",
+
+  doNotUseCredits:
+    "不使用奖励金",
+
+  useRewardCredits:
+    "使用奖励金",
+
+  creditBalance:
+    "奖励金余额",
+
+  merchantLimit:
+    "商家抵扣上限",
+
+  maxRedeem:
+    "最高可抵扣",
+
+  creditsUsed:
+    "已使用奖励金",
+
+  selectPaymentMethod:
+    "4. 选择付款方式",
+
+  cash: "现金",
+  duitNow: "DuitNow",
+  tng: "Touch 'n Go",
+  bank: "银行转账",
+  card: "银行卡",
+
+  paymentSummary:
+    "付款摘要",
+
+  originalAmount:
+    "原始金额",
+
+  rewardCreditsUsed:
+    "奖励金抵扣",
+
+  paymentMethod:
+    "付款方式",
+
+  recording:
+    "处理中...",
+
+  paymentReceived:
+    "确认收款",
+
+  paymentRecorded:
+    "付款已记录",
+
+  receipt:
+    "收据",
+
+  noReceipt:
+    "尚未上传收据",
+
+  uploadReceipt:
+    "上传收据",
+
+  uploading:
+    "上传中...",
+
+  viewReceipt:
+    "查看收据",
+
+  collectAnotherPayment:
+    "继续收款",
+
+  backToDashboard:
+    "返回主页",
+},
+
+supportModal: {
+  aria: {
+    supportCenter: "RewardHub 客服中心",
+    closeSupport: "关闭客服中心",
+    backHome: "返回客服首页",
+  },
+
+  customerSupport: "客户服务",
+  liveSupport: "在线客服",
+  helpFaq: "帮助与常见问题",
+  online: "在线",
+  supportTeam: "RewardHub 客服团队",
+  close: "关闭",
+
+  rewardHubSupport: "RewardHub 客服",
+  hi: "你好",
+  greetingGuest: "访客",
+  howCanWeHelp: "今天我们可以如何帮助你？",
+
+  memberLabel: "{{tier}} 会员",
+  rewardHubMerchant: "RewardHub 商家",
+  rewardHubVisitor: "RewardHub 访客",
+  generalSupport: "一般客服",
+
+  tiers: {
+    silver: "银级",
+    gold: "金级",
+    platinum: "白金级",
+  },
+
+  startLiveChat: "开始在线聊天",
+  chatDescription:
+    "直接联系 RewardHub 客服团队，处理账户、付款或平台相关问题。",
+
+  faqDescription:
+    "查看账户、付款、奖励、推荐、结算及平台功能的常见问题。",
+
+  fastSupport: "更快速的账户支援",
+  accountConnectedDescription:
+    "系统会自动连接你的 RewardHub 账户资料，让客服团队可以更快协助你。",
+
+  frequentlyAskedQuestions: "常见问题",
+  faqIntro:
+    "点击下方问题查看答案。系统会根据你当前的账户类型显示相关内容。",
+  supportTopics: "{{count}} 个客服主题",
+  stillNeedHelp: "仍需要帮助？开始在线聊天",
+
+  connecting: "正在连接 RewardHub 客服……",
+  securingSession: "正在准备安全的客服会话。",
+  supportUnavailable: "客服暂时无法使用",
+  loadError:
+    "无法加载在线客服，请检查网络连接后重试。",
+  tryAgain: "重试",
+
+  footerConnected:
+    "你的 RewardHub 账户已安全连接至客服系统。",
+
+  faq: {
+    member: {
+      item01: {
+        category: "账户",
+        question: "我要怎样登录 RewardHub 会员账户？",
+        answer:
+          "打开会员登录页面，输入注册 RewardHub 时使用的电子邮箱和密码。如果忘记密码，请使用“忘记密码”完成验证并设置新密码。",
+      },
+      item02: {
+        category: "账户",
+        question: "忘记密码应该怎么办？",
+        answer:
+          "在会员登录页面点击“忘记密码”，使用已注册的电话号码或电子邮箱完成验证，然后设置新密码。",
+      },
+      item03: {
+        category: "账户",
+        question: "我要怎样更新个人资料？",
+        answer:
+          "打开会员资料页面查看姓名、性别、电子邮箱和电话号码。可编辑的资料可以直接修改；受保护的资料如无法修改，请联系 RewardHub 客服。",
+      },
+      item04: {
+        category: "会员等级",
+        question: "RewardHub 会员等级如何运作？",
+        answer:
+          "所有会员默认从银级开始。符合条件的终身累计消费达到要求后，可升级为金级和白金级。已获得的终身等级不会下降。",
+      },
+      item05: {
+        category: "会员等级",
+        question: "银级、金级和白金级的条件是什么？",
+        answer:
+          "银级是默认等级。终身符合条件的累计消费达到 RM5,000 可升级为金级，达到 RM15,000 可升级为白金级。",
+      },
+      item06: {
+        category: "现金回扣",
+        question: "我的 Cashback 是怎样计算的？",
+        answer:
+          "Cashback 根据商家当前的 Marketing Budget 和你的会员等级计算。银级获得该预算的 10%，金级 20%，白金级 30%。Cashback 会在付款时作为即时折扣。",
+      },
+      item07: {
+        category: "付款",
+        question: "我要怎样在 RewardHub 商家付款？",
+        answer:
+          "打开 RewardHub Pay，向商家出示会员二维码或实体会员卡。商家扫描或感应后输入消费金额，并确认付款方式。",
+      },
+      item08: {
+        category: "付款",
+        question: "RewardHub 会代收我的付款吗？",
+        answer:
+          "不会。当前版本由你直接付款给商家。RewardHub 只记录交易、Cashback、积分及符合条件的 Reward Credits 使用情况。",
+      },
+      item09: {
+        category: "Reward Credits",
+        question: "Reward Credits 是什么？",
+        answer:
+          "Reward Credits 是符合条件的推荐奖励释放后形成的可使用余额。它与 Cashback 和积分分开，可在接受 Reward Credits 的商家抵扣付款。",
+      },
+      item10: {
+        category: "Reward Credits",
+        question: "为什么我不能使用全部 Reward Credits？",
+        answer:
+          "商家必须接受 Reward Credits，并可能设定最高抵扣百分比。实际可使用金额也不能超过你的可用余额或该笔交易允许的上限。",
+      },
+      item11: {
+        category: "积分",
+        question: "我要怎样获得 RewardHub 积分？",
+        answer:
+          "符合条件的消费会按照 RewardHub 当前积分规则获得积分。标准比例为每消费 RM1 获得 1 积分。",
+      },
+      item12: {
+        category: "积分",
+        question: "积分可以用来做什么？",
+        answer:
+          "积分可在“积分与奖励”页面兑换 RewardHub 官方奖励。积分不能当作现金使用，并且与 Reward Credits 分开。",
+      },
+      item13: {
+        category: "奖励",
+        question: "我要怎样兑换奖励？",
+        answer:
+          "打开“积分与奖励”，选择可兑换的奖励，查看所需积分、库存及领取方式，然后确认兑换。",
+      },
+      item14: {
+        category: "奖励",
+        question: "在哪里查看已兑换的奖励？",
+        answer:
+          "在“积分与奖励”页面打开兑换记录，即可查看奖励状态、兑换码、配送资料和物流追踪信息。",
+      },
+      item15: {
+        category: "推荐",
+        question: "我要怎样邀请新会员？",
+        answer:
+          "打开推荐中心，分享你的会员推荐链接或推荐二维码。新会员必须通过你的推荐资料注册，系统才会记录推荐关系。",
+      },
+      item16: {
+        category: "推荐",
+        question: "三级会员推荐奖励如何运作？",
+        answer:
+          "你的推荐网络中符合条件的商家交易，可能按照 RewardHub 当前规则，在第一级、第二级和第三级产生已释放的 Reward Credits。",
+      },
+      item17: {
+        category: "推荐",
+        question: "我可以推荐商家吗？",
+        answer:
+          "会员可在相关功能开放时分享商家推荐链接。成功推荐的商家产生符合条件的交易后，可能获得适用的永久商家推荐奖励。",
+      },
+      item18: {
+        category: "商家市场",
+        question: "我要怎样寻找参与 RewardHub 的商家？",
+        answer:
+          "打开商家市场，可按照商家名称、类别、州属或地区搜索。商家页面会显示会员福利、Reward Credits 接受情况、营业资料、商品和评价。",
+      },
+      item19: {
+        category: "收藏",
+        question: "我要怎样收藏商家？",
+        answer:
+          "点击商家卡片或商家详情页上的收藏图标。已收藏的商家会显示在“我收藏的商店”中。",
+      },
+      item20: {
+        category: "评价",
+        question: "我要怎样留下商家评价？",
+        answer:
+          "完成符合条件的交易后，打开交易记录并选择“留下评价”。选择评分并填写可选的评价内容后提交。",
+      },
+      item21: {
+        category: "交易记录",
+        question: "在哪里查看我的付款记录？",
+        answer:
+          "打开交易记录，可查看商家、原始金额、Cashback、使用的 Reward Credits、实际支付金额、获得积分及交易状态。",
+      },
+      item22: {
+        category: "实体会员卡",
+        question: "我要怎样申请 RewardHub 实体会员卡？",
+        answer:
+          "在会员中心打开“实体会员卡”，填写收件人及配送资料后提交申请。按照当前政策，第一张实体会员卡免费。",
+      },
+      item23: {
+        category: "实体会员卡",
+        question: "会员卡遗失或损坏怎么办？",
+        answer:
+          "在实体会员卡页面提交补发申请。旧卡会被冻结，目前补发费用为 RM8。",
+      },
+      item24: {
+        category: "安全",
+        question: "发现不认识的交易应该怎么办？",
+        answer:
+          "先查看交易详情，然后立即联系 RewardHub 客服，并提供交易编号、日期及金额。同时建议更改密码以保护账户。",
+      },
+    },
+
+    merchant: {
+      item01: {
+        category: "账户",
+        question: "我要怎样登录商家端？",
+        answer:
+          "打开商家登录页面，输入注册商家账户时使用的电子邮箱和密码。如果需要重设密码，请使用“忘记密码”。",
+      },
+      item02: {
+        category: "账户",
+        question: "我要怎样更新商家资料？",
+        answer:
+          "打开商家资料页面，可更新支持修改的商家介绍、联系资料、Logo、封面、图片库和其他公开资料。",
+      },
+      item03: {
+        category: "账户",
+        question: "我要怎样更改商家密码？",
+        answer:
+          "打开商家资料页面，进入安全设置并选择更改密码。输入当前密码和新密码后保存。",
+      },
+      item04: {
+        category: "收款",
+        question: "我要怎样向会员收款？",
+        answer:
+          "打开收款页面，扫描会员二维码或感应会员卡，输入消费金额，检查 Cashback 和 Reward Credits，选择付款方式后记录付款。",
+      },
+      item05: {
+        category: "收款",
+        question: "顾客的付款会给谁？",
+        answer:
+          "顾客会直接付款给你的商家。当前版本的 RewardHub 不代收顾客付款。",
+      },
+      item06: {
+        category: "收款",
+        question: "可以记录哪些付款方式？",
+        answer:
+          "可记录现金、DuitNow、TNG eWallet、银行转账及信用卡或扣账卡等支持的付款方式。",
+      },
+      item07: {
+        category: "会员识别",
+        question: "无法扫描会员二维码怎么办？",
+        answer:
+          "确认相机权限已开启，并确保二维码清晰。你也可以切换相机、上传二维码图片，或在支持时使用会员实体卡。",
+      },
+      item08: {
+        category: "交易记录",
+        question: "在哪里查看商家交易？",
+        answer:
+          "打开商家交易页面，可搜索及筛选已记录的付款。每笔记录包含原始金额、Cashback、Reward Credits、顾客实付、积分和收据。",
+      },
+      item09: {
+        category: "收据",
+        question: "我要怎样上传交易收据？",
+        answer:
+          "打开交易详情，在收据部分选择上传，选择图片文件并等待上传成功提示。",
+      },
+      item10: {
+        category: "Marketing Budget",
+        question: "什么是 Marketing Budget？",
+        answer:
+          "Marketing Budget 是符合条件的 RewardHub 会员消费中，用于会员 Cashback、推荐奖励及 RewardHub 平台运营的百分比。",
+      },
+      item11: {
+        category: "Marketing Budget",
+        question: "Marketing Budget 最低是多少？",
+        answer:
+          "标准 Marketing Budget 最低为 5%。商家可根据活动和增长策略自行设定更高比例。",
+      },
+      item12: {
+        category: "Marketing Budget",
+        question: "我可以修改 Marketing Budget 吗？",
+        answer:
+          "可以。打开营销设置页面，即可按照系统规则查看及更新标准 Marketing Budget。",
+      },
+      item13: {
+        category: "活动",
+        question: "什么是临时预算提升？",
+        answer:
+          "临时预算提升会在指定日期范围内提高 Marketing Budget，让会员在促销期间获得更高福利。",
+      },
+      item14: {
+        category: "Cashback",
+        question: "会员 Cashback 是怎样计算的？",
+        answer:
+          "Cashback 取决于商家当前的 Marketing Budget 和会员终身等级。银级获得预算的 10%，金级 20%，白金级 30%。",
+      },
+      item15: {
+        category: "Reward Credits",
+        question: "我可以选择是否接受 Reward Credits 吗？",
+        answer:
+          "可以。在营销设置中，可开启或关闭 Reward Credits，并在支持时设置允许的最高抵扣比例。",
+      },
+      item16: {
+        category: "Reward Credits",
+        question: "Reward Credits 会改变付款方式吗？",
+        answer:
+          "不会。Reward Credits 只会减少顾客需要支付的合格金额，实际付款方式仍需另外记录。",
+      },
+      item17: {
+        category: "结算",
+        question: "什么是商家结算？",
+        answer:
+          "商家结算记录的是适用 Marketing Budget 中，在扣除已经直接给予会员的 Cashback 后，商家需要支付给 RewardHub 的金额。",
+      },
+      item18: {
+        category: "结算",
+        question: "什么时候可以申请或支付结算？",
+        answer:
+          "当前商家端允许在每月 1 日至 10 日进行结算相关操作。",
+      },
+      item19: {
+        category: "结算",
+        question: "我要怎样上传结算付款收据？",
+        answer:
+          "打开结算中心，为待处理结算选择“付款／上传收据”，转账显示的金额后上传收据图片，并可填写付款备注。",
+      },
+      item20: {
+        category: "商品",
+        question: "我要怎样添加商品、服务或礼券？",
+        answer:
+          "打开商家商品页面，建立商品资料并填写名称、类别、说明、价格、图片及供应状态。",
+      },
+      item21: {
+        category: "图片库",
+        question: "我要怎样上传商家图片？",
+        answer:
+          "在商家资料或商品页面打开图片库，选择支持的图片并上传。系统支持时也可以更新或删除现有图片。",
+      },
+      item22: {
+        category: "评价",
+        question: "我要怎样回复会员评价？",
+        answer:
+          "打开商家评价页面，选择相关评价并提交商家回复。回复内容应保持专业，并针对会员的消费体验。",
+      },
+      item23: {
+        category: "商家市场",
+        question: "我的商家会怎样显示在商家市场？",
+        answer:
+          "公开商家页面可能显示商家资料、Logo、封面、图片库、商品、会员福利、Reward Credits 设置、地点、营业时间和评价。",
+      },
+      item24: {
+        category: "通知",
+        question: "在哪里查看商家的重要更新？",
+        answer:
+          "打开商家通知页面，可查看结算、活动、账户动态及系统更新的未读和已读通知。",
+      },
+      item25: {
+        category: "客服",
+        question: "联系客户服务时应该提供什么资料？",
+        answer:
+          "请提供商家编号，以及相关交易编号、结算编号、截图、日期、金额或错误信息，方便客服团队更快调查。",
+      },
+    },
+
+    guest: {
+      item01: {
+        category: "关于 RewardHub",
+        question: "RewardHub 是什么？",
+        answer:
+          "RewardHub 是一个商家会员网络，连接会员与参与商家，并提供会员福利、积分、奖励和推荐功能。",
+      },
+      item02: {
+        category: "会员",
+        question: "加入 RewardHub 会员需要付费吗？",
+        answer:
+          "不需要。按照目前的 RewardHub 模式，会员注册免费。",
+      },
+      item03: {
+        category: "商家",
+        question: "注册成为 RewardHub 商家需要付费吗？",
+        answer:
+          "商家注册免费。商家只在记录符合条件的 RewardHub 会员消费时，通过 Marketing Budget 参与平台。",
+      },
+      item04: {
+        category: "注册",
+        question: "我要怎样注册成为会员？",
+        answer:
+          "打开会员注册页面，填写所需个人资料并提交。如果有推荐人，请通过有效的推荐链接注册。",
+      },
+      item05: {
+        category: "注册",
+        question: "我要怎样注册商家？",
+        answer:
+          "打开商家注册页面，填写所需的商家、负责人和联系资料。RewardHub 可能会在启用账户前审核申请。",
+      },
+      item06: {
+        category: "商家市场",
+        question: "没有登录也可以浏览 RewardHub 商家吗？",
+        answer:
+          "公开商家市场可能允许访客浏览商家资料和优惠，但会员专属功能需要登录会员账户。",
+      },
+      item07: {
+        category: "付款",
+        question: "RewardHub 会处理或保管顾客付款吗？",
+        answer:
+          "不会。当前版本由顾客直接付款给商家，RewardHub 只记录符合条件的交易和奖励资料。",
+      },
+      item08: {
+        category: "客服",
+        question: "我要怎样联系 RewardHub 客服？",
+        answer:
+          "打开客服中心并选择“开始在线聊天”。开始聊天前也可以先查看常见问题。",
+      },
+    },
+  },
+},
 };
 export default zh;

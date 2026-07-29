@@ -17,6 +17,11 @@ import type {
 
 import ScannerOverlay from "./ScannerOverlay";
 import ScannerToolbar from "./ScannerToolbar";
+import {
+  fillScannerText,
+  type MerchantScannerTranslation,
+  useScannerLanguage,
+} from "./merchantScannerLanguage";
 import "./merchant-scanner.css";
 
 type ScannerStatus =
@@ -39,7 +44,11 @@ function getCameraFacing(
 ): "environment" | "user" | "unknown" {
   const value = String(label || "").toLowerCase();
 
-  if (/front|user|facetime|selfie|前置|前鏡|前镜|depan/.test(value)) {
+  if (
+    /front|user|facetime|selfie|前置|前鏡|前镜|depan/.test(
+      value
+    )
+  ) {
     return "user";
   }
 
@@ -54,11 +63,14 @@ function getCameraFacing(
   return "unknown";
 }
 
-function normalizeQrPayload(decodedText: string): string {
+function normalizeQrPayload(
+  decodedText: string,
+  t: MerchantScannerTranslation
+): string {
   const raw = String(decodedText || "").trim();
 
   if (!raw) {
-    throw new Error("Card ID not found.");
+    throw new Error(t.cardIdNotFound);
   }
 
   try {
@@ -70,7 +82,7 @@ function normalizeQrPayload(decodedText: string): string {
       parsed.type &&
       parsed.type !== "member_card"
     ) {
-      throw new Error("This is not a RewardHub member QR code.");
+      throw new Error(t.notRewardHubQr);
     }
 
     const cardId = String(
@@ -82,15 +94,18 @@ function normalizeQrPayload(decodedText: string): string {
     ).trim();
 
     if (!cardId) {
-      throw new Error("Card ID not found in this QR code.");
+      throw new Error(t.cardIdNotFoundInQr);
     }
 
     return cardId;
   } catch (error) {
     if (
       error instanceof Error &&
-      (error.message.includes("RewardHub") ||
-        error.message.includes("Card ID"))
+      [
+        t.notRewardHubQr,
+        t.cardIdNotFound,
+        t.cardIdNotFoundInQr,
+      ].includes(error.message as never)
     ) {
       throw error;
     }
@@ -99,7 +114,7 @@ function normalizeQrPayload(decodedText: string): string {
       return raw;
     }
 
-    throw new Error("The selected QR code is invalid.");
+    throw new Error(t.invalidSelectedQr);
   }
 }
 
@@ -125,6 +140,7 @@ function createScanConfig(): Html5QrcodeCameraScanConfig {
 
 export default function MerchantQrScanner() {
   const router = useRouter();
+  const { t } = useScannerLanguage();
 
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const handledRef = useRef(false);
@@ -132,7 +148,8 @@ export default function MerchantQrScanner() {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const redirectTimerRef = useRef<number | null>(null);
 
-  const [status, setStatus] = useState<ScannerStatus>("idle");
+  const [status, setStatus] =
+    useState<ScannerStatus>("idle");
   const [errorMessage, setErrorMessage] = useState("");
   const [cameras, setCameras] = useState<CameraInfo[]>([]);
   const [cameraIndex, setCameraIndex] = useState(0);
@@ -141,19 +158,19 @@ export default function MerchantQrScanner() {
   const statusLabel = useMemo(() => {
     switch (status) {
       case "starting":
-        return "Starting camera";
+        return t.startingCamera;
       case "ready":
-        return "Camera ready";
+        return t.cameraReady;
       case "processing":
-        return "Reading QR";
+        return t.readingQr;
       case "success":
-        return "Member verified";
+        return t.memberVerified;
       case "error":
-        return "Action required";
+        return t.actionRequired;
       default:
-        return "Scanner";
+        return t.scanner;
     }
-  }, [status]);
+  }, [status, t]);
 
   const clearScanner = useCallback(async () => {
     const scanner = scannerRef.current;
@@ -189,9 +206,12 @@ export default function MerchantQrScanner() {
       setErrorMessage("");
 
       try {
-        const cardId = normalizeQrPayload(decodedText);
+        const cardId = normalizeQrPayload(decodedText, t);
 
-        if (typeof navigator !== "undefined" && "vibrate" in navigator) {
+        if (
+          typeof navigator !== "undefined" &&
+          "vibrate" in navigator
+        ) {
           navigator.vibrate?.(60);
         }
 
@@ -209,11 +229,11 @@ export default function MerchantQrScanner() {
         setErrorMessage(
           error instanceof Error
             ? error.message
-            : "Unable to read this QR code."
+            : t.unableReadQr
         );
       }
     },
-    [clearScanner, router]
+    [clearScanner, router, t]
   );
 
   const startScannerWithSource = useCallback(
@@ -262,7 +282,10 @@ export default function MerchantQrScanner() {
           setStatus("ready");
         }
       } catch (firstError) {
-        console.warn("Preferred camera unavailable:", firstError);
+        console.warn(
+          "Preferred camera unavailable:",
+          firstError
+        );
         await clearScanner();
 
         try {
@@ -274,19 +297,20 @@ export default function MerchantQrScanner() {
             setStatus("ready");
           }
         } catch (secondError) {
-          console.error("Unable to start camera:", secondError);
+          console.error(
+            "Unable to start camera:",
+            secondError
+          );
           await clearScanner();
 
           if (mountedRef.current) {
             setStatus("error");
-            setErrorMessage(
-              "Camera access failed. Please allow camera permission, close other camera apps, then try again."
-            );
+            setErrorMessage(t.cameraAccessFailed);
           }
         }
       }
     },
-    [clearScanner, startScannerWithSource]
+    [clearScanner, startScannerWithSource, t]
   );
 
   const loadCameras = useCallback(async () => {
@@ -295,14 +319,19 @@ export default function MerchantQrScanner() {
 
       const normalized = devices.map((camera) => ({
         id: camera.id,
-        label: camera.label || `Camera ${camera.id.slice(-4)}`,
+        label:
+          camera.label ||
+          fillScannerText(t.cameraFallback, {
+            suffix: camera.id.slice(-4),
+          }),
       }));
 
       setCameras(normalized);
 
       if (normalized.length > 0) {
         const rearIndex = normalized.findIndex(
-          (camera) => getCameraFacing(camera.label) === "environment"
+          (camera) =>
+            getCameraFacing(camera.label) === "environment"
         );
 
         const initialIndex = rearIndex >= 0 ? rearIndex : 0;
@@ -316,7 +345,7 @@ export default function MerchantQrScanner() {
     }
 
     await startCamera();
-  }, [startCamera]);
+  }, [startCamera, t]);
 
   useEffect(() => {
     mountedRef.current = true;
@@ -371,11 +400,13 @@ export default function MerchantQrScanner() {
 
       if (currentFacing === "environment") {
         nextIndex = cameras.findIndex(
-          (camera) => getCameraFacing(camera.label) === "user"
+          (camera) =>
+            getCameraFacing(camera.label) === "user"
         );
       } else if (currentFacing === "user") {
         nextIndex = cameras.findIndex(
-          (camera) => getCameraFacing(camera.label) === "environment"
+          (camera) =>
+            getCameraFacing(camera.label) === "environment"
         );
       }
 
@@ -388,7 +419,7 @@ export default function MerchantQrScanner() {
     } catch (error) {
       console.warn("Unable to switch camera:", error);
       setStatus("error");
-      setErrorMessage("Unable to switch camera. Please try again.");
+      setErrorMessage(t.unableSwitchCamera);
     }
   };
 
@@ -416,7 +447,7 @@ export default function MerchantQrScanner() {
 
     if (!file.type.startsWith("image/")) {
       setStatus("error");
-      setErrorMessage("Please choose an image file.");
+      setErrorMessage(t.chooseImageFile);
       return;
     }
 
@@ -434,21 +465,22 @@ export default function MerchantQrScanner() {
 
       scannerRef.current = fileScanner;
 
-      const decodedText = await fileScanner.scanFile(file, true);
+      const decodedText = await fileScanner.scanFile(
+        file,
+        true
+      );
       await completeScan(decodedText);
-    } catch (error) {
+    } catch {
       handledRef.current = false;
       setStatus("error");
-      setErrorMessage(
-        "No readable QR code was found in this image. Try a clearer or less cropped photo."
-      );
+      setErrorMessage(t.noReadableQr);
     } finally {
       setUploading(false);
     }
   };
 
   const activeCameraLabel =
-    cameras[cameraIndex]?.label || "Rear camera";
+    cameras[cameraIndex]?.label || t.rearCamera;
 
   return (
     <main className="rh-scanner-page">
@@ -464,9 +496,13 @@ export default function MerchantQrScanner() {
             type="button"
             className="rh-icon-button"
             onClick={handleBack}
-            aria-label="Back to collect payment"
+            aria-label={t.backToCollectPayment}
           >
-            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              aria-hidden="true"
+            >
               <path
                 d="M15 18l-6-6 6-6"
                 stroke="currentColor"
@@ -477,19 +513,22 @@ export default function MerchantQrScanner() {
             </svg>
           </button>
 
-          <div className={`rh-status-pill rh-status-${status}`}>
+          <div
+            className={`rh-status-pill rh-status-${status}`}
+          >
             <span className="rh-status-dot" />
             <span>{statusLabel}</span>
           </div>
         </header>
 
         <div className="rh-title-block">
-          <div className="rh-kicker">Merchant payment</div>
-          <h1>Scan member QR</h1>
-          <p>
-            Scan the member card with your rear camera or upload a QR image
-            from the device gallery.
-          </p>
+          <div className="rh-kicker">
+            {t.merchantPayment}
+          </div>
+
+          <h1>{t.scanMemberQr}</h1>
+
+          <p>{t.pageDescription}</p>
         </div>
 
         <div className="rh-scanner-card">
@@ -501,8 +540,8 @@ export default function MerchantQrScanner() {
             {status === "starting" && (
               <div className="rh-state-panel">
                 <div className="rh-loader" />
-                <strong>Opening camera</strong>
-                <span>Please allow camera access when prompted.</span>
+                <strong>{t.openingCamera}</strong>
+                <span>{t.allowCameraAccess}</span>
               </div>
             )}
 
@@ -519,8 +558,9 @@ export default function MerchantQrScanner() {
                     />
                   </svg>
                 </div>
-                <strong>Member verified</strong>
-                <span>Opening the payment collection page…</span>
+
+                <strong>{t.memberVerified}</strong>
+                <span>{t.openingCollectionPage}</span>
               </div>
             )}
 
@@ -537,10 +577,15 @@ export default function MerchantQrScanner() {
                     />
                   </svg>
                 </div>
-                <strong>Unable to continue</strong>
+
+                <strong>{t.unableToContinue}</strong>
                 <span>{errorMessage}</span>
-                <button type="button" onClick={handleRetry}>
-                  Try camera again
+
+                <button
+                  type="button"
+                  onClick={handleRetry}
+                >
+                  {t.tryCameraAgain}
                 </button>
               </div>
             )}
@@ -548,7 +593,10 @@ export default function MerchantQrScanner() {
 
           <div className="rh-camera-summary">
             <div>
-              <span className="rh-camera-summary-label">Active source</span>
+              <span className="rh-camera-summary-label">
+                {t.activeSource}
+              </span>
+
               <strong>{activeCameraLabel}</strong>
             </div>
 
@@ -567,17 +615,21 @@ export default function MerchantQrScanner() {
                   strokeLinejoin="round"
                 />
               </svg>
-              Secure
+
+              {t.secure}
             </span>
           </div>
 
           <ScannerToolbar
-  cameraCount={cameras.length}
-  busy={status === "processing" || status === "starting"}
-  uploading={uploading}
-  onUpload={handleUploadClick}
-  onSwitchCamera={handleSwitchCamera}
-/>
+            cameraCount={cameras.length}
+            busy={
+              status === "processing" ||
+              status === "starting"
+            }
+            uploading={uploading}
+            onUpload={handleUploadClick}
+            onSwitchCamera={handleSwitchCamera}
+          />
 
           <input
             ref={fileInputRef}
@@ -591,27 +643,24 @@ export default function MerchantQrScanner() {
         <div className="rh-help-grid">
           <article>
             <span>01</span>
-            <strong>Align clearly</strong>
-            <p>Keep the full QR code inside the frame.</p>
+            <strong>{t.alignClearly}</strong>
+            <p>{t.alignClearlyDescription}</p>
           </article>
 
           <article>
             <span>02</span>
-            <strong>Hold steady</strong>
-            <p>Avoid glare, shadows, and excessive movement.</p>
+            <strong>{t.holdSteady}</strong>
+            <p>{t.holdSteadyDescription}</p>
           </article>
 
           <article>
             <span>03</span>
-            <strong>Auto continue</strong>
-            <p>Successful scans open payment collection instantly.</p>
+            <strong>{t.autoContinue}</strong>
+            <p>{t.autoContinueDescription}</p>
           </article>
         </div>
 
-        <p className="rh-footnote">
-          Only RewardHub member QR codes are accepted. The camera stream is
-          processed on this device.
-        </p>
+        <p className="rh-footnote">{t.footnote}</p>
       </section>
     </main>
   );

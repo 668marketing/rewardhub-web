@@ -3,12 +3,146 @@
 import { Suspense, useState } from "react";
 import Link from "next/link";
 import Header from "@/components/layout/Header";
+import LanguageSwitcher from "@/components/i18n/LanguageSwitcher";
+import { useLanguage } from "@/hooks/useLanguage";
 import {
   requestMemberPasswordReset,
   resetMemberPassword,
 } from "@/lib/api";
 
 function ForgotPasswordContent() {
+  const {
+    language,
+  } = useLanguage();
+
+  const pageText = {
+    en: {
+      accountRecovery: "Account Recovery",
+      forgotPassword: "Forgot Password",
+      resetPassword: "Reset Password",
+      passwordUpdated: "Password Updated",
+      enterRegisteredEmail:
+        "Enter your registered email to receive a verification code.",
+      enterCodePrefix:
+        "Enter the 6-digit code sent to",
+      resetSuccess:
+        "Your password has been reset successfully.",
+      registeredEmail: "Registered Email",
+      sendingCode: "Sending Code...",
+      sendVerificationCode: "Send Verification Code",
+      newPassword: "New Password",
+      confirmNewPassword: "Confirm New Password",
+      hide: "Hide",
+      show: "Show",
+      resettingPassword: "Resetting Password...",
+      sending: "Sending...",
+      resendCode: "Resend Code",
+      passwordResetComplete: "Password Reset Complete",
+      returnToLogin: "Return to Login",
+      backToLogin: "Back to Login",
+      enterEmail: "Please enter your email",
+      codeSent:
+        "If this email is registered, a verification code has been sent.",
+      sendCodeFailed:
+        "Unable to send verification code",
+      enterCode:
+        "Please enter the verification code",
+      codeLength:
+        "Verification code must be 6 digits",
+      passwordLength:
+        "Password must be at least 6 characters",
+      passwordMismatch:
+        "Passwords do not match",
+      resetFailed:
+        "Unable to reset password",
+    },
+
+    zh: {
+      accountRecovery: "账户恢复",
+      forgotPassword: "忘记密码",
+      resetPassword: "重设密码",
+      passwordUpdated: "密码已更新",
+      enterRegisteredEmail:
+        "请输入注册邮箱以接收验证码。",
+      enterCodePrefix:
+        "请输入发送至以下邮箱的6位验证码：",
+      resetSuccess:
+        "您的密码已成功重设。",
+      registeredEmail: "注册邮箱",
+      sendingCode: "正在发送验证码...",
+      sendVerificationCode: "发送验证码",
+      newPassword: "新密码",
+      confirmNewPassword: "确认新密码",
+      hide: "隐藏",
+      show: "显示",
+      resettingPassword: "正在重设密码...",
+      sending: "发送中...",
+      resendCode: "重新发送验证码",
+      passwordResetComplete: "密码重设完成",
+      returnToLogin: "返回登录",
+      backToLogin: "返回登录",
+      enterEmail: "请输入邮箱",
+      codeSent:
+        "如果此邮箱已注册，验证码已经发送。",
+      sendCodeFailed:
+        "无法发送验证码",
+      enterCode:
+        "请输入验证码",
+      codeLength:
+        "验证码必须是6位数字",
+      passwordLength:
+        "密码至少需要6个字符",
+      passwordMismatch:
+        "两次输入的密码不一致",
+      resetFailed:
+        "无法重设密码",
+    },
+
+    ms: {
+      accountRecovery: "Pemulihan Akaun",
+      forgotPassword: "Lupa Kata Laluan",
+      resetPassword: "Tetapkan Semula Kata Laluan",
+      passwordUpdated: "Kata Laluan Dikemas Kini",
+      enterRegisteredEmail:
+        "Masukkan e-mel berdaftar anda untuk menerima kod pengesahan.",
+      enterCodePrefix:
+        "Masukkan kod 6 digit yang dihantar ke",
+      resetSuccess:
+        "Kata laluan anda berjaya ditetapkan semula.",
+      registeredEmail: "E-mel Berdaftar",
+      sendingCode: "Sedang Menghantar Kod...",
+      sendVerificationCode: "Hantar Kod Pengesahan",
+      newPassword: "Kata Laluan Baharu",
+      confirmNewPassword: "Sahkan Kata Laluan Baharu",
+      hide: "Sembunyi",
+      show: "Tunjuk",
+      resettingPassword: "Sedang Menetapkan Semula...",
+      sending: "Sedang Menghantar...",
+      resendCode: "Hantar Semula Kod",
+      passwordResetComplete:
+        "Penetapan Semula Kata Laluan Selesai",
+      returnToLogin: "Kembali ke Log Masuk",
+      backToLogin: "Kembali ke Log Masuk",
+      enterEmail: "Sila masukkan e-mel anda",
+      codeSent:
+        "Jika e-mel ini berdaftar, kod pengesahan telah dihantar.",
+      sendCodeFailed:
+        "Kod pengesahan tidak dapat dihantar",
+      enterCode:
+        "Sila masukkan kod pengesahan",
+      codeLength:
+        "Kod pengesahan mestilah 6 digit",
+      passwordLength:
+        "Kata laluan mestilah sekurang-kurangnya 6 aksara",
+      passwordMismatch:
+        "Kata laluan tidak sepadan",
+      resetFailed:
+        "Kata laluan tidak dapat ditetapkan semula",
+    },
+  } as const;
+
+  const copy =
+    pageText[language];
   const [step, setStep] = useState<
     "email" | "reset" | "success"
   >("email");
@@ -30,7 +164,7 @@ function ForgotPasswordContent() {
     const cleanEmail = email.trim().toLowerCase();
 
     if (!cleanEmail) {
-      alert("Please enter your email");
+      alert(copy.enterEmail);
       return;
     }
 
@@ -45,12 +179,12 @@ function ForgotPasswordContent() {
       setStep("reset");
 
       alert(
-        "If this email is registered, a verification code has been sent."
+        copy.codeSent
       );
     } catch (error: any) {
       alert(
         error?.message ||
-          "Unable to send verification code"
+          copy.sendCodeFailed
       );
     } finally {
       setSending(false);
@@ -61,24 +195,24 @@ function ForgotPasswordContent() {
     const cleanOtp = otp.trim();
 
     if (!cleanOtp) {
-      alert("Please enter the verification code");
+      alert(copy.enterCode);
       return;
     }
 
     if (cleanOtp.length !== 6) {
-      alert("Verification code must be 6 digits");
+      alert(copy.codeLength);
       return;
     }
 
     if (newPassword.length < 6) {
       alert(
-        "Password must be at least 6 characters"
+        copy.passwordLength
       );
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      alert("Passwords do not match");
+      alert(copy.passwordMismatch);
       return;
     }
 
@@ -95,7 +229,7 @@ function ForgotPasswordContent() {
     } catch (error: any) {
       alert(
         error?.message ||
-          "Unable to reset password"
+          copy.resetFailed
       );
     } finally {
       setResetting(false);
@@ -106,7 +240,10 @@ function ForgotPasswordContent() {
     <>
       <Header />
 
-      <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,#dbeafe,transparent_35%),#f8fafc]">
+      <main className="relative min-h-screen bg-[radial-gradient(circle_at_top_left,#dbeafe,transparent_35%),#f8fafc]">
+        <div className="absolute right-4 top-4 z-40 sm:right-6 sm:top-6">
+          <LanguageSwitcher compact />
+        </div>
         <section className="mx-auto flex min-h-[calc(100vh-80px)] max-w-7xl items-center px-4 py-8 sm:px-6 sm:py-12">
           <div className="mx-auto w-full max-w-md rounded-[1.75rem] bg-white p-5 shadow-2xl sm:rounded-[2rem] sm:p-8">
             <div className="text-center">
@@ -117,29 +254,29 @@ function ForgotPasswordContent() {
               />
 
               <p className="mt-5 text-[10px] font-black uppercase tracking-[0.22em] text-blue-600 sm:mt-6 sm:text-xs">
-                Account Recovery
+                {copy.accountRecovery}
               </p>
 
               <h1 className="mt-2 text-3xl font-black text-slate-950 sm:text-4xl">
                 {step === "email" &&
-                  "Forgot Password"}
+                  copy.forgotPassword}
 
                 {step === "reset" &&
-                  "Reset Password"}
+                  copy.resetPassword}
 
                 {step === "success" &&
-                  "Password Updated"}
+                  copy.passwordUpdated}
               </h1>
 
               <p className="mt-2 text-sm font-semibold leading-6 text-slate-500">
                 {step === "email" &&
-                  "Enter your registered email to receive a verification code."}
+                  copy.enterRegisteredEmail}
 
                 {step === "reset" &&
-                  `Enter the 6-digit code sent to ${email}.`}
+                  `${copy.enterCodePrefix} ${email}.`}
 
                 {step === "success" &&
-                  "Your password has been reset successfully."}
+                  copy.resetSuccess}
               </p>
             </div>
 
@@ -160,7 +297,7 @@ function ForgotPasswordContent() {
                   required
                   autoComplete="email"
                   className="w-full rounded-xl border border-slate-200 px-4 py-4 text-sm font-semibold outline-none transition focus:border-slate-950 focus:ring-2 focus:ring-slate-950/10 sm:rounded-2xl sm:px-5"
-                  placeholder="Registered Email"
+                  placeholder={copy.registeredEmail}
                 />
 
                 <button
@@ -169,8 +306,8 @@ function ForgotPasswordContent() {
                   className="w-full rounded-xl bg-slate-950 py-4 text-sm font-black text-white shadow-xl disabled:cursor-not-allowed disabled:opacity-50 sm:rounded-2xl"
                 >
                   {sending
-                    ? "Sending Code..."
-                    : "Send Verification Code"}
+                    ? copy.sendingCode
+                    : copy.sendVerificationCode}
                 </button>
               </form>
             )}
@@ -216,7 +353,7 @@ function ForgotPasswordContent() {
                     minLength={6}
                     autoComplete="new-password"
                     className="w-full rounded-xl border border-slate-200 px-4 py-4 pr-20 text-sm font-semibold outline-none transition focus:border-slate-950 focus:ring-2 focus:ring-slate-950/10 sm:rounded-2xl sm:px-5"
-                    placeholder="New Password"
+                    placeholder={copy.newPassword}
                   />
 
                   <button
@@ -229,8 +366,8 @@ function ForgotPasswordContent() {
                     className="absolute right-3 top-1/2 -translate-y-1/2 px-3 py-2 text-[10px] font-black text-slate-500"
                   >
                     {showPassword
-                      ? "Hide"
-                      : "Show"}
+                      ? copy.hide
+                      : copy.show}
                   </button>
                 </div>
 
@@ -246,7 +383,7 @@ function ForgotPasswordContent() {
                   minLength={6}
                   autoComplete="new-password"
                   className="w-full rounded-xl border border-slate-200 px-4 py-4 text-sm font-semibold outline-none transition focus:border-slate-950 focus:ring-2 focus:ring-slate-950/10 sm:rounded-2xl sm:px-5"
-                  placeholder="Confirm New Password"
+                  placeholder={copy.confirmNewPassword}
                 />
 
                 <button
@@ -255,8 +392,8 @@ function ForgotPasswordContent() {
                   className="w-full rounded-xl bg-slate-950 py-4 text-sm font-black text-white shadow-xl disabled:cursor-not-allowed disabled:opacity-50 sm:rounded-2xl"
                 >
                   {resetting
-                    ? "Resetting Password..."
-                    : "Reset Password"}
+                    ? copy.resettingPassword
+                    : copy.resetPassword}
                 </button>
 
                 <button
@@ -268,8 +405,8 @@ function ForgotPasswordContent() {
                   className="w-full rounded-xl bg-slate-100 py-4 text-xs font-black text-slate-700 disabled:cursor-not-allowed disabled:opacity-50 sm:rounded-2xl"
                 >
                   {sending
-                    ? "Sending..."
-                    : "Resend Code"}
+                    ? copy.sending
+                    : copy.resendCode}
                 </button>
               </form>
             )}
@@ -281,14 +418,14 @@ function ForgotPasswordContent() {
                 </div>
 
                 <h2 className="mt-4 text-xl font-black text-emerald-950">
-                  Password Reset Complete
+                  {copy.passwordResetComplete}
                 </h2>
 
                 <Link
                   href="/login"
                   className="mt-6 block rounded-xl bg-slate-950 py-4 text-sm font-black text-white no-underline sm:rounded-2xl"
                 >
-                  Return to Login
+                  {copy.returnToLogin}
                 </Link>
               </div>
             )}
@@ -298,7 +435,7 @@ function ForgotPasswordContent() {
                 href="/login"
                 className="mt-6 block text-center text-xs font-black text-slate-500 no-underline"
               >
-                ← Back to Login
+                ← {copy.backToLogin}
               </Link>
             )}
           </div>
@@ -309,13 +446,23 @@ function ForgotPasswordContent() {
 }
 
 function ForgotPasswordLoading() {
+  const {
+    language,
+  } = useLanguage();
+
+  const loadingText = {
+    en: "Loading RewardHub...",
+    zh: "RewardHub 加载中...",
+    ms: "RewardHub sedang dimuatkan...",
+  } as const;
+
   return (
     <main className="flex min-h-screen items-center justify-center bg-[#f8fafc]">
       <div className="text-center">
         <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-slate-950" />
 
         <p className="mt-4 text-sm font-semibold text-slate-500">
-          Loading RewardHub...
+          {loadingText[language]}
         </p>
       </div>
     </main>

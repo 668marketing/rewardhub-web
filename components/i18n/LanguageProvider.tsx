@@ -17,15 +17,12 @@ import {
   type Language,
 } from "@/lib/language";
 
-import {
-  translate,
-} from "@/lib/i18n";
+import { translate } from "@/lib/i18n";
 
-type TranslationVariables =
-  Record<
-    string,
-    string | number
-  >;
+type TranslationVariables = Record<
+  string,
+  string | number
+>;
 
 type LanguageContextValue = {
   language: Language;
@@ -42,6 +39,13 @@ type LanguageContextValue = {
   isLanguageReady: boolean;
 };
 
+type LanguageChangeEventDetail = {
+  language?: string;
+};
+
+const LANGUAGE_CHANGE_EVENT =
+  "rewardhub-language-change";
+
 const LanguageContext =
   createContext<
     LanguageContextValue | undefined
@@ -51,49 +55,122 @@ type LanguageProviderProps = {
   children: ReactNode;
 };
 
+function readStoredLanguage(): Language {
+  try {
+    const storedLanguage =
+      window.localStorage.getItem(
+        LANGUAGE_STORAGE_KEY
+      );
+
+    if (isLanguage(storedLanguage)) {
+      return storedLanguage;
+    }
+  } catch (error) {
+    console.error(
+      "Unable to read saved language:",
+      error
+    );
+  }
+
+  return DEFAULT_LANGUAGE;
+}
+
 export default function LanguageProvider({
   children,
 }: LanguageProviderProps) {
   const [
     language,
     setLanguageState,
-  ] =
-    useState<Language>(
-      DEFAULT_LANGUAGE
-    );
+  ] = useState<Language>(
+    DEFAULT_LANGUAGE
+  );
 
   const [
     isLanguageReady,
     setIsLanguageReady,
-  ] =
-    useState(false);
+  ] = useState(false);
 
   useEffect(() => {
-    try {
-      const storedLanguage =
-        window.localStorage.getItem(
-          LANGUAGE_STORAGE_KEY
+    setLanguageState(
+      readStoredLanguage()
+    );
+
+    setIsLanguageReady(true);
+  }, []);
+
+  useEffect(() => {
+    const handleLanguageChange = (
+      event: Event
+    ) => {
+      const customEvent =
+        event as CustomEvent<
+          LanguageChangeEventDetail
+        >;
+
+      const eventLanguage =
+        customEvent.detail?.language;
+
+      if (isLanguage(eventLanguage)) {
+        setLanguageState(
+          eventLanguage
         );
+
+        return;
+      }
+
+      setLanguageState(
+        readStoredLanguage()
+      );
+    };
+
+    const handleStorageChange = (
+      event: StorageEvent
+    ) => {
+      if (
+        event.key !==
+        LANGUAGE_STORAGE_KEY
+      ) {
+        return;
+      }
 
       if (
         isLanguage(
-          storedLanguage
+          event.newValue
         )
       ) {
         setLanguageState(
-          storedLanguage
+          event.newValue
         );
+
+        return;
       }
-    } catch (error) {
-      console.error(
-        "Unable to read saved language:",
-        error
+
+      setLanguageState(
+        DEFAULT_LANGUAGE
       );
-    } finally {
-      setIsLanguageReady(
-        true
+    };
+
+    window.addEventListener(
+      LANGUAGE_CHANGE_EVENT,
+      handleLanguageChange
+    );
+
+    window.addEventListener(
+      "storage",
+      handleStorageChange
+    );
+
+    return () => {
+      window.removeEventListener(
+        LANGUAGE_CHANGE_EVENT,
+        handleLanguageChange
       );
-    }
+
+      window.removeEventListener(
+        "storage",
+        handleStorageChange
+      );
+    };
   }, []);
 
   useEffect(() => {
@@ -122,6 +199,20 @@ export default function LanguageProvider({
             error
           );
         }
+
+        window.dispatchEvent(
+          new CustomEvent<
+            LanguageChangeEventDetail
+          >(
+            LANGUAGE_CHANGE_EVENT,
+            {
+              detail: {
+                language:
+                  nextLanguage,
+              },
+            }
+          )
+        );
       },
       []
     );

@@ -8,6 +8,8 @@ import {
 import Link from "next/link";
 
 import Header from "@/components/layout/Header";
+import LanguageSwitcher from "@/components/i18n/LanguageSwitcher";
+import { useLanguage } from "@/hooks/useLanguage";
 import {
   merchantLogin,
 } from "@/lib/api";
@@ -178,6 +180,77 @@ function getMerchantLoginErrorMessage(
  */
 
 function MerchantLoginContent() {
+  const {
+    language,
+  } = useLanguage();
+
+  const pageText = {
+    en: {
+      merchantPortal: "Merchant Portal",
+      welcomeBack: "Welcome Back",
+      subtitle: "Login to your merchant account",
+      unableToSignIn: "Unable to sign in",
+      dismissError: "Dismiss error",
+      loginEmail: "Login Email",
+      password: "Password",
+      hide: "Hide",
+      show: "Show",
+      forgotPassword: "Forgot Password?",
+      loggingIn: "Logging in...",
+      merchantLogin: "Merchant Login",
+      newToRewardHub: "New to RewardHub?",
+      register: "Register",
+      enterEmail: "Please enter your login email.",
+      enterPassword: "Please enter your password.",
+      merchantInfoError:
+        "Unable to load merchant information. Please try again.",
+    },
+
+    zh: {
+      merchantPortal: "商家中心",
+      welcomeBack: "欢迎回来",
+      subtitle: "登录您的商家账户",
+      unableToSignIn: "无法登录",
+      dismissError: "关闭错误提示",
+      loginEmail: "登录邮箱",
+      password: "密码",
+      hide: "隐藏",
+      show: "显示",
+      forgotPassword: "忘记密码？",
+      loggingIn: "登录中...",
+      merchantLogin: "商家登录",
+      newToRewardHub: "还没有 RewardHub 账户？",
+      register: "立即注册",
+      enterEmail: "请输入登录邮箱。",
+      enterPassword: "请输入密码。",
+      merchantInfoError:
+        "无法读取商家资料，请再试一次。",
+    },
+
+    ms: {
+      merchantPortal: "Portal Peniaga",
+      welcomeBack: "Selamat Kembali",
+      subtitle: "Log masuk ke akaun peniaga anda",
+      unableToSignIn: "Tidak dapat log masuk",
+      dismissError: "Tutup mesej ralat",
+      loginEmail: "E-mel Log Masuk",
+      password: "Kata Laluan",
+      hide: "Sembunyi",
+      show: "Tunjuk",
+      forgotPassword: "Lupa Kata Laluan?",
+      loggingIn: "Sedang log masuk...",
+      merchantLogin: "Log Masuk Peniaga",
+      newToRewardHub: "Belum mempunyai akaun RewardHub?",
+      register: "Daftar",
+      enterEmail: "Sila masukkan e-mel log masuk anda.",
+      enterPassword: "Sila masukkan kata laluan anda.",
+      merchantInfoError:
+        "Maklumat peniaga tidak dapat dimuatkan. Sila cuba lagi.",
+    },
+  } as const;
+
+  const copy =
+    pageText[language];
   const [
     loading,
     setLoading,
@@ -267,7 +340,7 @@ function MerchantLoginContent() {
 
     if (!cleanEmail) {
       setErrorMessage(
-        "Please enter your login email."
+        copy.enterEmail
       );
 
       return;
@@ -275,7 +348,7 @@ function MerchantLoginContent() {
 
     if (!password) {
       setErrorMessage(
-        "Please enter your password."
+        copy.enterPassword
       );
 
       return;
@@ -322,7 +395,7 @@ function MerchantLoginContent() {
 
       if (!merchantId) {
         setErrorMessage(
-          "Unable to load merchant information. Please try again."
+          copy.merchantInfoError
         );
 
         return;
@@ -360,7 +433,10 @@ function MerchantLoginContent() {
     <>
       <Header />
 
-      <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,#fef3c7,transparent_35%),#f8fafc] px-4 py-8 sm:px-6 sm:py-12 lg:py-16">
+      <main className="relative min-h-screen bg-[radial-gradient(circle_at_top_left,#fef3c7,transparent_35%),#f8fafc] px-4 py-8 sm:px-6 sm:py-12 lg:py-16">
+        <div className="absolute right-4 top-4 z-40 sm:right-6 sm:top-6">
+          <LanguageSwitcher compact />
+        </div>
         <section className="mx-auto flex min-h-[calc(100vh-120px)] max-w-md items-center">
           <div className="w-full rounded-[1.75rem] bg-white p-5 text-center shadow-2xl sm:rounded-[2.5rem] sm:p-8">
             <img
@@ -370,15 +446,15 @@ function MerchantLoginContent() {
             />
 
             <p className="mt-5 text-[10px] font-black uppercase tracking-[0.22em] text-amber-600 sm:mt-6 sm:text-xs">
-              Merchant Portal
+              {copy.merchantPortal}
             </p>
 
             <h1 className="mt-2 text-3xl font-black text-slate-950 sm:text-4xl">
-              Welcome Back
+              {copy.welcomeBack}
             </h1>
 
             <p className="mt-2 text-sm font-bold text-slate-500">
-              Login to your merchant account
+              {copy.subtitle}
             </p>
 
             {errorMessage ? (
@@ -406,7 +482,7 @@ function MerchantLoginContent() {
 
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-black text-red-700">
-                    Unable to sign in
+                    {copy.unableToSignIn}
                   </p>
 
                   <p className="mt-1 text-sm font-semibold leading-6 text-red-600">
@@ -420,7 +496,7 @@ function MerchantLoginContent() {
                     setErrorMessage("")
                   }
                   className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-xl font-medium leading-none text-red-400 transition hover:bg-red-100 hover:text-red-600"
-                  aria-label="Dismiss error"
+                  aria-label={copy.dismissError}
                 >
                   ×
                 </button>
@@ -464,7 +540,7 @@ function MerchantLoginContent() {
                     errorMessage
                   )
                 }
-                placeholder="Login Email"
+                placeholder={copy.loginEmail}
                 className="w-full rounded-xl border border-slate-200 px-4 py-4 text-sm font-bold outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-500/10 sm:rounded-2xl sm:px-5"
               />
 
@@ -499,7 +575,7 @@ function MerchantLoginContent() {
                       errorMessage
                     )
                   }
-                  placeholder="Password"
+                  placeholder={copy.password}
                   className="w-full rounded-xl border border-slate-200 px-4 py-4 pr-20 text-sm font-bold outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-500/10 sm:rounded-2xl sm:px-5 sm:pr-24"
                 />
 
@@ -516,8 +592,8 @@ function MerchantLoginContent() {
                   className="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg px-3 py-2 text-[10px] font-black text-slate-500 sm:text-xs"
                 >
                   {showPassword
-                    ? "Hide"
-                    : "Show"}
+                    ? copy.hide
+                    : copy.show}
                 </button>
               </div>
 
@@ -526,7 +602,7 @@ function MerchantLoginContent() {
                   href="/merchant/forgot-password"
                   className="text-xs font-black text-amber-700 no-underline hover:text-amber-800"
                 >
-                  Forgot Password?
+                  {copy.forgotPassword}
                 </Link>
               </div>
 
@@ -538,20 +614,20 @@ function MerchantLoginContent() {
                 className="w-full rounded-xl bg-slate-950 py-4 text-sm font-black text-white shadow-xl transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50 sm:rounded-2xl"
               >
                 {loading
-                  ? "Logging in..."
-                  : "Merchant Login"}
+                  ? copy.loggingIn
+                  : copy.merchantLogin}
               </button>
             </form>
 
             <p className="mt-6 text-sm font-bold text-slate-500">
-              New to RewardHub?{" "}
+              {copy.newToRewardHub}{" "}
               <Link
                 href={
                   merchantRegisterHref
                 }
                 className="font-black text-slate-950 no-underline"
               >
-                Register
+                {copy.register}
               </Link>
             </p>
           </div>
@@ -567,13 +643,23 @@ function MerchantLoginContent() {
  */
 
 function MerchantLoginLoading() {
+  const {
+    language,
+  } = useLanguage();
+
+  const loadingText = {
+    en: "Loading RewardHub...",
+    zh: "RewardHub 加载中...",
+    ms: "RewardHub sedang dimuatkan...",
+  } as const;
+
   return (
     <main className="flex min-h-screen items-center justify-center bg-[#f8fafc]">
       <div className="text-center">
         <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-slate-950" />
 
         <p className="mt-4 text-sm font-semibold text-slate-500">
-          Loading RewardHub...
+          {loadingText[language]}
         </p>
       </div>
     </main>

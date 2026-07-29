@@ -14,16 +14,96 @@ import {
   type MerchantNotificationItem,
 } from "@/lib/api";
 
-type StoredMerchant = {
-  merchantId?: string;
-  MERCHANT_ID?: string;
-  id?: string;
-};
+type LanguageCode = "en" | "zh" | "ms";
 
 type FilterType =
   | "ALL"
   | "UNREAD"
   | "READ";
+
+const LANGUAGE_STORAGE_KEY = "rewardhub-language";
+
+const translations = {
+  en: {
+    unableLoad: "Unable to load notifications.",
+    unableMarkRead: "Unable to mark notification as read.",
+    unableMarkAllRead: "Unable to mark all notifications as read.",
+    today: "Today",
+    yesterday: "Yesterday",
+    back: "Back",
+    merchantPortal: "Merchant Portal",
+    notifications: "Notifications",
+    description:
+      "Important RewardHub updates, settlements, campaigns and system messages appear here.",
+    unread: "Unread",
+    updating: "Updating...",
+    markAllRead: "Mark all read",
+    all: "All",
+    read: "Read",
+    refreshing: "Refreshing...",
+    refresh: "Refresh",
+    noNotifications: "No notifications",
+    emptyDescription:
+      "New RewardHub notifications will appear here.",
+    new: "NEW",
+    readUpper: "READ",
+    viewDetails: "View details →",
+  },
+  zh: {
+    unableLoad: "无法加载通知。",
+    unableMarkRead: "无法将通知标记为已读。",
+    unableMarkAllRead: "无法将所有通知标记为已读。",
+    today: "今天",
+    yesterday: "昨天",
+    back: "返回",
+    merchantPortal: "商家端",
+    notifications: "通知",
+    description:
+      "重要的 RewardHub 更新、结算、活动和系统消息会显示在这里。",
+    unread: "未读",
+    updating: "正在更新……",
+    markAllRead: "全部标记为已读",
+    all: "全部",
+    read: "已读",
+    refreshing: "正在刷新……",
+    refresh: "刷新",
+    noNotifications: "暂无通知",
+    emptyDescription: "新的 RewardHub 通知会显示在这里。",
+    new: "新通知",
+    readUpper: "已读",
+    viewDetails: "查看详情 →",
+  },
+  ms: {
+    unableLoad: "Tidak dapat memuatkan notifikasi.",
+    unableMarkRead: "Tidak dapat menandakan notifikasi sebagai dibaca.",
+    unableMarkAllRead:
+      "Tidak dapat menandakan semua notifikasi sebagai dibaca.",
+    today: "Hari Ini",
+    yesterday: "Semalam",
+    back: "Kembali",
+    merchantPortal: "Portal Pedagang",
+    notifications: "Notifikasi",
+    description:
+      "Kemas kini penting RewardHub, penyelesaian, kempen dan mesej sistem dipaparkan di sini.",
+    unread: "Belum Dibaca",
+    updating: "Sedang Mengemas Kini...",
+    markAllRead: "Tandakan Semua Dibaca",
+    all: "Semua",
+    read: "Dibaca",
+    refreshing: "Sedang Menyegar...",
+    refresh: "Segar Semula",
+    noNotifications: "Tiada notifikasi",
+    emptyDescription:
+      "Notifikasi RewardHub baharu akan dipaparkan di sini.",
+    new: "BAHARU",
+    readUpper: "DIBACA",
+    viewDetails: "Lihat butiran →",
+  },
+} as const;
+
+function normalizeLanguage(value: string | null): LanguageCode {
+  return value === "zh" || value === "ms" ? value : "en";
+}
 
 function getMerchantIdFromStorage() {
   if (typeof window === "undefined") {
@@ -31,17 +111,13 @@ function getMerchantIdFromStorage() {
   }
 
   try {
-    const raw =
-      window.localStorage.getItem(
-        "merchant"
-      );
+    const raw = window.localStorage.getItem("merchant");
 
     if (!raw) {
       return "";
     }
 
-    const parsed: any =
-      JSON.parse(raw);
+    const parsed: any = JSON.parse(raw);
 
     const candidate =
       parsed?.merchant ??
@@ -70,26 +146,17 @@ function unwrapData(
   }
 
   const root =
-    result as Record<
-      string,
-      unknown
-    >;
+    result as Record<string, unknown>;
 
   const first =
     root.data &&
     typeof root.data === "object"
-      ? (root.data as Record<
-          string,
-          unknown
-        >)
+      ? (root.data as Record<string, unknown>)
       : root;
 
   return first.data &&
     typeof first.data === "object"
-    ? (first.data as Record<
-        string,
-        unknown
-      >)
+    ? (first.data as Record<string, unknown>)
     : first;
 }
 
@@ -103,16 +170,10 @@ function getNotificationTimestamp(
   const normalized =
     value.includes("T")
       ? value
-      : value.replace(
-          " ",
-          "T"
-        );
+      : value.replace(" ", "T");
 
-  const date =
-    new Date(normalized);
-
-  const time =
-    date.getTime();
+  const date = new Date(normalized);
+  const time = date.getTime();
 
   return Number.isNaN(time)
     ? 0
@@ -120,22 +181,22 @@ function getNotificationTimestamp(
 }
 
 function formatDateTime(
-  value: string
+  value: string,
+  language: LanguageCode,
+  labels: {
+    today: string;
+    yesterday: string;
+  }
 ) {
   const timestamp =
-    getNotificationTimestamp(
-      value
-    );
+    getNotificationTimestamp(value);
 
   if (!timestamp) {
     return value || "";
   }
 
-  const date =
-    new Date(timestamp);
-
-  const now =
-    new Date();
+  const date = new Date(timestamp);
+  const now = new Date();
 
   const startOfToday =
     new Date(
@@ -160,45 +221,42 @@ function formatDateTime(
         86400000
     );
 
+  const locale =
+    language === "zh"
+      ? "zh-CN"
+      : language === "ms"
+        ? "ms-MY"
+        : "en-MY";
+
   const timeText =
     new Intl.DateTimeFormat(
-      "en-MY",
+      locale,
       {
-        hour:
-          "numeric",
-        minute:
-          "2-digit",
+        hour: "numeric",
+        minute: "2-digit",
       }
     ).format(date);
 
   if (dayDifference === 0) {
-    return `Today • ${timeText}`;
+    return `${labels.today} • ${timeText}`;
   }
 
   if (dayDifference === 1) {
-    return `Yesterday • ${timeText}`;
+    return `${labels.yesterday} • ${timeText}`;
   }
 
   return new Intl.DateTimeFormat(
-    "en-MY",
+    locale,
     {
-      day:
-        "2-digit",
-      month:
-        "short",
-      year:
-        "numeric",
-      hour:
-        "numeric",
-      minute:
-        "2-digit",
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
     }
   )
     .format(date)
-    .replace(
-      ",",
-      " •"
-    );
+    .replace(",", " •");
 }
 
 function dispatchNotificationUpdate() {
@@ -212,44 +270,74 @@ function dispatchNotificationUpdate() {
 export default function MerchantNotificationsPage() {
   const router = useRouter();
 
-  const [
-    merchantId,
-    setMerchantId,
-  ] = useState("");
+  const [language, setLanguage] =
+    useState<LanguageCode>("en");
 
-  const [
-    notifications,
-    setNotifications,
-  ] = useState<
-    MerchantNotificationItem[]
-  >([]);
+  const [merchantId, setMerchantId] =
+    useState("");
 
-  const [
-    unreadCount,
-    setUnreadCount,
-  ] = useState(0);
+  const [notifications, setNotifications] =
+    useState<MerchantNotificationItem[]>([]);
 
-  const [
-    filter,
-    setFilter,
-  ] = useState<FilterType>(
-    "ALL"
+  const [unreadCount, setUnreadCount] =
+    useState(0);
+
+  const [filter, setFilter] =
+    useState<FilterType>("ALL");
+
+  const [loading, setLoading] =
+    useState(true);
+
+  const [actionLoading, setActionLoading] =
+    useState("");
+
+  const [error, setError] =
+    useState("");
+
+  const t = useMemo(
+    () => translations[language],
+    [language]
   );
 
-  const [
-    loading,
-    setLoading,
-  ] = useState(true);
+  useEffect(() => {
+    setLanguage(
+      normalizeLanguage(
+        localStorage.getItem(LANGUAGE_STORAGE_KEY)
+      )
+    );
 
-  const [
-    actionLoading,
-    setActionLoading,
-  ] = useState("");
+    function handleLanguageChange(event: Event) {
+      const customEvent =
+        event as CustomEvent<{ language?: string }>;
 
-  const [
-    error,
-    setError,
-  ] = useState("");
+      setLanguage(
+        normalizeLanguage(
+          customEvent.detail?.language ||
+            localStorage.getItem(LANGUAGE_STORAGE_KEY)
+        )
+      );
+    }
+
+    window.addEventListener(
+      "rewardhub-language-change",
+      handleLanguageChange as EventListener
+    );
+    window.addEventListener(
+      "storage",
+      handleLanguageChange as EventListener
+    );
+
+    return () => {
+      window.removeEventListener(
+        "rewardhub-language-change",
+        handleLanguageChange as EventListener
+      );
+      window.removeEventListener(
+        "storage",
+        handleLanguageChange as EventListener
+      );
+    };
+  }, []);
 
   useEffect(() => {
     const storedMerchantId =
@@ -305,15 +393,15 @@ export default function MerchantNotificationsPage() {
         setError(
           loadError instanceof Error
             ? loadError.message
-            : "Unable to load notifications."
+            : t.unableLoad
         );
       } finally {
         setLoading(false);
       }
-    }, [merchantId]);
+    }, [merchantId, t.unableLoad]);
 
   useEffect(() => {
-    loadNotifications();
+    void loadNotifications();
   }, [loadNotifications]);
 
   const sortedNotifications =
@@ -325,10 +413,6 @@ export default function MerchantNotificationsPage() {
           first,
           second
         ) => {
-          /*
-           * Unread notifications stay above read notifications.
-           * Within each group, the newest notification appears first.
-           */
           if (
             first.isRead !==
             second.isRead
@@ -354,15 +438,13 @@ export default function MerchantNotificationsPage() {
     useMemo(() => {
       if (filter === "UNREAD") {
         return sortedNotifications.filter(
-          (item) =>
-            !item.isRead
+          (item) => !item.isRead
         );
       }
 
       if (filter === "READ") {
         return sortedNotifications.filter(
-          (item) =>
-            item.isRead
+          (item) => item.isRead
         );
       }
 
@@ -371,7 +453,6 @@ export default function MerchantNotificationsPage() {
       filter,
       sortedNotifications,
     ]);
-
 
   async function handleNotificationClick(
     notification: MerchantNotificationItem
@@ -402,10 +483,8 @@ export default function MerchantNotificationsPage() {
                 notification.userNotificationId
                   ? {
                       ...item,
-                      status:
-                        "READ",
-                      isRead:
-                        true,
+                      status: "READ",
+                      isRead: true,
                       readAt:
                         new Date().toISOString(),
                     }
@@ -426,7 +505,7 @@ export default function MerchantNotificationsPage() {
         setError(
           readError instanceof Error
             ? readError.message
-            : "Unable to mark notification as read."
+            : t.unableMarkRead
         );
       } finally {
         setActionLoading("");
@@ -465,10 +544,8 @@ export default function MerchantNotificationsPage() {
           current.map(
             (item) => ({
               ...item,
-              status:
-                "READ",
-              isRead:
-                true,
+              status: "READ",
+              isRead: true,
               readAt:
                 item.readAt ||
                 new Date().toISOString(),
@@ -482,7 +559,7 @@ export default function MerchantNotificationsPage() {
       setError(
         markError instanceof Error
           ? markError.message
-          : "Unable to mark all notifications as read."
+          : t.unableMarkAllRead
       );
     } finally {
       setActionLoading("");
@@ -520,27 +597,26 @@ export default function MerchantNotificationsPage() {
                     ←
                   </span>
 
-                  Back
+                  {t.back}
                 </button>
 
                 <p className="text-xs font-black uppercase tracking-[0.22em] text-slate-300">
-                  Merchant Portal
+                  {t.merchantPortal}
                 </p>
 
                 <h1 className="mt-2 text-3xl font-black tracking-tight sm:text-4xl">
-                  Notifications
+                  {t.notifications}
                 </h1>
 
                 <p className="mt-3 max-w-2xl text-sm font-medium leading-6 text-slate-300 sm:text-base">
-                  Important RewardHub updates, settlements,
-                  campaigns and system messages appear here.
+                  {t.description}
                 </p>
               </div>
 
               <div className="flex items-center gap-3">
                 <div className="rounded-2xl border border-white/15 bg-white/10 px-4 py-3 backdrop-blur">
                   <p className="text-xs font-bold text-slate-300">
-                    Unread
+                    {t.unread}
                   </p>
 
                   <p className="mt-1 text-2xl font-black">
@@ -562,8 +638,8 @@ export default function MerchantNotificationsPage() {
                 >
                   {actionLoading ===
                   "MARK_ALL"
-                    ? "Updating..."
-                    : "Mark all read"}
+                    ? t.updating
+                    : t.markAllRead}
                 </button>
               </div>
             </div>
@@ -591,11 +667,11 @@ export default function MerchantNotificationsPage() {
                   }`}
                 >
                   {value === "ALL"
-                    ? `All (${notifications.length})`
+                    ? `${t.all} (${notifications.length})`
                     : value ===
                         "UNREAD"
-                      ? `Unread (${unreadCount})`
-                      : `Read (${Math.max(
+                      ? `${t.unread} (${unreadCount})`
+                      : `${t.read} (${Math.max(
                           0,
                           notifications.length -
                             unreadCount
@@ -605,15 +681,15 @@ export default function MerchantNotificationsPage() {
 
               <button
                 type="button"
-                onClick={
-                  loadNotifications
-                }
+                onClick={() => {
+                  void loadNotifications();
+                }}
                 disabled={loading}
                 className="ml-auto rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-black text-slate-700 transition hover:bg-slate-50 disabled:opacity-50 sm:text-sm"
               >
                 {loading
-                  ? "Refreshing..."
-                  : "Refresh"}
+                  ? t.refreshing
+                  : t.refresh}
               </button>
             </div>
           </div>
@@ -644,11 +720,11 @@ export default function MerchantNotificationsPage() {
                 </div>
 
                 <h2 className="mt-5 text-xl font-black text-slate-950">
-                  No notifications
+                  {t.noNotifications}
                 </h2>
 
                 <p className="mt-2 max-w-md text-sm font-medium leading-6 text-slate-500">
-                  New RewardHub notifications will appear here.
+                  {t.emptyDescription}
                 </p>
               </div>
             ) : (
@@ -665,11 +741,11 @@ export default function MerchantNotificationsPage() {
                           notification.userNotificationId
                         }
                         type="button"
-                        onClick={() =>
-                          handleNotificationClick(
+                        onClick={() => {
+                          void handleNotificationClick(
                             notification
-                          )
-                        }
+                          );
+                        }}
                         disabled={isBusy}
                         className={`group w-full rounded-3xl border p-5 text-left transition hover:-translate-y-0.5 hover:shadow-md disabled:cursor-wait ${
                           notification.isRead
@@ -695,43 +771,44 @@ export default function MerchantNotificationsPage() {
                                     : "font-black text-slate-950"
                                 }`}
                               >
-                                {
-                                  notification.title
-                                }
+                                {notification.title}
                               </h2>
 
                               <span className="shrink-0 text-xs font-bold text-slate-400">
                                 {formatDateTime(
-                                  notification.createdAt
+                                  notification.createdAt,
+                                  language,
+                                  {
+                                    today: t.today,
+                                    yesterday: t.yesterday,
+                                  }
                                 )}
                               </span>
                             </div>
 
                             <p className="mt-2 whitespace-pre-line text-sm font-medium leading-6 text-slate-600">
-                              {
-                                notification.message
-                              }
+                              {notification.message}
                             </p>
 
                             <div className="mt-4 flex flex-wrap items-center gap-2">
                               {!notification.isRead ? (
                                 <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-600 px-3 py-1 text-[11px] font-black text-white">
                                   <span className="h-1.5 w-1.5 rounded-full bg-white" />
-                                  NEW
+                                  {t.new}
                                 </span>
                               ) : (
                                 <span className="rounded-full bg-slate-100 px-3 py-1 text-[11px] font-black text-slate-500">
-                                  READ
+                                  {t.readUpper}
                                 </span>
                               )}
 
                               <span className="text-xs font-black text-slate-500 transition group-hover:text-slate-950">
-                                View details →
+                                {t.viewDetails}
                               </span>
 
                               {isBusy ? (
                                 <span className="text-xs font-bold text-slate-400">
-                                  Updating...
+                                  {t.updating}
                                 </span>
                               ) : null}
                             </div>

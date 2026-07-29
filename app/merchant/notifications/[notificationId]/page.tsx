@@ -2,6 +2,7 @@
 
 import {
   useEffect,
+  useMemo,
   useState,
 } from "react";
 import {
@@ -14,6 +15,8 @@ import {
   type MerchantNotificationItem,
 } from "@/lib/api";
 
+type LanguageCode = "en" | "zh" | "ms";
+
 type StoredMerchant = {
   merchantId?: string;
   MERCHANT_ID?: string;
@@ -23,6 +26,54 @@ type StoredMerchant = {
   data?: StoredMerchant;
   user?: StoredMerchant;
 };
+
+const LANGUAGE_STORAGE_KEY = "rewardhub-language";
+
+const translations = {
+  en: {
+    merchantSessionUnavailable:
+      "Merchant session is unavailable. Please return to the dashboard and try again.",
+    notificationIdMissing: "Notification ID is missing.",
+    notificationNotFound: "Notification not found.",
+    unableLoadNotification: "Unable to load notification.",
+    back: "Back",
+    unableOpenNotification: "Unable to open notification",
+    backToNotifications: "Back to Notifications",
+    merchantNotification: "Merchant Notification",
+    read: "READ",
+    openRelatedPage: "Open Related Page →",
+  },
+  zh: {
+    merchantSessionUnavailable:
+      "商家登录资料不可用，请返回商家首页后重试。",
+    notificationIdMissing: "缺少通知 ID。",
+    notificationNotFound: "找不到该通知。",
+    unableLoadNotification: "无法加载通知。",
+    back: "返回",
+    unableOpenNotification: "无法打开通知",
+    backToNotifications: "返回通知列表",
+    merchantNotification: "商家通知",
+    read: "已读",
+    openRelatedPage: "打开相关页面 →",
+  },
+  ms: {
+    merchantSessionUnavailable:
+      "Sesi pedagang tidak tersedia. Sila kembali ke papan pemuka dan cuba lagi.",
+    notificationIdMissing: "ID notifikasi tiada.",
+    notificationNotFound: "Notifikasi tidak ditemui.",
+    unableLoadNotification: "Tidak dapat memuatkan notifikasi.",
+    back: "Kembali",
+    unableOpenNotification: "Tidak dapat membuka notifikasi",
+    backToNotifications: "Kembali ke Notifikasi",
+    merchantNotification: "Notifikasi Pedagang",
+    read: "DIBACA",
+    openRelatedPage: "Buka Halaman Berkaitan →",
+  },
+} as const;
+
+function normalizeLanguage(value: string | null): LanguageCode {
+  return value === "zh" || value === "ms" ? value : "en";
+}
 
 function findMerchantId(
   value: unknown
@@ -171,7 +222,8 @@ function unwrapData(
 }
 
 function formatDateTime(
-  value: string
+  value: string,
+  language: LanguageCode
 ) {
   if (!value) {
     return "";
@@ -197,10 +249,15 @@ function formatDateTime(
   }
 
   return new Intl.DateTimeFormat(
-    "en-MY",
+    language === "zh"
+      ? "zh-CN"
+      : language === "ms"
+        ? "ms-MY"
+        : "en-MY",
     {
       dateStyle: "full",
       timeStyle: "short",
+      timeZone: "Asia/Kuala_Lumpur",
     }
   ).format(date);
 }
@@ -221,6 +278,9 @@ export default function MerchantNotificationDetailPage() {
     useParams<{
       notificationId: string;
     }>();
+
+  const [language, setLanguage] =
+    useState<LanguageCode>("en");
 
   const notificationId =
     decodeURIComponent(
@@ -247,6 +307,51 @@ export default function MerchantNotificationDetailPage() {
     setError,
   ] = useState("");
 
+  const t = useMemo(
+    () => translations[language],
+    [language]
+  );
+
+  useEffect(() => {
+    setLanguage(
+      normalizeLanguage(
+        localStorage.getItem(LANGUAGE_STORAGE_KEY)
+      )
+    );
+
+    function handleLanguageChange(event: Event) {
+      const customEvent =
+        event as CustomEvent<{ language?: string }>;
+
+      setLanguage(
+        normalizeLanguage(
+          customEvent.detail?.language ||
+            localStorage.getItem(LANGUAGE_STORAGE_KEY)
+        )
+      );
+    }
+
+    window.addEventListener(
+      "rewardhub-language-change",
+      handleLanguageChange as EventListener
+    );
+    window.addEventListener(
+      "storage",
+      handleLanguageChange as EventListener
+    );
+
+    return () => {
+      window.removeEventListener(
+        "rewardhub-language-change",
+        handleLanguageChange as EventListener
+      );
+      window.removeEventListener(
+        "storage",
+        handleLanguageChange as EventListener
+      );
+    };
+  }, []);
+
   useEffect(() => {
     let cancelled = false;
 
@@ -257,7 +362,7 @@ export default function MerchantNotificationDetailPage() {
       if (!merchantId) {
         if (!cancelled) {
           setError(
-            "Merchant session is unavailable. Please return to the dashboard and try again."
+            t.merchantSessionUnavailable
           );
           setLoading(false);
         }
@@ -268,7 +373,7 @@ export default function MerchantNotificationDetailPage() {
       if (!notificationId) {
         if (!cancelled) {
           setError(
-            "Notification ID is missing."
+            t.notificationIdMissing
           );
           setLoading(false);
         }
@@ -305,7 +410,7 @@ export default function MerchantNotificationDetailPage() {
         if (!matched) {
           if (!cancelled) {
             setError(
-              "Notification not found."
+              t.notificationNotFound
             );
           }
 
@@ -351,7 +456,7 @@ export default function MerchantNotificationDetailPage() {
             loadError instanceof
               Error
               ? loadError.message
-              : "Unable to load notification."
+              : t.unableLoadNotification
           );
         }
       } finally {
@@ -368,7 +473,7 @@ export default function MerchantNotificationDetailPage() {
     return () => {
       cancelled = true;
     };
-  }, [notificationId]);
+  }, [notificationId, t]);
 
   function goBack() {
     if (
@@ -409,7 +514,7 @@ export default function MerchantNotificationDetailPage() {
               }
               className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-black text-slate-700 transition hover:bg-slate-50"
             >
-              ← Back
+              ← {t.back}
             </button>
 
             <div className="mt-10 rounded-3xl border border-red-200 bg-red-50 p-6 text-center">
@@ -418,12 +523,12 @@ export default function MerchantNotificationDetailPage() {
               </div>
 
               <h1 className="mt-4 text-2xl font-black text-slate-950">
-                Unable to open notification
+                {t.unableOpenNotification}
               </h1>
 
               <p className="mt-2 text-sm font-bold text-red-700">
                 {error ||
-                  "Notification not found."}
+                  t.notificationNotFound}
               </p>
             </div>
           </section>
@@ -448,7 +553,7 @@ export default function MerchantNotificationDetailPage() {
           }
           className="mb-5 inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-black text-slate-700 shadow-sm transition hover:bg-slate-100"
         >
-          ← Back to Notifications
+          ← {t.backToNotifications}
         </button>
 
         <article className="overflow-hidden rounded-[32px] border border-slate-200 bg-white shadow-sm">
@@ -456,7 +561,7 @@ export default function MerchantNotificationDetailPage() {
             <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
               <div className="min-w-0">
                 <p className="text-xs font-black uppercase tracking-[0.22em] text-emerald-300">
-                  Merchant Notification
+                  {t.merchantNotification}
                 </p>
 
                 <h1 className="mt-3 break-words text-3xl font-black tracking-tight sm:text-4xl">
@@ -467,13 +572,14 @@ export default function MerchantNotificationDetailPage() {
 
                 <p className="mt-4 text-sm font-bold text-slate-300">
                   {formatDateTime(
-                    notification.createdAt
+                    notification.createdAt,
+                    language
                   )}
                 </p>
               </div>
 
               <span className="inline-flex w-fit shrink-0 rounded-full bg-emerald-400/15 px-3 py-1.5 text-xs font-black text-emerald-300 ring-1 ring-inset ring-emerald-300/20">
-                READ
+                {t.read}
               </span>
             </div>
           </header>
@@ -508,7 +614,7 @@ export default function MerchantNotificationDetailPage() {
                   }
                   className="rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-black text-slate-700 transition hover:bg-slate-50"
                 >
-                  Back to Notifications
+                  {t.backToNotifications}
                 </button>
 
                 {targetUrl ? (
@@ -521,7 +627,7 @@ export default function MerchantNotificationDetailPage() {
                     }
                     className="rounded-2xl bg-slate-950 px-5 py-3 text-sm font-black text-white shadow-sm transition hover:bg-slate-800"
                   >
-                    Open Related Page →
+                    {t.openRelatedPage}
                   </button>
                 ) : null}
               </div>

@@ -7,7 +7,151 @@ import {
   replyMerchantReview,
 } from "@/lib/api";
 
+type LanguageCode = "en" | "zh" | "ms";
+
+const LANGUAGE_STORAGE_KEY = "rewardhub-language";
+
+const translations = {
+  en: {
+    replyEmpty: "Reply cannot be empty",
+    replyTooLong: "Reply must not exceed 1000 characters",
+    replySaved: "Reply saved successfully",
+    unableSaveReply: "Unable to save reply",
+    merchantReviews: "Merchant Reviews",
+    customerFeedback: "Customer Feedback",
+    pageDescription:
+      "Monitor ratings and reply to customer reviews professionally.",
+    averageRating: "Average Rating",
+    totalReviews: "Total Reviews",
+    replied: "Replied",
+    pendingReply: "Pending Reply",
+    reviewList: "Review List",
+    showingReviews: "Showing {{count}} review(s)",
+    searchReviews: "Search reviews",
+    allRatings: "All Ratings",
+    fiveStars: "5 Stars",
+    fourStars: "4 Stars",
+    threeStars: "3 Stars",
+    twoStars: "2 Stars",
+    oneStar: "1 Star",
+    allReplies: "All Replies",
+    newest: "Newest",
+    oldest: "Oldest",
+    highestRating: "Highest Rating",
+    lowestRating: "Lowest Rating",
+    noReviewsFound: "No reviews found",
+    noReviewsDescription:
+      "Reviews matching your filters will appear here.",
+    member: "Member",
+    verifiedPurchase: "Verified Purchase",
+    noComment: "No comment added.",
+    merchantReply: "Merchant Reply",
+    replyPlaceholder: "Write a professional reply...",
+    saving: "Saving...",
+    saveReply: "Save Reply",
+    cancel: "Cancel",
+    editReply: "Edit Reply →",
+    replyToReview: "Reply to Review",
+  },
+  zh: {
+    replyEmpty: "回复内容不能为空",
+    replyTooLong: "回复内容不能超过 1000 个字符",
+    replySaved: "回复保存成功",
+    unableSaveReply: "无法保存回复",
+    merchantReviews: "商家评价",
+    customerFeedback: "顾客反馈",
+    pageDescription: "查看顾客评分，并专业地回复顾客评价。",
+    averageRating: "平均评分",
+    totalReviews: "评价总数",
+    replied: "已回复",
+    pendingReply: "待回复",
+    reviewList: "评价列表",
+    showingReviews: "显示 {{count}} 条评价",
+    searchReviews: "搜索评价",
+    allRatings: "全部评分",
+    fiveStars: "5 星",
+    fourStars: "4 星",
+    threeStars: "3 星",
+    twoStars: "2 星",
+    oneStar: "1 星",
+    allReplies: "全部回复状态",
+    newest: "最新",
+    oldest: "最早",
+    highestRating: "评分最高",
+    lowestRating: "评分最低",
+    noReviewsFound: "找不到评价",
+    noReviewsDescription: "符合当前筛选条件的评价会显示在这里。",
+    member: "会员",
+    verifiedPurchase: "已验证消费",
+    noComment: "没有填写评价内容。",
+    merchantReply: "商家回复",
+    replyPlaceholder: "填写专业的回复内容……",
+    saving: "正在保存……",
+    saveReply: "保存回复",
+    cancel: "取消",
+    editReply: "编辑回复 →",
+    replyToReview: "回复评价",
+  },
+  ms: {
+    replyEmpty: "Balasan tidak boleh kosong",
+    replyTooLong: "Balasan tidak boleh melebihi 1000 aksara",
+    replySaved: "Balasan berjaya disimpan",
+    unableSaveReply: "Tidak dapat menyimpan balasan",
+    merchantReviews: "Ulasan Pedagang",
+    customerFeedback: "Maklum Balas Pelanggan",
+    pageDescription:
+      "Pantau penilaian dan balas ulasan pelanggan secara profesional.",
+    averageRating: "Purata Penilaian",
+    totalReviews: "Jumlah Ulasan",
+    replied: "Telah Dibalas",
+    pendingReply: "Menunggu Balasan",
+    reviewList: "Senarai Ulasan",
+    showingReviews: "Memaparkan {{count}} ulasan",
+    searchReviews: "Cari ulasan",
+    allRatings: "Semua Penilaian",
+    fiveStars: "5 Bintang",
+    fourStars: "4 Bintang",
+    threeStars: "3 Bintang",
+    twoStars: "2 Bintang",
+    oneStar: "1 Bintang",
+    allReplies: "Semua Balasan",
+    newest: "Terbaharu",
+    oldest: "Terlama",
+    highestRating: "Penilaian Tertinggi",
+    lowestRating: "Penilaian Terendah",
+    noReviewsFound: "Tiada ulasan ditemui",
+    noReviewsDescription:
+      "Ulasan yang sepadan dengan penapis anda akan dipaparkan di sini.",
+    member: "Ahli",
+    verifiedPurchase: "Pembelian Disahkan",
+    noComment: "Tiada komen ditambah.",
+    merchantReply: "Balasan Pedagang",
+    replyPlaceholder: "Tulis balasan yang profesional...",
+    saving: "Sedang Menyimpan...",
+    saveReply: "Simpan Balasan",
+    cancel: "Batal",
+    editReply: "Edit Balasan →",
+    replyToReview: "Balas Ulasan",
+  },
+} as const;
+
+function normalizeLanguage(value: string | null): LanguageCode {
+  return value === "zh" || value === "ms" ? value : "en";
+}
+
+function fillText(
+  value: string,
+  replacements: Record<string, string | number>
+) {
+  return Object.entries(replacements).reduce(
+    (result, [key, replacement]) =>
+      result.replaceAll(`{{${key}}}`, String(replacement)),
+    value
+  );
+}
+
 export default function MerchantReviewsPage() {
+  const [language, setLanguage] = useState<LanguageCode>("en");
   const [merchantId, setMerchantId] = useState("");
   const [reviews, setReviews] = useState<any[]>([]);
   const [summary, setSummary] = useState({
@@ -27,15 +171,52 @@ export default function MerchantReviewsPage() {
   const [replyText, setReplyText] = useState("");
   const [savingId, setSavingId] = useState("");
 
+  const t = useMemo(() => translations[language], [language]);
+
   useEffect(() => {
-    const stored = JSON.parse(
-      localStorage.getItem("merchant") || "{}"
+    setLanguage(
+      normalizeLanguage(localStorage.getItem(LANGUAGE_STORAGE_KEY))
     );
 
-    const id =
-      stored?.merchantId ||
-      stored?.MERCHANT_ID ||
-      "";
+    function handleLanguageChange(event: Event) {
+      const customEvent = event as CustomEvent<{ language?: string }>;
+
+      setLanguage(
+        normalizeLanguage(
+          customEvent.detail?.language ||
+            localStorage.getItem(LANGUAGE_STORAGE_KEY)
+        )
+      );
+    }
+
+    window.addEventListener(
+      "rewardhub-language-change",
+      handleLanguageChange as EventListener
+    );
+    window.addEventListener("storage", handleLanguageChange as EventListener);
+
+    return () => {
+      window.removeEventListener(
+        "rewardhub-language-change",
+        handleLanguageChange as EventListener
+      );
+      window.removeEventListener(
+        "storage",
+        handleLanguageChange as EventListener
+      );
+    };
+  }, []);
+
+  useEffect(() => {
+    let stored: any = {};
+
+    try {
+      stored = JSON.parse(localStorage.getItem("merchant") || "{}");
+    } catch {
+      stored = {};
+    }
+
+    const id = stored?.merchantId || stored?.MERCHANT_ID || "";
 
     setMerchantId(id);
 
@@ -44,7 +225,7 @@ export default function MerchantReviewsPage() {
       return;
     }
 
-    loadReviews(id);
+    void loadReviews(id);
   }, []);
 
   async function loadReviews(id = merchantId) {
@@ -68,42 +249,42 @@ export default function MerchantReviewsPage() {
       setReviews(list);
 
       const validRatings = list
-  .map((review: any) => Number(review?.rating || 0))
-  .filter((rating: number) => rating >= 1 && rating <= 5);
+        .map((review: any) => Number(review?.rating || 0))
+        .filter((rating: number) => rating >= 1 && rating <= 5);
 
-const calculatedAverage =
-  validRatings.length > 0
-    ? validRatings.reduce(
-        (sum: number, rating: number) => sum + rating,
-        0
-      ) / validRatings.length
-    : 0;
+      const calculatedAverage =
+        validRatings.length > 0
+          ? validRatings.reduce(
+              (sum: number, rating: number) => sum + rating,
+              0
+            ) / validRatings.length
+          : 0;
 
-const calculatedReplied = list.filter((review: any) =>
-  String(review?.merchantReply || "").trim()
-).length;
+      const calculatedReplied = list.filter((review: any) =>
+        String(review?.merchantReply || "").trim()
+      ).length;
 
-const backendAverage = Number(data?.averageRating);
+      const backendAverage = Number(data?.averageRating);
 
-setSummary({
-  averageRating:
-    Number.isFinite(backendAverage) && backendAverage > 0
-      ? backendAverage
-      : calculatedAverage,
+      setSummary({
+        averageRating:
+          Number.isFinite(backendAverage) && backendAverage > 0
+            ? backendAverage
+            : calculatedAverage,
 
-  totalReviews: Number(
-    data?.totalReviews ?? list.length
-  ),
+        totalReviews: Number(
+          data?.totalReviews ?? list.length
+        ),
 
-  repliedReviews: Number(
-    data?.repliedReviews ?? calculatedReplied
-  ),
+        repliedReviews: Number(
+          data?.repliedReviews ?? calculatedReplied
+        ),
 
-  pendingReplies: Number(
-    data?.pendingReplies ??
-      Math.max(list.length - calculatedReplied, 0)
-  ),
-});
+        pendingReplies: Number(
+          data?.pendingReplies ??
+            Math.max(list.length - calculatedReplied, 0)
+        ),
+      });
     } catch (error) {
       console.error(
         "Failed to load merchant reviews:",
@@ -202,9 +383,7 @@ setSummary({
 
   function startReply(review: any) {
     setEditingId(review.reviewId);
-    setReplyText(
-      review.merchantReply || ""
-    );
+    setReplyText(review.merchantReply || "");
   }
 
   function cancelReply() {
@@ -216,14 +395,12 @@ setSummary({
     const cleanReply = replyText.trim();
 
     if (!cleanReply) {
-      alert("Reply cannot be empty");
+      alert(t.replyEmpty);
       return;
     }
 
     if (cleanReply.length > 1000) {
-      alert(
-        "Reply must not exceed 1000 characters"
-      );
+      alert(t.replyTooLong);
       return;
     }
 
@@ -242,8 +419,7 @@ setSummary({
             ? {
                 ...item,
                 merchantReply: cleanReply,
-                updatedAt:
-                  new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
               }
             : item
         )
@@ -262,8 +438,7 @@ setSummary({
 
         return {
           ...current,
-          repliedReviews:
-            current.repliedReviews + 1,
+          repliedReviews: current.repliedReviews + 1,
           pendingReplies: Math.max(
             current.pendingReplies - 1,
             0
@@ -272,12 +447,9 @@ setSummary({
       });
 
       cancelReply();
-      alert("Reply saved successfully");
+      alert(t.replySaved);
     } catch (error: any) {
-      alert(
-        error?.message ||
-          "Unable to save reply"
-      );
+      alert(error?.message || t.unableSaveReply);
     } finally {
       setSavingId("");
     }
@@ -294,39 +466,36 @@ setSummary({
 
             <div className="relative">
               <p className="text-[10px] font-black uppercase tracking-[0.22em] text-amber-300 sm:text-xs sm:tracking-[0.25em]">
-                Merchant Reviews
+                {t.merchantReviews}
               </p>
 
               <h1 className="mt-3 text-3xl font-black sm:text-4xl md:text-5xl">
-                Customer Feedback
+                {t.customerFeedback}
               </h1>
 
               <p className="mt-2 max-w-2xl text-[11px] font-bold leading-5 text-slate-400 sm:mt-3 sm:text-sm sm:leading-6">
-                Monitor ratings and reply to customer
-                reviews professionally.
+                {t.pageDescription}
               </p>
 
               <div className="mt-6 grid grid-cols-2 gap-3 sm:mt-8 sm:gap-4 lg:grid-cols-4">
                 <SummaryCard
-                  title="Average Rating"
-                  value={`★ ${summary.averageRating.toFixed(
-                    1
-                  )}`}
+                  title={t.averageRating}
+                  value={`★ ${summary.averageRating.toFixed(1)}`}
                 />
 
                 <SummaryCard
-                  title="Total Reviews"
+                  title={t.totalReviews}
                   value={summary.totalReviews}
                 />
 
                 <SummaryCard
-                  title="Replied"
+                  title={t.replied}
                   value={summary.repliedReviews}
                   green
                 />
 
                 <SummaryCard
-                  title="Pending Reply"
+                  title={t.pendingReply}
                   value={summary.pendingReplies}
                   amber
                 />
@@ -338,11 +507,13 @@ setSummary({
             <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
               <div>
                 <h2 className="text-xl font-black text-slate-950 sm:text-2xl">
-                  Review List
+                  {t.reviewList}
                 </h2>
 
                 <p className="mt-1 text-[11px] font-bold text-slate-500 sm:text-sm">
-                  Showing {filteredReviews.length} review(s)
+                  {fillText(t.showingReviews, {
+                    count: filteredReviews.length,
+                  })}
                 </p>
               </div>
 
@@ -352,47 +523,35 @@ setSummary({
                   onChange={(event) =>
                     setSearch(event.target.value)
                   }
-                  placeholder="Search reviews"
+                  placeholder={t.searchReviews}
                   className="col-span-2 rounded-xl border border-slate-200 px-4 py-3 text-xs font-bold outline-none focus:border-slate-950 sm:rounded-2xl sm:text-sm lg:col-span-1"
                 />
 
                 <select
                   value={ratingFilter}
                   onChange={(event) =>
-                    setRatingFilter(
-                      event.target.value
-                    )
+                    setRatingFilter(event.target.value)
                   }
                   className="rounded-xl border border-slate-200 px-3 py-3 text-xs font-bold outline-none focus:border-slate-950 sm:rounded-2xl sm:text-sm"
                 >
-                  <option value="All">
-                    All Ratings
-                  </option>
-                  <option value="5">5 Stars</option>
-                  <option value="4">4 Stars</option>
-                  <option value="3">3 Stars</option>
-                  <option value="2">2 Stars</option>
-                  <option value="1">1 Star</option>
+                  <option value="All">{t.allRatings}</option>
+                  <option value="5">{t.fiveStars}</option>
+                  <option value="4">{t.fourStars}</option>
+                  <option value="3">{t.threeStars}</option>
+                  <option value="2">{t.twoStars}</option>
+                  <option value="1">{t.oneStar}</option>
                 </select>
 
                 <select
                   value={replyFilter}
                   onChange={(event) =>
-                    setReplyFilter(
-                      event.target.value
-                    )
+                    setReplyFilter(event.target.value)
                   }
                   className="rounded-xl border border-slate-200 px-3 py-3 text-xs font-bold outline-none focus:border-slate-950 sm:rounded-2xl sm:text-sm"
                 >
-                  <option value="All">
-                    All Replies
-                  </option>
-                  <option value="Pending">
-                    Pending Reply
-                  </option>
-                  <option value="Replied">
-                    Replied
-                  </option>
+                  <option value="All">{t.allReplies}</option>
+                  <option value="Pending">{t.pendingReply}</option>
+                  <option value="Replied">{t.replied}</option>
                 </select>
 
                 <select
@@ -402,17 +561,13 @@ setSummary({
                   }
                   className="col-span-2 rounded-xl border border-slate-200 px-3 py-3 text-xs font-bold outline-none focus:border-slate-950 sm:rounded-2xl sm:text-sm lg:col-span-1"
                 >
-                  <option value="Newest">
-                    Newest
-                  </option>
-                  <option value="Oldest">
-                    Oldest
-                  </option>
+                  <option value="Newest">{t.newest}</option>
+                  <option value="Oldest">{t.oldest}</option>
                   <option value="Highest Rating">
-                    Highest Rating
+                    {t.highestRating}
                   </option>
                   <option value="Lowest Rating">
-                    Lowest Rating
+                    {t.lowestRating}
                   </option>
                 </select>
               </div>
@@ -433,21 +588,28 @@ setSummary({
                   <ReviewCard
                     key={review.reviewId}
                     review={review}
-                    editing={
-                      editingId === review.reviewId
-                    }
+                    editing={editingId === review.reviewId}
                     replyText={replyText}
-                    saving={
-                      savingId === review.reviewId
-                    }
-                    onStart={() =>
-                      startReply(review)
-                    }
+                    saving={savingId === review.reviewId}
+                    language={language}
+                    labels={{
+                      member: t.member,
+                      verifiedPurchase: t.verifiedPurchase,
+                      replied: t.replied,
+                      pendingReply: t.pendingReply,
+                      noComment: t.noComment,
+                      merchantReply: t.merchantReply,
+                      replyPlaceholder: t.replyPlaceholder,
+                      saving: t.saving,
+                      saveReply: t.saveReply,
+                      cancel: t.cancel,
+                      editReply: t.editReply,
+                      replyToReview: t.replyToReview,
+                    }}
+                    onStart={() => startReply(review)}
                     onCancel={cancelReply}
                     onReplyChange={setReplyText}
-                    onSave={() =>
-                      saveReply(review)
-                    }
+                    onSave={() => void saveReply(review)}
                   />
                 ))}
               </div>
@@ -456,12 +618,11 @@ setSummary({
                 <p className="text-3xl">⭐</p>
 
                 <h3 className="mt-3 text-xl font-black text-slate-950">
-                  No reviews found
+                  {t.noReviewsFound}
                 </h3>
 
                 <p className="mt-2 text-xs font-bold text-slate-500 sm:text-sm">
-                  Reviews matching your filters will
-                  appear here.
+                  {t.noReviewsDescription}
                 </p>
               </div>
             )}
@@ -509,6 +670,8 @@ function ReviewCard({
   editing,
   replyText,
   saving,
+  language,
+  labels,
   onStart,
   onCancel,
   onReplyChange,
@@ -518,6 +681,21 @@ function ReviewCard({
   editing: boolean;
   replyText: string;
   saving: boolean;
+  language: LanguageCode;
+  labels: {
+    member: string;
+    verifiedPurchase: string;
+    replied: string;
+    pendingReply: string;
+    noComment: string;
+    merchantReply: string;
+    replyPlaceholder: string;
+    saving: string;
+    saveReply: string;
+    cancel: string;
+    editReply: string;
+    replyToReview: string;
+  };
   onStart: () => void;
   onCancel: () => void;
   onReplyChange: (value: string) => void;
@@ -529,9 +707,7 @@ function ReviewCard({
   );
 
   const hasReply = Boolean(
-    String(
-      review?.merchantReply || ""
-    ).trim()
+    String(review?.merchantReply || "").trim()
   );
 
   return (
@@ -544,32 +720,28 @@ function ReviewCard({
           </p>
 
           <h3 className="mt-2 text-base font-black text-slate-950 sm:text-lg">
-            {review?.memberName ||
-              "Member"}
+            {review?.memberName || labels.member}
           </h3>
 
           <p className="mt-1 text-[10px] font-bold text-emerald-700 sm:text-xs">
-            Verified Purchase
+            {labels.verifiedPurchase}
           </p>
         </div>
 
         <div className="shrink-0 text-right">
           <span className="rounded-full bg-white px-3 py-1.5 text-[9px] font-black text-slate-500 sm:text-xs">
-            {hasReply
-              ? "Replied"
-              : "Pending Reply"}
+            {hasReply ? labels.replied : labels.pendingReply}
           </span>
 
           <p className="mt-2 text-[9px] font-bold text-slate-400 sm:text-xs">
-            {formatDate(review?.createdAt)}
+            {formatDate(review?.createdAt, language)}
           </p>
         </div>
       </div>
 
       <div className="mt-4 rounded-2xl bg-white p-4 sm:mt-5 sm:p-5">
         <p className="text-xs font-bold leading-5 text-slate-700 sm:text-sm sm:leading-6">
-          {review?.comment ||
-            "No comment added."}
+          {review?.comment || labels.noComment}
         </p>
       </div>
 
@@ -577,7 +749,7 @@ function ReviewCard({
         <div className="mt-4 rounded-2xl border border-slate-200 bg-white p-4 sm:mt-5 sm:p-5">
           <div className="flex items-center justify-between">
             <p className="text-xs font-black text-slate-950 sm:text-sm">
-              Merchant Reply
+              {labels.merchantReply}
             </p>
 
             <p className="text-[9px] font-bold text-slate-400 sm:text-xs">
@@ -593,7 +765,7 @@ function ReviewCard({
             }
             rows={4}
             className="mt-3 w-full resize-none rounded-xl border border-slate-200 px-4 py-3 text-xs font-bold outline-none focus:border-slate-950 sm:rounded-2xl sm:text-sm"
-            placeholder="Write a professional reply..."
+            placeholder={labels.replyPlaceholder}
           />
 
           <div className="mt-3 grid grid-cols-2 gap-3">
@@ -603,9 +775,7 @@ function ReviewCard({
               disabled={saving}
               className="rounded-xl bg-slate-950 py-3 text-xs font-black text-white disabled:opacity-50 sm:rounded-2xl sm:text-sm"
             >
-              {saving
-                ? "Saving..."
-                : "Save Reply"}
+              {saving ? labels.saving : labels.saveReply}
             </button>
 
             <button
@@ -613,14 +783,14 @@ function ReviewCard({
               onClick={onCancel}
               className="rounded-xl bg-slate-100 py-3 text-xs font-black text-slate-700 sm:rounded-2xl sm:text-sm"
             >
-              Cancel
+              {labels.cancel}
             </button>
           </div>
         </div>
       ) : hasReply ? (
         <div className="mt-4 rounded-2xl border border-emerald-100 bg-emerald-50 p-4 sm:mt-5 sm:p-5">
           <p className="text-[10px] font-black uppercase tracking-[0.14em] text-emerald-700 sm:text-xs">
-            Merchant Reply
+            {labels.merchantReply}
           </p>
 
           <p className="mt-2 text-xs font-bold leading-5 text-emerald-950 sm:text-sm sm:leading-6">
@@ -632,7 +802,7 @@ function ReviewCard({
             onClick={onStart}
             className="mt-3 text-[10px] font-black text-emerald-700 sm:text-xs"
           >
-            Edit Reply →
+            {labels.editReply}
           </button>
         </div>
       ) : (
@@ -641,18 +811,22 @@ function ReviewCard({
           onClick={onStart}
           className="mt-4 w-full rounded-xl bg-slate-950 py-3 text-xs font-black text-white transition hover:bg-slate-800 sm:mt-5 sm:rounded-2xl sm:py-4 sm:text-sm"
         >
-          Reply to Review
+          {labels.replyToReview}
         </button>
       )}
     </article>
   );
 }
 
-function formatDate(value: any) {
+function formatDate(value: any, language: LanguageCode) {
   if (!value) return "-";
 
   return new Date(value).toLocaleString(
-    "en-GB",
+    language === "zh"
+      ? "zh-CN"
+      : language === "ms"
+        ? "ms-MY"
+        : "en-GB",
     {
       timeZone: "Asia/Kuala_Lumpur",
       day: "2-digit",

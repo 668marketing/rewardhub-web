@@ -10,7 +10,9 @@ import {
 } from "react";
 import {
   Bell,
+  Check,
   Headset,
+  Languages,
   MoreHorizontal,
 } from "lucide-react";
 
@@ -25,6 +27,36 @@ type NavItem = {
   href: string;
   icon: string;
 };
+
+
+type LanguageCode = "en" | "zh" | "ms";
+
+type LanguageOption = {
+  code: LanguageCode;
+  label: string;
+  htmlLang: string;
+};
+
+const LANGUAGE_STORAGE_KEY =
+  "rewardhub-language";
+
+const languageOptions: LanguageOption[] = [
+  {
+    code: "en",
+    label: "English",
+    htmlLang: "en",
+  },
+  {
+    code: "zh",
+    label: "中文",
+    htmlLang: "zh-CN",
+  },
+  {
+    code: "ms",
+    label: "Bahasa Melayu",
+    htmlLang: "ms",
+  },
+];
 
 const primaryItems: NavItem[] = [
   {
@@ -111,6 +143,55 @@ const mobilePrimaryItems: NavItem[] = [
     icon: "💰",
   },
 ];
+
+function getStoredLanguage(): LanguageCode {
+  if (typeof window === "undefined") {
+    return "en";
+  }
+
+  const stored =
+    window.localStorage.getItem(
+      LANGUAGE_STORAGE_KEY
+    );
+
+  return languageOptions.some(
+    (option) => option.code === stored
+  )
+    ? (stored as LanguageCode)
+    : "en";
+}
+
+function applyLanguage(
+  language: LanguageCode
+): void {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  const option =
+    languageOptions.find(
+      (item) => item.code === language
+    ) ?? languageOptions[0];
+
+  window.localStorage.setItem(
+    LANGUAGE_STORAGE_KEY,
+    option.code
+  );
+
+  document.documentElement.lang =
+    option.htmlLang;
+
+  window.dispatchEvent(
+    new CustomEvent(
+      "rewardhub-language-change",
+      {
+        detail: {
+          language: option.code,
+        },
+      }
+    )
+  );
+}
 
 function openCustomerSupport(): void {
   if (typeof window === "undefined") {
@@ -205,10 +286,28 @@ export default function MerchantNav() {
     setMobileMoreOpen,
   ] = useState(false);
 
+
+  const [
+    languageOpen,
+    setLanguageOpen,
+  ] = useState(false);
+
+  const [
+    currentLanguage,
+    setCurrentLanguage,
+  ] = useState<LanguageCode>("en");
+
   const desktopMoreRef =
     useRef<HTMLDivElement>(null);
 
   const mobileMoreRef =
+    useRef<HTMLDivElement>(null);
+
+
+  const desktopLanguageRef =
+    useRef<HTMLDivElement>(null);
+
+  const mobileLanguageRef =
     useRef<HTMLDivElement>(null);
 
   function isActive(
@@ -274,6 +373,56 @@ export default function MerchantNav() {
     }, []);
 
   useEffect(() => {
+    const storedLanguage =
+      getStoredLanguage();
+
+    setCurrentLanguage(
+      storedLanguage
+    );
+
+    applyLanguage(
+      storedLanguage
+    );
+
+    const handleLanguageChange = (
+      event: Event
+    ) => {
+      const customEvent =
+        event as CustomEvent<{
+          language?: LanguageCode;
+        }>;
+
+      const nextLanguage =
+        customEvent.detail?.language;
+
+      if (
+        nextLanguage &&
+        languageOptions.some(
+          (option) =>
+            option.code ===
+            nextLanguage
+        )
+      ) {
+        setCurrentLanguage(
+          nextLanguage
+        );
+      }
+    };
+
+    window.addEventListener(
+      "rewardhub-language-change",
+      handleLanguageChange
+    );
+
+    return () => {
+      window.removeEventListener(
+        "rewardhub-language-change",
+        handleLanguageChange
+      );
+    };
+  }, []);
+
+  useEffect(() => {
     void loadUnreadCount();
 
     const handleNotificationChange =
@@ -317,6 +466,7 @@ export default function MerchantNav() {
   useEffect(() => {
     setDesktopMoreOpen(false);
     setMobileMoreOpen(false);
+    setLanguageOpen(false);
   }, [pathname]);
 
   useEffect(() => {
@@ -342,6 +492,20 @@ export default function MerchantNav() {
         )
       ) {
         setMobileMoreOpen(false);
+      }
+
+
+      if (
+        desktopLanguageRef.current &&
+        !desktopLanguageRef.current.contains(
+          target
+        ) &&
+        mobileLanguageRef.current &&
+        !mobileLanguageRef.current.contains(
+          target
+        )
+      ) {
+        setLanguageOpen(false);
       }
     }
 
@@ -505,6 +669,90 @@ export default function MerchantNav() {
               ) : null}
             </div>
 
+            {/* Language switcher */}
+            <div
+              ref={desktopLanguageRef}
+              className="relative"
+            >
+              <button
+                type="button"
+                onClick={() => {
+                  setLanguageOpen(
+                    (open) => !open
+                  );
+                  setDesktopMoreOpen(false);
+                  setMobileMoreOpen(false);
+                }}
+                aria-expanded={
+                  languageOpen
+                }
+                aria-haspopup="menu"
+                aria-label="Change language"
+                title="Language"
+                className={
+                  headerIconClass
+                }
+              >
+                <Languages className="h-5 w-5" />
+              </button>
+
+              {languageOpen ? (
+                <div
+                  role="menu"
+                  className="absolute right-0 top-[calc(100%+10px)] w-44 overflow-hidden rounded-xl border border-slate-300 bg-slate-700 p-1.5 shadow-[0_18px_45px_rgba(15,23,42,0.28)]"
+                >
+                  {languageOptions.map(
+                    (option) => {
+                      const selected =
+                        currentLanguage ===
+                        option.code;
+
+                      return (
+                        <button
+                          key={
+                            option.code
+                          }
+                          type="button"
+                          role="menuitemradio"
+                          aria-checked={
+                            selected
+                          }
+                          onClick={() => {
+                            setCurrentLanguage(
+                              option.code
+                            );
+                            applyLanguage(
+                              option.code
+                            );
+                            setLanguageOpen(
+                              false
+                            );
+                          }}
+                          className={`flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-sm font-semibold transition ${
+                            selected
+                              ? "bg-white/10 text-white"
+                              : "text-white hover:bg-white/10"
+                          }`}
+                        >
+                          <span className="flex h-4 w-4 shrink-0 items-center justify-center">
+                            {selected ? (
+                              <Check className="h-4 w-4" />
+                            ) : null}
+                          </span>
+
+                          <span>
+                            {
+                              option.label
+                            }
+                          </span>
+                        </button>
+                      );
+                    }
+                  )}
+                </div>
+              ) : null}
+            </div>
+
             {/* Desktop customer support */}
             <button
               type="button"
@@ -551,6 +799,89 @@ export default function MerchantNav() {
 
           {/* Mobile top-right support and notifications */}
           <div className="ml-auto flex items-center gap-2 lg:hidden">
+            <div
+              ref={mobileLanguageRef}
+              className="relative"
+            >
+              <button
+                type="button"
+                onClick={() => {
+                  setLanguageOpen(
+                    (open) => !open
+                  );
+                  setDesktopMoreOpen(false);
+                  setMobileMoreOpen(false);
+                }}
+                aria-expanded={
+                  languageOpen
+                }
+                aria-haspopup="menu"
+                aria-label="Change language"
+                title="Language"
+                className={
+                  headerIconClass
+                }
+              >
+                <Languages className="h-5 w-5" />
+              </button>
+
+              {languageOpen ? (
+                <div
+                  role="menu"
+                  className="absolute right-0 top-[calc(100%+10px)] w-44 overflow-hidden rounded-xl border border-slate-300 bg-slate-700 p-1.5 shadow-[0_18px_45px_rgba(15,23,42,0.28)]"
+                >
+                  {languageOptions.map(
+                    (option) => {
+                      const selected =
+                        currentLanguage ===
+                        option.code;
+
+                      return (
+                        <button
+                          key={
+                            option.code
+                          }
+                          type="button"
+                          role="menuitemradio"
+                          aria-checked={
+                            selected
+                          }
+                          onClick={() => {
+                            setCurrentLanguage(
+                              option.code
+                            );
+                            applyLanguage(
+                              option.code
+                            );
+                            setLanguageOpen(
+                              false
+                            );
+                          }}
+                          className={`flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-sm font-semibold transition ${
+                            selected
+                              ? "bg-white/10 text-white"
+                              : "text-white hover:bg-white/10"
+                          }`}
+                        >
+                          <span className="flex h-4 w-4 shrink-0 items-center justify-center">
+                            {selected ? (
+                              <Check className="h-4 w-4" />
+                            ) : null}
+                          </span>
+
+                          <span>
+                            {
+                              option.label
+                            }
+                          </span>
+                        </button>
+                      );
+                    }
+                  )}
+                </div>
+              ) : null}
+            </div>
+
             <button
               type="button"
               onClick={

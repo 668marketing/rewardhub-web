@@ -2,6 +2,8 @@
 
 import { Suspense, useEffect, useState } from "react";
 import Header from "@/components/layout/Header";
+import LanguageSwitcher from "@/components/i18n/LanguageSwitcher";
+import { useLanguage } from "@/hooks/useLanguage";
 import { merchantRegister } from "@/lib/api";
 
 const subCategoryOptions: Record<string, string[]> = {
@@ -290,6 +292,107 @@ const areaOptions: Record<string, string[]> = {
   ],
 };
 function MerchantRegisterContent() {
+  const {
+    language,
+  } = useLanguage();
+
+  const pageText = {
+    en: {
+      merchantRegister: "Merchant Register",
+      subtitle: "Create your merchant account",
+      referredByMember: "Referred by Member",
+      referredByMerchant: "Referred by Merchant",
+      businessName: "Business Name",
+      ownerName: "Owner Name",
+      loginEmail: "Login Email",
+      mainCategory: "Main Category",
+      subCategory: "Sub Category",
+      selectCategory: "Select Category",
+      selectSubCategory: "Select Sub Category",
+      selectCategoryFirst: "Select Category First",
+      state: "State",
+      area: "Area",
+      selectState: "Select State",
+      selectArea: "Select Area",
+      selectStateFirst: "Select State First",
+      businessAddress: "Business Address",
+      addressPlaceholder: "Enter full business address",
+      password: "Password",
+      creatingAccount: "Creating Account...",
+      createAccount: "Create Merchant Account",
+      accountCreated: "Merchant Account Created",
+      status: "Status",
+      active: "Active",
+      goToLogin: "Go to Merchant Login",
+      registrationFailed: "Registration failed",
+      loading: "Loading RewardHub...",
+    },
+
+    zh: {
+      merchantRegister: "商家注册",
+      subtitle: "创建您的商家账户",
+      referredByMember: "会员推荐人",
+      referredByMerchant: "商家推荐人",
+      businessName: "商家名称",
+      ownerName: "负责人姓名",
+      loginEmail: "登录邮箱",
+      mainCategory: "主要分类",
+      subCategory: "子分类",
+      selectCategory: "选择分类",
+      selectSubCategory: "选择子分类",
+      selectCategoryFirst: "请先选择主要分类",
+      state: "州属",
+      area: "地区",
+      selectState: "选择州属",
+      selectArea: "选择地区",
+      selectStateFirst: "请先选择州属",
+      businessAddress: "商家地址",
+      addressPlaceholder: "请输入完整商家地址",
+      password: "密码",
+      creatingAccount: "正在创建账户...",
+      createAccount: "创建商家账户",
+      accountCreated: "商家账户已创建",
+      status: "状态",
+      active: "启用中",
+      goToLogin: "前往商家登录",
+      registrationFailed: "注册失败",
+      loading: "RewardHub 加载中...",
+    },
+
+    ms: {
+      merchantRegister: "Pendaftaran Peniaga",
+      subtitle: "Cipta akaun peniaga anda",
+      referredByMember: "Dirujuk oleh Ahli",
+      referredByMerchant: "Dirujuk oleh Peniaga",
+      businessName: "Nama Perniagaan",
+      ownerName: "Nama Pemilik",
+      loginEmail: "E-mel Log Masuk",
+      mainCategory: "Kategori Utama",
+      subCategory: "Subkategori",
+      selectCategory: "Pilih Kategori",
+      selectSubCategory: "Pilih Subkategori",
+      selectCategoryFirst: "Pilih Kategori Terlebih Dahulu",
+      state: "Negeri",
+      area: "Kawasan",
+      selectState: "Pilih Negeri",
+      selectArea: "Pilih Kawasan",
+      selectStateFirst: "Pilih Negeri Terlebih Dahulu",
+      businessAddress: "Alamat Perniagaan",
+      addressPlaceholder: "Masukkan alamat penuh perniagaan",
+      password: "Kata Laluan",
+      creatingAccount: "Sedang Mencipta Akaun...",
+      createAccount: "Cipta Akaun Peniaga",
+      accountCreated: "Akaun Peniaga Berjaya Dicipta",
+      status: "Status",
+      active: "Aktif",
+      goToLogin: "Pergi ke Log Masuk Peniaga",
+      registrationFailed: "Pendaftaran gagal",
+      loading: "RewardHub sedang dimuatkan...",
+    },
+  } as const;
+
+  const copy =
+    pageText[language];
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<any>(null);
   const [category, setCategory] = useState("");
@@ -356,14 +459,14 @@ referredByMerchant,
       const data = res?.data?.data || res?.data || res?.result || res;
 
       if (!data?.merchantId) {
-        alert(data?.message || "Registration failed");
+        alert(data?.message || copy.registrationFailed);
         return;
       }
 
       setResult(data);
         localStorage.removeItem("rewardhub_ref");
     } catch (err: any) {
-      alert(err?.message || "Registration failed");
+      alert(err?.message || copy.registrationFailed);
     } finally {
       setLoading(false);
     }
@@ -373,7 +476,10 @@ referredByMerchant,
     <>
       <Header />
 
-      <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,#fef3c7,transparent_35%),#f8fafc]">
+      <main className="relative min-h-screen bg-[radial-gradient(circle_at_top_left,#fef3c7,transparent_35%),#f8fafc]">
+        <div className="absolute right-4 top-4 z-40 sm:right-6 sm:top-6">
+          <LanguageSwitcher compact />
+        </div>
         <section className="mx-auto flex min-h-[calc(100vh-80px)] max-w-7xl items-center px-4 py-8 sm:px-6 sm:py-12">
           <div className="mx-auto w-full max-w-2xl rounded-[2rem] bg-white p-5 shadow-2xl sm:p-8">
             <div className="text-center">
@@ -384,21 +490,21 @@ referredByMerchant,
               />
 
               <h1 className="mt-5 text-3xl font-black text-slate-950 sm:mt-6 sm:text-4xl">
-                Merchant Register
+                {copy.merchantRegister}
               </h1>
 
               <p className="mt-2 text-sm font-semibold text-slate-500">
-                Create your merchant account
+                {copy.subtitle}
               </p>
               {referredByMember && (
   <p className="mt-3 text-xs font-bold text-emerald-700">
-    Referred by Member: {referredByMember}
+    {copy.referredByMember}: {referredByMember}
   </p>
 )}
 
 {referredByMerchant && (
   <p className="mt-3 text-xs font-bold text-amber-700">
-    Referred by Merchant: {referredByMerchant}
+    {copy.referredByMerchant}: {referredByMerchant}
   </p>
 )}
             </div>
@@ -409,14 +515,14 @@ referredByMerchant,
                   name="businessName"
                   required
                   className="w-full rounded-2xl border border-slate-200 px-5 py-4 font-semibold outline-none focus:border-slate-950"
-                  placeholder="Business Name"
+                  placeholder={copy.businessName}
                 />
 
                 <input
                   name="ownerName"
                   required
                   className="w-full rounded-2xl border border-slate-200 px-5 py-4 font-semibold outline-none focus:border-slate-950"
-                  placeholder="Owner Name"
+                  placeholder={copy.ownerName}
                 />
 
                 <input
@@ -424,7 +530,7 @@ referredByMerchant,
                   type="email"
                   required
                   className="w-full rounded-2xl border border-slate-200 px-5 py-4 font-semibold outline-none focus:border-slate-950"
-                  placeholder="Login Email"
+                  placeholder={copy.loginEmail}
                 />
 
                 <div className="flex overflow-hidden rounded-2xl border border-slate-200">
@@ -444,7 +550,7 @@ referredByMerchant,
                 <div className="grid grid-cols-2 gap-3 sm:gap-4">
   <div className="min-w-0">
     <label className="mb-2 block text-[10px] font-black uppercase tracking-[0.14em] text-slate-400 sm:text-xs">
-      Main Category
+      {copy.mainCategory}
     </label>
 
     <select
@@ -457,7 +563,7 @@ referredByMerchant,
       }}
       className="w-full min-w-0 rounded-xl border border-slate-200 bg-white px-3 py-3 text-xs font-semibold text-slate-900 outline-none transition focus:border-slate-950 focus:ring-2 focus:ring-slate-950/10 sm:rounded-2xl sm:px-4 sm:py-4 sm:text-sm"
     >
-      <option value="">Select Category</option>
+      <option value="">{copy.selectCategory}</option>
 
       <option value="Food & Beverage">Food & Beverage</option>
       <option value="Cafe">Cafe</option>
@@ -484,7 +590,7 @@ referredByMerchant,
 
   <div className="min-w-0">
     <label className="mb-2 block text-[10px] font-black uppercase tracking-[0.14em] text-slate-400 sm:text-xs">
-      Sub Category
+      {copy.subCategory}
     </label>
 
     <select
@@ -496,7 +602,7 @@ referredByMerchant,
       className="w-full min-w-0 rounded-xl border border-slate-200 bg-white px-3 py-3 text-xs font-semibold text-slate-900 outline-none transition focus:border-slate-950 focus:ring-2 focus:ring-slate-950/10 disabled:bg-slate-100 disabled:text-slate-400 sm:rounded-2xl sm:px-4 sm:py-4 sm:text-sm"
     >
       <option value="">
-        {category ? "Select Sub Category" : "Select Category First"}
+        {category ? copy.selectSubCategory : copy.selectCategoryFirst}
       </option>
 
       {(subCategoryOptions[category] || []).map((item) => (
@@ -511,7 +617,7 @@ referredByMerchant,
 <div className="grid grid-cols-2 gap-3 sm:gap-4">
   <div className="min-w-0">
     <label className="mb-2 block text-[10px] font-black uppercase tracking-[0.14em] text-slate-400 sm:text-xs">
-      State
+      {copy.state}
     </label>
 
     <select
@@ -524,7 +630,7 @@ referredByMerchant,
       }}
       className="w-full min-w-0 rounded-xl border border-slate-200 bg-white px-3 py-3 text-xs font-semibold text-slate-900 outline-none transition focus:border-slate-950 focus:ring-2 focus:ring-slate-950/10 sm:rounded-2xl sm:px-4 sm:py-4 sm:text-sm"
     >
-      <option value="">Select State</option>
+      <option value="">{copy.selectState}</option>
 
       <option value="Johor">Johor</option>
       <option value="Kedah">Kedah</option>
@@ -547,7 +653,7 @@ referredByMerchant,
 
   <div className="min-w-0">
     <label className="mb-2 block text-[10px] font-black uppercase tracking-[0.14em] text-slate-400 sm:text-xs">
-      Area
+      {copy.area}
     </label>
 
     <select
@@ -559,7 +665,7 @@ referredByMerchant,
       className="w-full min-w-0 rounded-xl border border-slate-200 bg-white px-3 py-3 text-xs font-semibold text-slate-900 outline-none transition focus:border-slate-950 focus:ring-2 focus:ring-slate-950/10 disabled:bg-slate-100 disabled:text-slate-400 sm:rounded-2xl sm:px-4 sm:py-4 sm:text-sm"
     >
       <option value="">
-        {state ? "Select Area" : "Select State First"}
+        {state ? copy.selectArea : copy.selectStateFirst}
       </option>
 
       {(areaOptions[state] || []).map((item) => (
@@ -573,7 +679,7 @@ referredByMerchant,
 
                 <div>
   <label className="mb-2 block text-[10px] font-black uppercase tracking-[0.14em] text-slate-400 sm:text-xs">
-    Business Address
+    {copy.businessAddress}
   </label>
 
   <textarea
@@ -581,7 +687,7 @@ referredByMerchant,
     required
     rows={3}
     className="w-full resize-none rounded-xl border border-slate-200 bg-white px-4 py-4 text-sm font-semibold text-slate-900 outline-none transition focus:border-slate-950 focus:ring-2 focus:ring-slate-950/10 sm:rounded-2xl sm:px-5"
-    placeholder="Enter full business address"
+    placeholder={copy.addressPlaceholder}
   />
 </div>
 
@@ -591,20 +697,20 @@ referredByMerchant,
                   required
                   minLength={6}
                   className="w-full rounded-2xl border border-slate-200 px-5 py-4 font-semibold outline-none focus:border-slate-950"
-                  placeholder="Password"
+                  placeholder={copy.password}
                 />
 
                 <button
                   disabled={loading}
                   className="w-full rounded-2xl bg-slate-950 py-4 text-sm font-black text-white disabled:opacity-50"
                 >
-                  {loading ? "Creating Account..." : "Create Merchant Account"}
+                  {loading ? copy.creatingAccount : copy.createAccount}
                 </button>
               </form>
             ) : (
               <div className="mt-8 rounded-3xl bg-emerald-50 p-6 text-center">
                 <p className="text-sm font-bold text-emerald-700">
-                  Merchant Account Created
+                  {copy.accountCreated}
                 </p>
 
                 <h2 className="mt-3 text-3xl font-black text-emerald-900">
@@ -612,14 +718,14 @@ referredByMerchant,
                 </h2>
 
                 <p className="mt-2 text-sm font-semibold text-emerald-700">
-                  Status: {result.status || "Active"}
+                  {copy.status}: {result.status || copy.active}
                 </p>
 
                 <a
                   href="/merchant/login"
                   className="mt-6 block rounded-2xl bg-slate-950 py-4 text-sm font-black text-white"
                 >
-                  Go to Merchant Login
+                  {copy.goToLogin}
                 </a>
               </div>
             )}
@@ -631,13 +737,23 @@ referredByMerchant,
 }
 
 function MerchantRegisterLoading() {
+  const {
+    language,
+  } = useLanguage();
+
+  const loadingText = {
+    en: "Loading RewardHub...",
+    zh: "RewardHub 加载中...",
+    ms: "RewardHub sedang dimuatkan...",
+  } as const;
+
   return (
     <main className="flex min-h-screen items-center justify-center bg-[#f8fafc]">
       <div className="text-center">
         <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-slate-950" />
 
         <p className="mt-4 text-sm font-semibold text-slate-500">
-          Loading RewardHub...
+          {loadingText[language]}
         </p>
       </div>
     </main>

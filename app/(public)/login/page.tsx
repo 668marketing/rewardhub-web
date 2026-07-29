@@ -11,6 +11,8 @@ import {
 } from "next/navigation";
 
 import Header from "@/components/layout/Header";
+import LanguageSwitcher from "@/components/i18n/LanguageSwitcher";
+import { useLanguage } from "@/hooks/useLanguage";
 import {
   memberLogin,
 } from "@/lib/api";
@@ -176,6 +178,84 @@ function LoginContent() {
   const router =
     useRouter();
 
+  const {
+    language,
+  } = useLanguage();
+
+  const pageText = {
+    en: {
+      welcomeBack: "Welcome Back",
+      subtitle: "Login to your RewardHub account",
+      referralId: "Referral ID",
+      unableToSignIn: "Unable to sign in",
+      dismissError: "Dismiss error",
+      loginId: "Email or Member ID",
+      password: "Password",
+      hide: "Hide",
+      show: "Show",
+      forgotPassword: "Forgot Password?",
+      loggingIn: "Logging in...",
+      login: "Login",
+      newToRewardHub: "New to RewardHub?",
+      register: "Register",
+      enterLoginId:
+        "Please enter your Email or Member ID.",
+      enterPassword:
+        "Please enter your password.",
+      memberInfoError:
+        "Unable to load member information. Please try again.",
+    },
+
+    zh: {
+      welcomeBack: "欢迎回来",
+      subtitle: "登录您的 RewardHub 账户",
+      referralId: "推荐编号",
+      unableToSignIn: "无法登录",
+      dismissError: "关闭错误提示",
+      loginId: "邮箱或会员编号",
+      password: "密码",
+      hide: "隐藏",
+      show: "显示",
+      forgotPassword: "忘记密码？",
+      loggingIn: "登录中...",
+      login: "登录",
+      newToRewardHub: "还没有 RewardHub 账户？",
+      register: "立即注册",
+      enterLoginId:
+        "请输入邮箱或会员编号。",
+      enterPassword:
+        "请输入密码。",
+      memberInfoError:
+        "无法读取会员资料，请再试一次。",
+    },
+
+    ms: {
+      welcomeBack: "Selamat Kembali",
+      subtitle: "Log masuk ke akaun RewardHub anda",
+      referralId: "ID Rujukan",
+      unableToSignIn: "Tidak dapat log masuk",
+      dismissError: "Tutup mesej ralat",
+      loginId: "E-mel atau ID Ahli",
+      password: "Kata Laluan",
+      hide: "Sembunyi",
+      show: "Tunjuk",
+      forgotPassword: "Lupa Kata Laluan?",
+      loggingIn: "Sedang log masuk...",
+      login: "Log Masuk",
+      newToRewardHub: "Belum mempunyai akaun RewardHub?",
+      register: "Daftar",
+      enterLoginId:
+        "Sila masukkan e-mel atau ID Ahli anda.",
+      enterPassword:
+        "Sila masukkan kata laluan anda.",
+      memberInfoError:
+        "Maklumat ahli tidak dapat dimuatkan. Sila cuba lagi.",
+    },
+  } as const;
+
+  const copy =
+    pageText[language];
+
   const [
     referralId,
     setReferralId,
@@ -259,7 +339,7 @@ function LoginContent() {
 
     if (!cleanLoginId) {
       setErrorMessage(
-        "Please enter your Email or Member ID."
+        copy.enterLoginId
       );
 
       return;
@@ -267,7 +347,7 @@ function LoginContent() {
 
     if (!password) {
       setErrorMessage(
-        "Please enter your password."
+        copy.enterPassword
       );
 
       return;
@@ -312,7 +392,7 @@ function LoginContent() {
 
       if (!memberId) {
         setErrorMessage(
-          "Unable to load member information. Please try again."
+          copy.memberInfoError
         );
 
         return;
@@ -343,7 +423,10 @@ function LoginContent() {
     <>
       <Header />
 
-      <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,#dbeafe,transparent_35%),#f8fafc]">
+      <main className="relative min-h-screen bg-[radial-gradient(circle_at_top_left,#dbeafe,transparent_35%),#f8fafc]">
+        <div className="absolute right-4 top-4 z-40 sm:right-6 sm:top-6">
+          <LanguageSwitcher compact />
+        </div>
         <section className="mx-auto flex min-h-[calc(100vh-80px)] max-w-7xl items-center px-4 py-8 sm:px-6 sm:py-12">
           <div className="mx-auto w-full max-w-md rounded-[1.75rem] bg-white p-5 shadow-2xl sm:rounded-[2rem] sm:p-8">
             <div className="text-center">
@@ -354,16 +437,16 @@ function LoginContent() {
               />
 
               <h1 className="mt-5 text-3xl font-black text-slate-950 sm:mt-6 sm:text-4xl">
-                Welcome Back
+                {copy.welcomeBack}
               </h1>
 
               <p className="mt-2 text-sm font-semibold text-slate-500">
-                Login to your RewardHub account
+                {copy.subtitle}
               </p>
 
               {referralId ? (
                 <div className="mt-4 rounded-2xl bg-emerald-50 px-4 py-3 text-xs font-black text-emerald-700">
-                  Referral ID:{" "}
+                  {copy.referralId}:{" "}
                   {referralId}
                 </div>
               ) : null}
@@ -394,7 +477,7 @@ function LoginContent() {
 
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-black text-red-700">
-                    Unable to sign in
+                    {copy.unableToSignIn}
                   </p>
 
                   <p className="mt-1 text-sm font-semibold leading-6 text-red-600">
@@ -408,7 +491,7 @@ function LoginContent() {
                     setErrorMessage("")
                   }
                   className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-xl font-medium leading-none text-red-400 transition hover:bg-red-100 hover:text-red-600"
-                  aria-label="Dismiss error"
+                  aria-label={copy.dismissError}
                 >
                   ×
                 </button>
@@ -452,7 +535,7 @@ function LoginContent() {
                   )
                 }
                 className="w-full rounded-xl border border-slate-200 px-4 py-4 text-sm font-semibold outline-none transition focus:border-slate-950 focus:ring-2 focus:ring-slate-950/10 sm:rounded-2xl sm:px-5"
-                placeholder="Email or Member ID"
+                placeholder={copy.loginId}
               />
 
               <div className="relative">
@@ -484,7 +567,7 @@ function LoginContent() {
                     )
                   }
                   className="w-full rounded-xl border border-slate-200 px-4 py-4 pr-20 text-sm font-semibold outline-none transition focus:border-slate-950 focus:ring-2 focus:ring-slate-950/10 sm:rounded-2xl sm:px-5 sm:pr-24"
-                  placeholder="Password"
+                  placeholder={copy.password}
                 />
 
                 <button
@@ -500,8 +583,8 @@ function LoginContent() {
                   className="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg px-3 py-2 text-[10px] font-black text-slate-500 sm:text-xs"
                 >
                   {showPassword
-                    ? "Hide"
-                    : "Show"}
+                    ? copy.hide
+                    : copy.show}
                 </button>
               </div>
 
@@ -510,7 +593,7 @@ function LoginContent() {
                   href="/forgot-password"
                   className="text-xs font-black text-slate-600 no-underline hover:text-slate-950"
                 >
-                  Forgot Password?
+                  {copy.forgotPassword}
                 </Link>
               </div>
 
@@ -522,20 +605,20 @@ function LoginContent() {
                 className="w-full rounded-xl bg-slate-950 py-4 text-sm font-black text-white shadow-xl transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50 sm:rounded-2xl"
               >
                 {loading
-                  ? "Logging in..."
-                  : "Login"}
+                  ? copy.loggingIn
+                  : copy.login}
               </button>
             </form>
 
             <p className="mt-6 text-center text-sm font-semibold text-slate-500">
-              New to RewardHub?{" "}
+              {copy.newToRewardHub}{" "}
               <Link
                 href={
                   registerHref
                 }
                 className="font-black text-slate-950 no-underline"
               >
-                Register
+                {copy.register}
               </Link>
             </p>
           </div>
@@ -551,13 +634,23 @@ function LoginContent() {
  */
 
 function LoginLoading() {
+  const {
+    language,
+  } = useLanguage();
+
+  const loadingText = {
+    en: "Loading RewardHub...",
+    zh: "RewardHub 加载中...",
+    ms: "RewardHub sedang dimuatkan...",
+  } as const;
+
   return (
     <main className="flex min-h-screen items-center justify-center bg-[#f8fafc]">
       <div className="text-center">
         <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-slate-950" />
 
         <p className="mt-4 text-sm font-semibold text-slate-500">
-          Loading RewardHub...
+          {loadingText[language]}
         </p>
       </div>
     </main>

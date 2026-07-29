@@ -8,9 +8,92 @@ import {
 import { useSearchParams } from "next/navigation";
 
 import Header from "@/components/layout/Header";
+import LanguageSwitcher from "@/components/i18n/LanguageSwitcher";
+import { useLanguage } from "@/hooks/useLanguage";
 import { memberRegister } from "@/lib/api";
 
 function RegisterContent() {
+  const {
+    language,
+  } = useLanguage();
+
+  const pageText = {
+    en: {
+      joinRewardHub: "Join RewardHub",
+      subtitle: "Create your member account",
+      referredBy: "Referred by",
+      fullName: "Full Name",
+      email: "Email",
+      dateOfBirth: "Date of Birth",
+      year: "Year",
+      month: "Month",
+      day: "Day",
+      selectGender: "Select Gender",
+      male: "Male",
+      female: "Female",
+      password: "Password",
+      creatingAccount: "Creating Account...",
+      createAccount: "Create Account",
+      accountCreated: "Account Created",
+      tier: "Tier",
+      silver: "Silver",
+      goToLogin: "Go to Login",
+      registrationFailed: "Registration failed",
+      loading: "Loading RewardHub...",
+    },
+
+    zh: {
+      joinRewardHub: "加入 RewardHub",
+      subtitle: "创建您的会员账户",
+      referredBy: "推荐人",
+      fullName: "姓名",
+      email: "邮箱",
+      dateOfBirth: "出生日期",
+      year: "年份",
+      month: "月份",
+      day: "日期",
+      selectGender: "选择性别",
+      male: "男",
+      female: "女",
+      password: "密码",
+      creatingAccount: "正在创建账户...",
+      createAccount: "创建账户",
+      accountCreated: "账户已创建",
+      tier: "会员等级",
+      silver: "银卡",
+      goToLogin: "前往登录",
+      registrationFailed: "注册失败",
+      loading: "RewardHub 加载中...",
+    },
+
+    ms: {
+      joinRewardHub: "Sertai RewardHub",
+      subtitle: "Cipta akaun ahli anda",
+      referredBy: "Dirujuk oleh",
+      fullName: "Nama Penuh",
+      email: "E-mel",
+      dateOfBirth: "Tarikh Lahir",
+      year: "Tahun",
+      month: "Bulan",
+      day: "Hari",
+      selectGender: "Pilih Jantina",
+      male: "Lelaki",
+      female: "Perempuan",
+      password: "Kata Laluan",
+      creatingAccount: "Sedang Mencipta Akaun...",
+      createAccount: "Cipta Akaun",
+      accountCreated: "Akaun Berjaya Dicipta",
+      tier: "Tahap",
+      silver: "Silver",
+      goToLogin: "Pergi ke Log Masuk",
+      registrationFailed: "Pendaftaran gagal",
+      loading: "RewardHub sedang dimuatkan...",
+    },
+  } as const;
+
+  const copy =
+    pageText[language];
+
   const searchParams = useSearchParams();
   const queryRef = searchParams.get("ref") || "";
 
@@ -85,7 +168,7 @@ function RegisterContent() {
         alert(
           data?.message ||
             data?.error ||
-            "Registration failed"
+            copy.registrationFailed
         );
         return;
       }
@@ -93,7 +176,7 @@ function RegisterContent() {
       if (!data?.memberId) {
         alert(
           data?.message ||
-            "Registration failed"
+            copy.registrationFailed
         );
         return;
       }
@@ -110,7 +193,7 @@ function RegisterContent() {
         err?.response?.data?.message ||
           err?.response?.data?.error ||
           err?.message ||
-          "Registration failed"
+          copy.registrationFailed
       );
     } finally {
       setLoading(false);
@@ -141,7 +224,10 @@ function RegisterContent() {
     <>
       <Header />
 
-      <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,#dbeafe,transparent_35%),#f8fafc]">
+      <main className="relative min-h-screen bg-[radial-gradient(circle_at_top_left,#dbeafe,transparent_35%),#f8fafc]">
+        <div className="absolute right-4 top-4 z-40 sm:right-6 sm:top-6">
+          <LanguageSwitcher compact />
+        </div>
         <section className="mx-auto flex min-h-[calc(100vh-80px)] max-w-7xl items-center px-6 py-12">
           <div className="mx-auto w-full max-w-md rounded-[2rem] bg-white p-8 shadow-2xl">
             <div className="text-center">
@@ -152,16 +238,16 @@ function RegisterContent() {
               />
 
               <h1 className="mt-6 text-4xl font-black text-slate-950">
-                Join RewardHub
+                {copy.joinRewardHub}
               </h1>
 
               <p className="mt-2 text-sm font-semibold text-slate-500">
-                Create your member account
+                {copy.subtitle}
               </p>
 
               {referredByMember && (
                 <p className="mt-3 text-xs font-bold text-emerald-700">
-                  Referred by:{" "}
+                  {copy.referredBy}:{" "}
                   {referredByMember}
                 </p>
               )}
@@ -176,7 +262,7 @@ function RegisterContent() {
                   name="fullName"
                   required
                   className="w-full rounded-2xl border border-slate-200 px-5 py-4 font-semibold outline-none focus:border-slate-950"
-                  placeholder="Full Name"
+                  placeholder={copy.fullName}
                 />
 
                 <input
@@ -184,7 +270,7 @@ function RegisterContent() {
                   type="email"
                   required
                   className="w-full rounded-2xl border border-slate-200 px-5 py-4 font-semibold outline-none focus:border-slate-950"
-                  placeholder="Email"
+                  placeholder={copy.email}
                 />
 
                 <div className="flex overflow-hidden rounded-2xl border border-slate-200">
@@ -203,7 +289,7 @@ function RegisterContent() {
 
                 <div>
                   <p className="mb-2 text-sm font-black text-slate-500">
-                    Date of Birth
+                    {copy.dateOfBirth}
                   </p>
 
                   <div className="grid grid-cols-3 gap-3">
@@ -213,7 +299,7 @@ function RegisterContent() {
                       className="rounded-2xl border border-slate-200 px-4 py-4 font-semibold outline-none focus:border-slate-950"
                     >
                       <option value="">
-                        Year
+                        {copy.year}
                       </option>
 
                       {years.map((year) => (
@@ -232,7 +318,7 @@ function RegisterContent() {
                       className="rounded-2xl border border-slate-200 px-4 py-4 font-semibold outline-none focus:border-slate-950"
                     >
                       <option value="">
-                        Month
+                        {copy.month}
                       </option>
 
                       {months.map((month) => (
@@ -251,7 +337,7 @@ function RegisterContent() {
                       className="rounded-2xl border border-slate-200 px-4 py-4 font-semibold outline-none focus:border-slate-950"
                     >
                       <option value="">
-                        Day
+                        {copy.day}
                       </option>
 
                       {days.map((day) => (
@@ -272,13 +358,13 @@ function RegisterContent() {
                   className="w-full rounded-2xl border border-slate-200 px-5 py-4 font-semibold outline-none focus:border-slate-950"
                 >
                   <option value="">
-                    Select Gender
+                    {copy.selectGender}
                   </option>
                   <option value="Male">
-                    Male
+                    {copy.male}
                   </option>
                   <option value="Female">
-                    Female
+                    {copy.female}
                   </option>
                 </select>
 
@@ -287,7 +373,7 @@ function RegisterContent() {
                   type="password"
                   required
                   className="w-full rounded-2xl border border-slate-200 px-5 py-4 font-semibold outline-none focus:border-slate-950"
-                  placeholder="Password"
+                  placeholder={copy.password}
                 />
 
                 <button
@@ -296,14 +382,14 @@ function RegisterContent() {
                   className="w-full rounded-2xl bg-slate-950 py-4 text-sm font-black text-white disabled:opacity-50"
                 >
                   {loading
-                    ? "Creating Account..."
-                    : "Create Account"}
+                    ? copy.creatingAccount
+                    : copy.createAccount}
                 </button>
               </form>
             ) : (
               <div className="mt-8 rounded-3xl bg-emerald-50 p-6 text-center">
                 <p className="text-sm font-bold text-emerald-700">
-                  Account Created
+                  {copy.accountCreated}
                 </p>
 
                 <h2 className="mt-3 text-3xl font-black text-emerald-900">
@@ -311,15 +397,15 @@ function RegisterContent() {
                 </h2>
 
                 <p className="mt-2 text-sm font-semibold text-emerald-700">
-                  Tier:{" "}
-                  {result.tier || "Silver"}
+                  {copy.tier}:{" "}
+                  {result.tier || copy.silver}
                 </p>
 
                 <a
                   href="/login"
                   className="mt-6 block rounded-2xl bg-slate-950 py-4 text-sm font-black text-white no-underline"
                 >
-                  Go to Login
+                  {copy.goToLogin}
                 </a>
               </div>
             )}
@@ -331,13 +417,23 @@ function RegisterContent() {
 }
 
 function RegisterLoading() {
+  const {
+    language,
+  } = useLanguage();
+
+  const loadingText = {
+    en: "Loading RewardHub...",
+    zh: "RewardHub 加载中...",
+    ms: "RewardHub sedang dimuatkan...",
+  } as const;
+
   return (
     <main className="flex min-h-screen items-center justify-center bg-[#f8fafc]">
       <div className="text-center">
         <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-slate-950" />
 
         <p className="mt-4 text-sm font-semibold text-slate-500">
-          Loading RewardHub...
+          {loadingText[language]}
         </p>
       </div>
     </main>

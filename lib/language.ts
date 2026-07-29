@@ -10,8 +10,11 @@ export type Language =
 export const DEFAULT_LANGUAGE: Language =
   "en";
 
+/*
+ * All RewardHub pages must use exactly the same key.
+ */
 export const LANGUAGE_STORAGE_KEY =
-  "rewardhub_language";
+  "rewardhub-language";
 
 export const LANGUAGE_NAMES: Record<
   Language,
@@ -25,7 +28,10 @@ export const LANGUAGE_NAMES: Record<
 export function isLanguage(
   value: unknown
 ): value is Language {
-  return LANGUAGES.includes(
-    value as Language
+  return (
+    typeof value === "string" &&
+    LANGUAGES.includes(
+      value as Language
+    )
   );
 }

@@ -144,6 +144,7 @@ const en = {
     unlockGoldDescription: "Spend more to unlock Gold lifetime tier.",
     spendMoreGold: "Spend RM{{amount}} more to unlock Gold.",
   },
+
   memberPay: {
   fallbackMember: "RewardHub Member",
   backToDashboard: "Back to Dashboard",
@@ -875,5 +876,521 @@ memberRewardRedemptionDetail: {
   },
 },
 
+merchantCollect: {
+  collectPayment: "Collect Payment",
+
+  identifyMember: "1. Identify Member",
+  identifyMemberDescription:
+    "Scan member QR or tap member card.",
+
+  scanMemberQr: "Scan Member QR",
+  tapMemberCard: "Tap Member Card",
+
+  cardStatus: "Card Status",
+  tapMemberCardToStart:
+    "Tap Member Card to start",
+  clickCardBox:
+    "Click Card ID box, then let customer tap card",
+  qrScanned:
+    "QR scanned. Searching member...",
+  searchingMember:
+    "Searching member...",
+  memberFound: "Member Found",
+  cardNotFound: "Card ID not found",
+
+  memberId: "Member ID",
+  memberTier: "Member Tier",
+
+  enterAmount: "2. Enter Amount",
+
+  cashback: "Cashback",
+  points: "Points",
+  customerPays: "Customer Pays",
+
+  rewardCredits: "3. Reward Credits",
+
+  rewardCreditsDescription:
+    "Reward Credits are redemption credits. Payment method remains separate.",
+
+  doNotUseCredits:
+    "Do Not Use Credits",
+
+  useRewardCredits:
+    "Use Reward Credits",
+
+  creditBalance:
+    "Credit Balance",
+
+  merchantLimit:
+    "Merchant Limit",
+
+  maxRedeem:
+    "Max Redeem",
+
+  creditsUsed:
+    "Credits Used",
+
+  selectPaymentMethod:
+    "4. Select Payment Method",
+
+  cash: "Cash",
+  duitNow: "DuitNow",
+  tng: "TNG eWallet",
+  bank: "Bank Transfer",
+  card: "Credit / Debit Card",
+
+  paymentSummary:
+    "Payment Summary",
+
+  originalAmount:
+    "Original Amount",
+
+  rewardCreditsUsed:
+    "Reward Credits",
+
+  paymentMethod:
+    "Payment Method",
+
+  recording:
+    "Recording...",
+
+  paymentReceived:
+    "Payment Received",
+
+  paymentRecorded:
+    "Payment Recorded",
+
+  receipt:
+    "Receipt",
+
+  noReceipt:
+    "No receipt uploaded",
+
+  uploadReceipt:
+    "Upload Receipt",
+
+  uploading:
+    "Uploading...",
+
+  viewReceipt:
+    "View Receipt",
+
+  collectAnotherPayment:
+    "Collect Another Payment",
+
+  backToDashboard:
+    "Back to Dashboard",
+},
+
+supportModal: {
+  aria: {
+    supportCenter: "RewardHub Support Center",
+    closeSupport: "Close support",
+    backHome: "Back to support home",
+  },
+
+  customerSupport: "Customer Support",
+  liveSupport: "Live Support",
+  helpFaq: "Help & FAQ",
+  online: "Online",
+  supportTeam: "RewardHub Support Team",
+  close: "Close",
+
+  rewardHubSupport: "RewardHub Support",
+  hi: "Hi",
+  greetingGuest: "there",
+  howCanWeHelp: "How can we help you today?",
+
+  memberLabel: "{{tier}} Member",
+  rewardHubMerchant: "RewardHub Merchant",
+  rewardHubVisitor: "RewardHub Visitor",
+  generalSupport: "General Support",
+
+  tiers: {
+    silver: "Silver",
+    gold: "Gold",
+    platinum: "Platinum",
+  },
+
+  startLiveChat: "Start Live Chat",
+  chatDescription:
+    "Chat directly with the RewardHub support team for account, payment or platform assistance.",
+
+  faqDescription:
+    "Browse answers about accounts, payments, rewards, referrals, settlements and platform features.",
+
+  fastSupport: "Faster Account Support",
+  accountConnectedDescription:
+    "Your RewardHub account details are connected automatically so our support team can assist you more efficiently.",
+
+  frequentlyAskedQuestions: "Frequently Asked Questions",
+  faqIntro:
+    "Select a question below to view the answer. The topics shown are matched to your current account type.",
+  supportTopics: "{{count}} support topics",
+  stillNeedHelp: "Still Need Help? Start Live Chat",
+
+  connecting: "Connecting to RewardHub Support...",
+  securingSession: "Preparing a secure support session.",
+  supportUnavailable: "Support is temporarily unavailable",
+  loadError:
+    "Unable to load live support. Please check your internet connection and try again.",
+  tryAgain: "Try Again",
+
+  footerConnected:
+    "Your RewardHub account is securely connected to support.",
+
+  faq: {
+    member: {
+      item01: {
+        category: "Account",
+        question: "How do I log in to my RewardHub member account?",
+        answer:
+          "Open the Member Login page and enter the email address and password registered with RewardHub. If you cannot remember your password, use Forgot Password to verify your account and create a new password.",
+      },
+      item02: {
+        category: "Account",
+        question: "What should I do if I forget my password?",
+        answer:
+          "Select Forgot Password on the Member Login page. Complete the verification steps using your registered phone number or email, then set a new password.",
+      },
+      item03: {
+        category: "Account",
+        question: "How do I update my personal information?",
+        answer:
+          "Open Member Profile to review your name, gender, email and phone number. Use the available edit option where supported. Contact RewardHub Support if a protected field cannot be changed directly.",
+      },
+      item04: {
+        category: "Membership",
+        question: "How do RewardHub membership tiers work?",
+        answer:
+          "Every member starts at Silver. Your lifetime eligible spending can upgrade you to Gold and then Platinum. Lifetime tiers do not downgrade after they are unlocked.",
+      },
+      item05: {
+        category: "Membership",
+        question: "What are the Silver, Gold and Platinum requirements?",
+        answer:
+          "Silver is the default tier. Gold is unlocked after RM5,000 in lifetime eligible spending, and Platinum is unlocked after RM15,000.",
+      },
+      item06: {
+        category: "Cashback",
+        question: "How is my cashback calculated?",
+        answer:
+          "Cashback is calculated from the merchant's active Marketing Budget and your membership tier. Silver receives 10% of that budget, Gold receives 20%, and Platinum receives 30%. The cashback is applied as an instant discount during payment.",
+      },
+      item07: {
+        category: "Payments",
+        question: "How do I pay at a RewardHub merchant?",
+        answer:
+          "Open RewardHub Pay and show your member QR code or physical card to the merchant. The merchant scans or taps it, enters the purchase amount and confirms the payment method.",
+      },
+      item08: {
+        category: "Payments",
+        question: "Does RewardHub collect my payment money?",
+        answer:
+          "No. In the current version, you pay the merchant directly using the selected payment method. RewardHub records the transaction, cashback, points and eligible Reward Credits usage.",
+      },
+      item09: {
+        category: "Reward Credits",
+        question: "What are Reward Credits?",
+        answer:
+          "Reward Credits are spendable credits released from eligible referral rewards. They are separate from cashback and points, and can be used to offset payments at merchants that accept them.",
+      },
+      item10: {
+        category: "Reward Credits",
+        question: "Why can I not use all of my Reward Credits?",
+        answer:
+          "The merchant must accept Reward Credits and may set a maximum redemption percentage. The amount used also cannot exceed your available balance or the eligible amount for that transaction.",
+      },
+      item11: {
+        category: "Points",
+        question: "How do I earn RewardHub points?",
+        answer:
+          "Eligible spending earns points according to RewardHub's current earn rate. The standard rate is 1 point for every RM1 of eligible spending.",
+      },
+      item12: {
+        category: "Points",
+        question: "What can I use points for?",
+        answer:
+          "Points are used to redeem official RewardHub rewards in the Points & Rewards section. Points cannot be used as cash and are separate from Reward Credits.",
+      },
+      item13: {
+        category: "Rewards",
+        question: "How do I redeem a reward?",
+        answer:
+          "Open Points & Rewards, choose an available reward, review the required points, stock and delivery details, then confirm the redemption.",
+      },
+      item14: {
+        category: "Rewards",
+        question: "Where can I view my redeemed rewards?",
+        answer:
+          "Open the redemption record from the Points & Rewards section. You can view the reward status, voucher code, delivery information and tracking details when available.",
+      },
+      item15: {
+        category: "Referrals",
+        question: "How do I invite new members?",
+        answer:
+          "Open Referral Center and share your member referral link or referral QR code. The new member must register through your referral information for the relationship to be recorded.",
+      },
+      item16: {
+        category: "Referrals",
+        question: "How do three-level member referral rewards work?",
+        answer:
+          "Eligible merchant activity from your referral network may generate released Reward Credits across Level 1, Level 2 and Level 3 according to RewardHub's active referral rules.",
+      },
+      item17: {
+        category: "Referrals",
+        question: "Can I refer a merchant?",
+        answer:
+          "Members may share the merchant referral link where the feature is available. Eligible transactions from a successfully referred merchant may generate the applicable permanent merchant referral reward.",
+      },
+      item18: {
+        category: "Marketplace",
+        question: "How do I find participating merchants?",
+        answer:
+          "Open Marketplace and search by merchant name, category, state or area. Merchant pages show available rewards, Reward Credits acceptance, opening information, products and member reviews.",
+      },
+      item19: {
+        category: "Favourites",
+        question: "How do I save a merchant to Favourites?",
+        answer:
+          "Tap the favourite icon on a merchant card or merchant detail page. Saved merchants appear in My Favourite Stores for quicker access.",
+      },
+      item20: {
+        category: "Reviews",
+        question: "How do I leave a merchant review?",
+        answer:
+          "After an eligible completed transaction, open Transaction History and select Leave Review. Choose a rating and add an optional comment before submitting.",
+      },
+      item21: {
+        category: "Transactions",
+        question: "Where can I check my payment history?",
+        answer:
+          "Open Transaction History to view the merchant, original amount, cashback, Reward Credits used, final amount paid, points earned and transaction status.",
+      },
+      item22: {
+        category: "Physical Card",
+        question: "How do I apply for a RewardHub physical card?",
+        answer:
+          "Open Physical Card in the Member Portal, complete the recipient and delivery information, then submit the application. The first physical card is free under the current policy.",
+      },
+      item23: {
+        category: "Physical Card",
+        question: "What happens if my physical card is lost or damaged?",
+        answer:
+          "Submit a replacement application from the Physical Card page. The old card will be frozen and the current replacement fee is RM8.",
+      },
+      item24: {
+        category: "Security",
+        question: "What should I do if I notice an unknown transaction?",
+        answer:
+          "Check the transaction details first, then contact RewardHub Support immediately with the transaction ID, date and amount. You should also secure your account by changing your password.",
+      },
+    },
+
+    merchant: {
+      item01: {
+        category: "Account",
+        question: "How do I log in to the Merchant Portal?",
+        answer:
+          "Open Merchant Login and enter the email address and password registered for your merchant account. Use Forgot Password if you need to reset access.",
+      },
+      item02: {
+        category: "Account",
+        question: "How do I update my merchant profile?",
+        answer:
+          "Open Merchant Profile to update supported business details such as your description, contact information, logo, banner, gallery and other public information.",
+      },
+      item03: {
+        category: "Account",
+        question: "How do I change my merchant password?",
+        answer:
+          "Open Merchant Profile, go to Security and select Change Password. Enter your current password and the new password, then save the update.",
+      },
+      item04: {
+        category: "Payments",
+        question: "How do I collect a payment from a member?",
+        answer:
+          "Open Collect Payment, scan the member QR code or tap the member card, enter the purchase amount, review cashback and Reward Credits, select the payment method and record the payment.",
+      },
+      item05: {
+        category: "Payments",
+        question: "Who receives the customer's payment?",
+        answer:
+          "The customer pays your business directly. RewardHub does not hold the customer's payment money in the current version.",
+      },
+      item06: {
+        category: "Payments",
+        question: "Which payment methods can I record?",
+        answer:
+          "You can record supported methods such as Cash, DuitNow, TNG eWallet, Bank Transfer and Credit or Debit Card.",
+      },
+      item07: {
+        category: "Member Identification",
+        question: "What should I do if the member QR cannot be scanned?",
+        answer:
+          "Make sure camera permission is enabled and the QR code is clear. You may switch cameras, upload a QR image or use the member's physical card where supported.",
+      },
+      item08: {
+        category: "Transactions",
+        question: "Where can I view merchant transactions?",
+        answer:
+          "Open Merchant Transactions to search and filter recorded payments. Each record includes the original amount, cashback, Reward Credits, customer payment, points and receipt.",
+      },
+      item09: {
+        category: "Receipts",
+        question: "How do I upload a transaction receipt?",
+        answer:
+          "Open the transaction detail and select Upload under Receipt. Choose an image file and wait for the upload confirmation.",
+      },
+      item10: {
+        category: "Marketing Budget",
+        question: "What is the Marketing Budget?",
+        answer:
+          "The Marketing Budget is the percentage of eligible RewardHub member sales allocated for member cashback, referral rewards and RewardHub platform operations.",
+      },
+      item11: {
+        category: "Marketing Budget",
+        question: "What is the minimum Marketing Budget?",
+        answer:
+          "The minimum standard Marketing Budget is 5%. A merchant may choose a higher percentage based on its campaign and growth strategy.",
+      },
+      item12: {
+        category: "Marketing Budget",
+        question: "Can I change my Marketing Budget?",
+        answer:
+          "Yes. Open the Marketing section to review and update your standard Marketing Budget according to the available rules.",
+      },
+      item13: {
+        category: "Campaigns",
+        question: "What is a temporary budget boost?",
+        answer:
+          "A budget boost temporarily increases your Marketing Budget for a selected date range, allowing members to receive stronger benefits during a promotion.",
+      },
+      item14: {
+        category: "Cashback",
+        question: "How is member cashback calculated?",
+        answer:
+          "Cashback depends on your active Marketing Budget and the member's lifetime tier. Silver receives 10% of the budget, Gold 20%, and Platinum 30%.",
+      },
+      item15: {
+        category: "Reward Credits",
+        question: "Can I choose whether to accept Reward Credits?",
+        answer:
+          "Yes. In your Marketing settings, you can enable or disable Reward Credits acceptance and set the permitted redemption percentage where supported.",
+      },
+      item16: {
+        category: "Reward Credits",
+        question: "Do Reward Credits change the customer's payment method?",
+        answer:
+          "No. Reward Credits only reduce the eligible amount the customer needs to pay. You must still record the actual payment method separately.",
+      },
+      item17: {
+        category: "Settlements",
+        question: "What is a merchant settlement?",
+        answer:
+          "A settlement records the amount your business must pay to RewardHub from the applicable Marketing Budget after deducting cashback already given directly to members.",
+      },
+      item18: {
+        category: "Settlements",
+        question: "When can I request or pay a settlement?",
+        answer:
+          "The current Merchant Portal allows settlement actions from the 1st to the 10th of the applicable month.",
+      },
+      item19: {
+        category: "Settlements",
+        question: "How do I upload a settlement payment receipt?",
+        answer:
+          "Open Settlement Center, select Pay or Upload Receipt for the pending settlement, transfer the displayed amount and upload the receipt image with an optional payment note.",
+      },
+      item20: {
+        category: "Products",
+        question: "How do I add products, services or vouchers?",
+        answer:
+          "Open Merchant Products and create a listing with its name, category, description, price, image and availability information.",
+      },
+      item21: {
+        category: "Gallery",
+        question: "How do I upload merchant gallery photos?",
+        answer:
+          "Open the gallery section in your Merchant Profile or Products area, choose supported images and upload them. You can update or remove existing gallery items where available.",
+      },
+      item22: {
+        category: "Reviews",
+        question: "How do I reply to a member review?",
+        answer:
+          "Open Merchant Reviews, select the review and submit your merchant reply. Keep responses professional and relevant to the member's experience.",
+      },
+      item23: {
+        category: "Marketplace",
+        question: "How does my business appear in Marketplace?",
+        answer:
+          "Your public merchant profile may display your business information, logo, banner, gallery, products, rewards, Reward Credits settings, location, opening hours and reviews.",
+      },
+      item24: {
+        category: "Notifications",
+        question: "Where can I view important merchant updates?",
+        answer:
+          "Open Merchant Notifications to view unread and read messages about settlements, campaigns, account activity and system updates.",
+      },
+      item25: {
+        category: "Support",
+        question: "What information should I provide when contacting support?",
+        answer:
+          "Provide your Merchant ID and any relevant transaction ID, settlement ID, screenshot, date, amount or error message. This helps the support team investigate more quickly.",
+      },
+    },
+
+    guest: {
+      item01: {
+        category: "About RewardHub",
+        question: "What is RewardHub?",
+        answer:
+          "RewardHub is a merchant membership network that connects members with participating merchants, member benefits, rewards, points and referral features.",
+      },
+      item02: {
+        category: "Membership",
+        question: "Is it free to join RewardHub as a member?",
+        answer:
+          "Yes. Member registration is free under the current RewardHub model.",
+      },
+      item03: {
+        category: "Merchants",
+        question: "Is it free to register as a RewardHub merchant?",
+        answer:
+          "Merchant registration is free. Participating merchants contribute through their Marketing Budget only when eligible RewardHub member sales are recorded.",
+      },
+      item04: {
+        category: "Registration",
+        question: "How do I register as a member?",
+        answer:
+          "Open the Member Registration page, complete the required personal details and submit the form. Use a valid referral link if someone introduced you.",
+      },
+      item05: {
+        category: "Registration",
+        question: "How do I register my business as a merchant?",
+        answer:
+          "Open Merchant Registration and provide the requested business, owner and contact information. RewardHub may review the application before activation.",
+      },
+      item06: {
+        category: "Marketplace",
+        question: "Can I browse RewardHub merchants without logging in?",
+        answer:
+          "Public Marketplace access may be available for browsing merchant profiles and offers. Member-only actions require a member account.",
+      },
+      item07: {
+        category: "Payments",
+        question: "Does RewardHub process or hold customer payments?",
+        answer:
+          "No. In the current version, customers pay merchants directly. RewardHub records eligible transaction and reward information.",
+      },
+      item08: {
+        category: "Support",
+        question: "How do I contact RewardHub Support?",
+        answer:
+          "Open this Support Center and select Start Live Chat. You can also review the FAQ topics before starting a conversation.",
+      },
+    },
+  },
+},
 };
 export default en;

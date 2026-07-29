@@ -16,6 +16,8 @@ import {
   UserRound,
   X,
 } from "lucide-react";
+import { useLanguage } from "@/hooks/useLanguage";
+
 import {
   useCallback,
   useEffect,
@@ -812,418 +814,321 @@ type FaqItem = {
   answer: string;
 };
 
+type FaqTranslationItem = {
+  categoryKey: string;
+  questionKey: string;
+  answerKey: string;
+};
+
 /* ============================================================
  * Support Center Content
  * ============================================================
  */
 
-const MEMBER_FAQS: FaqItem[] = [
+const MEMBER_FAQ_KEYS: FaqTranslationItem[] = [
   {
-    category: "Account",
-    question:
-      "How do I log in to my Member Portal?",
-    answer:
-      "Use the email address or Member ID registered to your RewardHub account together with your password. If you cannot remember the password, select Forgot Password from the login page.",
+    categoryKey: "supportModal.faq.member.item01.category",
+    questionKey: "supportModal.faq.member.item01.question",
+    answerKey: "supportModal.faq.member.item01.answer",
   },
   {
-    category: "Account",
-    question:
-      "What should I do if I forgot my password?",
-    answer:
-      "Select Forgot Password on the Member Login page, request the verification code and follow the instructions to create a new password. Never share the verification code with another person.",
+    categoryKey: "supportModal.faq.member.item02.category",
+    questionKey: "supportModal.faq.member.item02.question",
+    answerKey: "supportModal.faq.member.item02.answer",
   },
   {
-    category: "Account",
-    question:
-      "How do I update my name, phone number or profile information?",
-    answer:
-      "Open Profile inside the Member Portal and update the fields currently available for editing. For information that cannot be changed directly, start a live chat so the support team can verify the request.",
+    categoryKey: "supportModal.faq.member.item03.category",
+    questionKey: "supportModal.faq.member.item03.question",
+    answerKey: "supportModal.faq.member.item03.answer",
   },
   {
-    category: "Account",
-    question:
-      "Why is my member account inactive or suspended?",
-    answer:
-      "An account may be restricted when verification is incomplete, unusual activity is detected or RewardHub account rules are breached. Start a live chat from the affected account for a status review.",
+    categoryKey: "supportModal.faq.member.item04.category",
+    questionKey: "supportModal.faq.member.item04.question",
+    answerKey: "supportModal.faq.member.item04.answer",
   },
   {
-    category: "Membership Tier",
-    question:
-      "What are Silver, Gold and Platinum tiers?",
-    answer:
-      "Silver is the default membership tier. Gold is unlocked when eligible accumulated spending reaches RM5,000, and Platinum is unlocked at RM15,000. These are lifetime tiers and do not downgrade after being achieved.",
+    categoryKey: "supportModal.faq.member.item05.category",
+    questionKey: "supportModal.faq.member.item05.question",
+    answerKey: "supportModal.faq.member.item05.answer",
   },
   {
-    category: "Membership Tier",
-    question:
-      "Why has my membership tier not upgraded yet?",
-    answer:
-      "Only completed and eligible RewardHub transactions count toward accumulated spending. Check that the latest transaction is completed and refresh the dashboard. Contact support if the total is correct but the tier has not updated.",
+    categoryKey: "supportModal.faq.member.item06.category",
+    questionKey: "supportModal.faq.member.item06.question",
+    answerKey: "supportModal.faq.member.item06.answer",
   },
   {
-    category: "Rewards",
-    question:
-      "What are Reward Credits?",
-    answer:
-      "Reward Credits are the available referral commission balance credited to your RewardHub account. They are not the same as cashback and are not a cash wallet.",
+    categoryKey: "supportModal.faq.member.item07.category",
+    questionKey: "supportModal.faq.member.item07.question",
+    answerKey: "supportModal.faq.member.item07.answer",
   },
   {
-    category: "Rewards",
-    question:
-      "How can I use Reward Credits?",
-    answer:
-      "When a participating merchant allows Reward Credit redemption, enter the amount during the RewardHub payment flow. The amount cannot exceed your available balance or the redemption limit set for that transaction.",
+    categoryKey: "supportModal.faq.member.item08.category",
+    questionKey: "supportModal.faq.member.item08.question",
+    answerKey: "supportModal.faq.member.item08.answer",
   },
   {
-    category: "Rewards",
-    question:
-      "Why can I not use all of my Reward Credits?",
-    answer:
-      "The redeemable amount may be limited by your available balance, the transaction value, the merchant setting or the maximum allowed for that payment. The payment screen will show the valid amount.",
+    categoryKey: "supportModal.faq.member.item09.category",
+    questionKey: "supportModal.faq.member.item09.question",
+    answerKey: "supportModal.faq.member.item09.answer",
   },
   {
-    category: "Points",
-    question:
-      "How are RewardHub points calculated?",
-    answer:
-      "Eligible spending earns 1 point for every RM1 recorded through the RewardHub transaction flow. Cancelled, failed or ineligible transactions do not earn points.",
+    categoryKey: "supportModal.faq.member.item10.category",
+    questionKey: "supportModal.faq.member.item10.question",
+    answerKey: "supportModal.faq.member.item10.answer",
   },
   {
-    category: "Points",
-    question:
-      "Where can I see my points history?",
-    answer:
-      "Open Points in the Member Portal to view your current points, total earned, total redeemed and recent point activity.",
+    categoryKey: "supportModal.faq.member.item11.category",
+    questionKey: "supportModal.faq.member.item11.question",
+    answerKey: "supportModal.faq.member.item11.answer",
   },
   {
-    category: "Cashback",
-    question:
-      "How does member cashback work?",
-    answer:
-      "Cashback is applied as an instant discount during an eligible merchant payment. It is not stored as a separate wallet balance. The rate depends on your membership tier and the merchant's active marketing settings.",
+    categoryKey: "supportModal.faq.member.item12.category",
+    questionKey: "supportModal.faq.member.item12.question",
+    answerKey: "supportModal.faq.member.item12.answer",
   },
   {
-    category: "Cashback",
-    question:
-      "What cashback rate does each tier receive?",
-    answer:
-      "The standard RewardHub rates are Silver 1.5%, Gold 2% and Platinum 3%, subject to the participating merchant's eligible RewardHub payment and active marketing configuration.",
+    categoryKey: "supportModal.faq.member.item13.category",
+    questionKey: "supportModal.faq.member.item13.question",
+    answerKey: "supportModal.faq.member.item13.answer",
   },
   {
-    category: "Payment",
-    question:
-      "How do I pay at a RewardHub merchant?",
-    answer:
-      "Show your member QR code or member card to the merchant. The merchant enters the payment amount, applies any eligible Reward Credits and completes the transaction after receiving payment through the merchant's accepted payment method.",
+    categoryKey: "supportModal.faq.member.item14.category",
+    questionKey: "supportModal.faq.member.item14.question",
+    answerKey: "supportModal.faq.member.item14.answer",
   },
   {
-    category: "Payment",
-    question:
-      "Does RewardHub hold or process my payment money?",
-    answer:
-      "In the current RewardHub version, payment is made directly to the merchant. RewardHub records the eligible transaction, discount, points and referral rewards but does not hold the customer's payment funds.",
+    categoryKey: "supportModal.faq.member.item15.category",
+    questionKey: "supportModal.faq.member.item15.question",
+    answerKey: "supportModal.faq.member.item15.answer",
   },
   {
-    category: "Transactions",
-    question:
-      "Why is my transaction not showing?",
-    answer:
-      "Confirm that the merchant completed the RewardHub collection flow and that the transaction was not left pending. Refresh the Transactions page. If it is still missing, provide the merchant name, amount and approximate time through live chat.",
+    categoryKey: "supportModal.faq.member.item16.category",
+    questionKey: "supportModal.faq.member.item16.question",
+    answerKey: "supportModal.faq.member.item16.answer",
   },
   {
-    category: "Transactions",
-    question:
-      "Why is the transaction amount different from what I paid?",
-    answer:
-      "The RewardHub record may show the original amount, Reward Credit redemption, cashback discount and final payable amount separately. Open the transaction details and compare each field before contacting support.",
+    categoryKey: "supportModal.faq.member.item17.category",
+    questionKey: "supportModal.faq.member.item17.question",
+    answerKey: "supportModal.faq.member.item17.answer",
   },
   {
-    category: "Referrals",
-    question:
-      "How do I invite another member?",
-    answer:
-      "Open the Referral or Commission section in the Member Portal, copy your personal invitation link and share it with the new member. The referral must be recorded during registration to connect correctly.",
+    categoryKey: "supportModal.faq.member.item18.category",
+    questionKey: "supportModal.faq.member.item18.question",
+    answerKey: "supportModal.faq.member.item18.answer",
   },
   {
-    category: "Referrals",
-    question:
-      "How are referral commissions calculated?",
-    answer:
-      "Eligible merchant marketing allocation may generate three referral levels: Level 1 at 10%, Level 2 at 8% and Level 3 at 6% of the allocated referral portion. The actual credited amount depends on the eligible transaction calculation.",
+    categoryKey: "supportModal.faq.member.item19.category",
+    questionKey: "supportModal.faq.member.item19.question",
+    answerKey: "supportModal.faq.member.item19.answer",
   },
   {
-    category: "Referrals",
-    question:
-      "Why did I not receive a referral commission?",
-    answer:
-      "The referred account must be correctly linked, the merchant transaction must be eligible and completed, and the referral chain must exist at the time of processing. Check Referral History and contact support with the transaction reference if needed.",
+    categoryKey: "supportModal.faq.member.item20.category",
+    questionKey: "supportModal.faq.member.item20.question",
+    answerKey: "supportModal.faq.member.item20.answer",
   },
   {
-    category: "Merchant Discovery",
-    question:
-      "How do I find participating merchants?",
-    answer:
-      "Use Marketplace to browse participating merchants, search by keyword or category, view merchant details and save favourite merchants for easier access.",
+    categoryKey: "supportModal.faq.member.item21.category",
+    questionKey: "supportModal.faq.member.item21.question",
+    answerKey: "supportModal.faq.member.item21.answer",
   },
   {
-    category: "Merchant Discovery",
-    question:
-      "How do favourites and merchant reviews work?",
-    answer:
-      "You can save participating merchants to your favourites list. Where reviews are enabled, eligible members can view merchant ratings and review information from the merchant detail page.",
+    categoryKey: "supportModal.faq.member.item22.category",
+    questionKey: "supportModal.faq.member.item22.question",
+    answerKey: "supportModal.faq.member.item22.answer",
   },
   {
-    category: "Member Card",
-    question:
-      "How do I apply for or replace a RewardHub member card?",
-    answer:
-      "Open the Member Card section and follow the application or replacement steps shown for your account. Application status and any required receipt upload are displayed in the same area.",
+    categoryKey: "supportModal.faq.member.item23.category",
+    questionKey: "supportModal.faq.member.item23.question",
+    answerKey: "supportModal.faq.member.item23.answer",
   },
   {
-    category: "Security",
-    question:
-      "How is my support identity recognized automatically?",
-    answer:
-      "When you open Live Chat while logged in, RewardHub securely sends your verified account type and account ID to the support system so the team can identify the correct account without asking you to type the details again.",
+    categoryKey: "supportModal.faq.member.item24.category",
+    questionKey: "supportModal.faq.member.item24.question",
+    answerKey: "supportModal.faq.member.item24.answer",
   },
 ];
 
-const MERCHANT_FAQS: FaqItem[] = [
+const MERCHANT_FAQ_KEYS: FaqTranslationItem[] = [
   {
-    category: "Account",
-    question:
-      "How do I log in to the Merchant Portal?",
-    answer:
-      "Use the merchant login email and password registered for the business. If the account is already stored in the browser, the login page may redirect directly to the Merchant Dashboard.",
+    categoryKey: "supportModal.faq.merchant.item01.category",
+    questionKey: "supportModal.faq.merchant.item01.question",
+    answerKey: "supportModal.faq.merchant.item01.answer",
   },
   {
-    category: "Account",
-    question:
-      "What should I do if I forgot the merchant password?",
-    answer:
-      "Select Forgot Password from the Merchant Login page, complete the verification process and set a new password. Contact support if the registered email is no longer accessible.",
+    categoryKey: "supportModal.faq.merchant.item02.category",
+    questionKey: "supportModal.faq.merchant.item02.question",
+    answerKey: "supportModal.faq.merchant.item02.answer",
   },
   {
-    category: "Account",
-    question:
-      "Why is my merchant registration still pending?",
-    answer:
-      "Merchant registrations may require business information review before activation. Confirm that all required details were submitted and use live chat if the application remains pending longer than expected.",
+    categoryKey: "supportModal.faq.merchant.item03.category",
+    questionKey: "supportModal.faq.merchant.item03.question",
+    answerKey: "supportModal.faq.merchant.item03.answer",
   },
   {
-    category: "Profile",
-    question:
-      "How do I update business details, logo or banner?",
-    answer:
-      "Open Merchant Profile to update supported business information. Logo, banner and gallery management are available in their corresponding profile or media sections.",
+    categoryKey: "supportModal.faq.merchant.item04.category",
+    questionKey: "supportModal.faq.merchant.item04.question",
+    answerKey: "supportModal.faq.merchant.item04.answer",
   },
   {
-    category: "Profile",
-    question:
-      "How do merchant gallery images work?",
-    answer:
-      "The gallery allows the merchant to upload, update and remove business images shown in RewardHub merchant-facing listings. Use clear images that accurately represent the business.",
+    categoryKey: "supportModal.faq.merchant.item05.category",
+    questionKey: "supportModal.faq.merchant.item05.question",
+    answerKey: "supportModal.faq.merchant.item05.answer",
   },
   {
-    category: "Marketing Budget",
-    question:
-      "What is the RewardHub marketing budget?",
-    answer:
-      "The marketing budget is the percentage allocated by the merchant for eligible RewardHub member sales. It funds member cashback, referral rewards and the platform allocation according to the transaction rules.",
+    categoryKey: "supportModal.faq.merchant.item06.category",
+    questionKey: "supportModal.faq.merchant.item06.question",
+    answerKey: "supportModal.faq.merchant.item06.answer",
   },
   {
-    category: "Marketing Budget",
-    question:
-      "What is the minimum marketing budget?",
-    answer:
-      "The RewardHub merchant marketing budget must be at least 5%. A merchant may choose a higher percentage based on its promotion and customer acquisition strategy.",
+    categoryKey: "supportModal.faq.merchant.item07.category",
+    questionKey: "supportModal.faq.merchant.item07.question",
+    answerKey: "supportModal.faq.merchant.item07.answer",
   },
   {
-    category: "Marketing Budget",
-    question:
-      "How do I change my marketing budget?",
-    answer:
-      "Open Marketing in the Merchant Portal, enter the new valid percentage and save the setting. The updated rate applies according to the effective settings used when new transactions are created.",
+    categoryKey: "supportModal.faq.merchant.item08.category",
+    questionKey: "supportModal.faq.merchant.item08.question",
+    answerKey: "supportModal.faq.merchant.item08.answer",
   },
   {
-    category: "Marketing Budget",
-    question:
-      "What is a temporary budget boost?",
-    answer:
-      "A budget boost allows a merchant to increase the marketing percentage for a selected promotional period. After the boost ends or is cancelled, the standard budget setting resumes.",
+    categoryKey: "supportModal.faq.merchant.item09.category",
+    questionKey: "supportModal.faq.merchant.item09.question",
+    answerKey: "supportModal.faq.merchant.item09.answer",
   },
   {
-    category: "Collect Payment",
-    question:
-      "How do I collect payment from a RewardHub member?",
-    answer:
-      "Open Collect Payment, scan or enter the member identification, enter the sale amount and payment method, review any Reward Credit redemption and confirm only after the merchant has received payment.",
+    categoryKey: "supportModal.faq.merchant.item10.category",
+    questionKey: "supportModal.faq.merchant.item10.question",
+    answerKey: "supportModal.faq.merchant.item10.answer",
   },
   {
-    category: "Collect Payment",
-    question:
-      "Does RewardHub receive the customer's payment money?",
-    answer:
-      "No. In the current version, customers pay the merchant directly using the merchant's accepted method. RewardHub records the transaction and reward calculation but does not hold the customer payment funds.",
+    categoryKey: "supportModal.faq.merchant.item11.category",
+    questionKey: "supportModal.faq.merchant.item11.question",
+    answerKey: "supportModal.faq.merchant.item11.answer",
   },
   {
-    category: "Collect Payment",
-    question:
-      "How is cashback calculated during collection?",
-    answer:
-      "The system reads the member tier and the active merchant marketing configuration, then calculates the eligible instant cashback discount automatically before the transaction is completed.",
+    categoryKey: "supportModal.faq.merchant.item12.category",
+    questionKey: "supportModal.faq.merchant.item12.question",
+    answerKey: "supportModal.faq.merchant.item12.answer",
   },
   {
-    category: "Reward Credits",
-    question:
-      "Can members use Reward Credits at my business?",
-    answer:
-      "The merchant may enable or configure Reward Credit acceptance through the supported marketing settings. The system validates the member balance and the permitted redemption amount during payment.",
+    categoryKey: "supportModal.faq.merchant.item13.category",
+    questionKey: "supportModal.faq.merchant.item13.question",
+    answerKey: "supportModal.faq.merchant.item13.answer",
   },
   {
-    category: "Reward Credits",
-    question:
-      "Why was a member unable to redeem the requested amount?",
-    answer:
-      "The amount may exceed the member's available Reward Credits, the transaction value or the merchant's permitted redemption setting. Ask the member to enter an amount within the limit shown on screen.",
+    categoryKey: "supportModal.faq.merchant.item14.category",
+    questionKey: "supportModal.faq.merchant.item14.question",
+    answerKey: "supportModal.faq.merchant.item14.answer",
   },
   {
-    category: "Transactions",
-    question:
-      "Where can I view merchant transactions?",
-    answer:
-      "Open Transactions in the Merchant Portal to review recorded member sales, payment methods, reward calculations and available transaction receipt functions.",
+    categoryKey: "supportModal.faq.merchant.item15.category",
+    questionKey: "supportModal.faq.merchant.item15.question",
+    answerKey: "supportModal.faq.merchant.item15.answer",
   },
   {
-    category: "Transactions",
-    question:
-      "Why is a transaction not appearing?",
-    answer:
-      "Confirm that the collection flow reached a successful completion response. Refresh the page and check the selected date or pagination. Contact support with the amount, member ID and approximate time if it remains missing.",
+    categoryKey: "supportModal.faq.merchant.item16.category",
+    questionKey: "supportModal.faq.merchant.item16.question",
+    answerKey: "supportModal.faq.merchant.item16.answer",
   },
   {
-    category: "Transactions",
-    question:
-      "How do I upload a transaction receipt?",
-    answer:
-      "Open the relevant transaction and use the receipt upload action where available. Upload a clear supported image or document associated with that transaction only.",
+    categoryKey: "supportModal.faq.merchant.item17.category",
+    questionKey: "supportModal.faq.merchant.item17.question",
+    answerKey: "supportModal.faq.merchant.item17.answer",
   },
   {
-    category: "Settlement",
-    question:
-      "How do RewardHub settlements work?",
-    answer:
-      "The Settlement page shows settlement summaries, amounts and available settlement actions. The merchant can submit a settlement request or payment information according to the current settlement status.",
+    categoryKey: "supportModal.faq.merchant.item18.category",
+    questionKey: "supportModal.faq.merchant.item18.question",
+    answerKey: "supportModal.faq.merchant.item18.answer",
   },
   {
-    category: "Settlement",
-    question:
-      "How do I submit a settlement payment or receipt?",
-    answer:
-      "Open Settlement, select the relevant outstanding record and follow the submission flow. Upload the correct proof of payment and wait for the settlement status to update after review.",
+    categoryKey: "supportModal.faq.merchant.item19.category",
+    questionKey: "supportModal.faq.merchant.item19.question",
+    answerKey: "supportModal.faq.merchant.item19.answer",
   },
   {
-    category: "Settlement",
-    question:
-      "Why is my settlement still pending?",
-    answer:
-      "A pending settlement may still be awaiting payment submission, receipt review or administrative confirmation. Review the displayed status and contact support with the settlement reference if clarification is required.",
+    categoryKey: "supportModal.faq.merchant.item20.category",
+    questionKey: "supportModal.faq.merchant.item20.question",
+    answerKey: "supportModal.faq.merchant.item20.answer",
   },
   {
-    category: "Products",
-    question:
-      "What can I list in Merchant Products?",
-    answer:
-      "The catalogue can be used for physical products, services, packages, vouchers and suitable online merchant offerings. Each listing should use accurate descriptions, pricing and images.",
+    categoryKey: "supportModal.faq.merchant.item21.category",
+    questionKey: "supportModal.faq.merchant.item21.question",
+    answerKey: "supportModal.faq.merchant.item21.answer",
   },
   {
-    category: "Products",
-    question:
-      "How do I add or update a product?",
-    answer:
-      "Open Products, create or select a listing and complete the available product fields. Save changes after confirming the title, description, price, status and images are correct.",
+    categoryKey: "supportModal.faq.merchant.item22.category",
+    questionKey: "supportModal.faq.merchant.item22.question",
+    answerKey: "supportModal.faq.merchant.item22.answer",
   },
   {
-    category: "Reviews",
-    question:
-      "How do merchant reviews and replies work?",
-    answer:
-      "The Merchant Reviews area allows the business to view customer review information and reply where the feature is available. Replies should remain professional and relevant to the customer's feedback.",
+    categoryKey: "supportModal.faq.merchant.item23.category",
+    questionKey: "supportModal.faq.merchant.item23.question",
+    answerKey: "supportModal.faq.merchant.item23.answer",
   },
   {
-    category: "Notifications",
-    question:
-      "Where can I see merchant notifications?",
-    answer:
-      "Use the notification icon in the Merchant Portal to view unread activity and system updates linked to the logged-in merchant account.",
+    categoryKey: "supportModal.faq.merchant.item24.category",
+    questionKey: "supportModal.faq.merchant.item24.question",
+    answerKey: "supportModal.faq.merchant.item24.answer",
   },
   {
-    category: "Security",
-    question:
-      "How does RewardHub identify my merchant account in Live Chat?",
-    answer:
-      "When Live Chat opens from the Merchant Portal, RewardHub securely connects the merchant account type and Merchant ID to the support session, reducing the need to type account details manually.",
+    categoryKey: "supportModal.faq.merchant.item25.category",
+    questionKey: "supportModal.faq.merchant.item25.question",
+    answerKey: "supportModal.faq.merchant.item25.answer",
   },
 ];
 
-const GUEST_FAQS: FaqItem[] = [
+const GUEST_FAQ_KEYS: FaqTranslationItem[] = [
   {
-    category: "About RewardHub",
-    question:
-      "What is RewardHub?",
-    answer:
-      "RewardHub is a merchant membership network and merchant growth platform connecting members with participating merchants, rewards, referrals and member benefits.",
+    categoryKey: "supportModal.faq.guest.item01.category",
+    questionKey: "supportModal.faq.guest.item01.question",
+    answerKey: "supportModal.faq.guest.item01.answer",
   },
   {
-    category: "Membership",
-    question:
-      "Is RewardHub membership free?",
-    answer:
-      "RewardHub member registration is free. Members can access participating merchants, eligible rewards, points and referral features after completing registration.",
+    categoryKey: "supportModal.faq.guest.item02.category",
+    questionKey: "supportModal.faq.guest.item02.question",
+    answerKey: "supportModal.faq.guest.item02.answer",
   },
   {
-    category: "Membership",
-    question:
-      "How do I create a member account?",
-    answer:
-      "Open Member Registration, complete the required personal details and create the account. Use an invitation link during registration when you want the referring member to be recorded.",
+    categoryKey: "supportModal.faq.guest.item03.category",
+    questionKey: "supportModal.faq.guest.item03.question",
+    answerKey: "supportModal.faq.guest.item03.answer",
   },
   {
-    category: "Merchants",
-    question:
-      "Is merchant registration free?",
-    answer:
-      "RewardHub merchants can register without a fixed membership fee. The merchant contributes through its chosen marketing budget on eligible RewardHub member sales.",
+    categoryKey: "supportModal.faq.guest.item04.category",
+    questionKey: "supportModal.faq.guest.item04.question",
+    answerKey: "supportModal.faq.guest.item04.answer",
   },
   {
-    category: "Merchants",
-    question:
-      "How do I register my business?",
-    answer:
-      "Open Merchant Registration, submit the requested business and contact information, then wait for the merchant account review and activation process.",
+    categoryKey: "supportModal.faq.guest.item05.category",
+    questionKey: "supportModal.faq.guest.item05.question",
+    answerKey: "supportModal.faq.guest.item05.answer",
   },
   {
-    category: "Payments",
-    question:
-      "Does RewardHub hold customer payments?",
-    answer:
-      "No. In the current version, customers pay participating merchants directly. RewardHub records eligible transactions and reward calculations but does not hold customer payment funds.",
+    categoryKey: "supportModal.faq.guest.item06.category",
+    questionKey: "supportModal.faq.guest.item06.question",
+    answerKey: "supportModal.faq.guest.item06.answer",
   },
   {
-    category: "Rewards",
-    question:
-      "What benefits can members receive?",
-    answer:
-      "Depending on the eligible transaction and merchant settings, members may receive instant cashback discounts, points, membership tier progress and referral commission credits.",
+    categoryKey: "supportModal.faq.guest.item07.category",
+    questionKey: "supportModal.faq.guest.item07.question",
+    answerKey: "supportModal.faq.guest.item07.answer",
   },
   {
-    category: "Support",
-    question:
-      "What information should I provide when contacting support?",
-    answer:
-      "Describe the issue clearly and include only relevant information such as account ID, transaction reference, merchant name and approximate time. Do not send passwords, OTP codes or banking PINs.",
+    categoryKey: "supportModal.faq.guest.item08.category",
+    questionKey: "supportModal.faq.guest.item08.question",
+    answerKey: "supportModal.faq.guest.item08.answer",
   },
 ];
+
+function translateFaqItems(
+  items: FaqTranslationItem[],
+  t: (key: string, variables?: Record<string, string | number>) => string
+): FaqItem[] {
+  return items.map((item) => ({
+    category: t(item.categoryKey),
+    question: t(item.questionKey),
+    answer: t(item.answerKey),
+  }));
+}
 
 /* ============================================================
  * Small UI Helpers
@@ -1231,13 +1136,14 @@ const GUEST_FAQS: FaqItem[] = [
  */
 
 function getGreetingName(
-  identity: RewardHubIdentity
+  identity: RewardHubIdentity,
+  t: (key: string, variables?: Record<string, string | number>) => string
 ): string {
   if (
     identity.accountType ===
     "GUEST"
   ) {
-    return "there";
+    return t("supportModal.greetingGuest");
   }
 
   return (
@@ -1246,46 +1152,86 @@ function getGreetingName(
   );
 }
 
+function getTierLabel(
+  tier: string,
+  t: (key: string, variables?: Record<string, string | number>) => string
+): string {
+  const normalized =
+    cleanValue(tier).toUpperCase();
+
+  if (normalized === "GOLD") {
+    return t("supportModal.tiers.gold");
+  }
+
+  if (normalized === "PLATINUM") {
+    return t("supportModal.tiers.platinum");
+  }
+
+  return t("supportModal.tiers.silver");
+}
+
 function getIdentityLabel(
-  identity: RewardHubIdentity
+  identity: RewardHubIdentity,
+  t: (key: string, variables?: Record<string, string | number>) => string
 ): string {
   if (
     identity.accountType ===
     "MEMBER"
   ) {
-    return `${
-      identity.tier || "Silver"
-    } Member`;
+    return t(
+      "supportModal.memberLabel",
+      {
+        tier: getTierLabel(
+          identity.tier ||
+            "Silver",
+          t
+        ),
+      }
+    );
   }
 
   if (
     identity.accountType ===
     "MERCHANT"
   ) {
-    return "RewardHub Merchant";
+    return t(
+      "supportModal.rewardHubMerchant"
+    );
   }
 
-  return "RewardHub Visitor";
+  return t(
+    "supportModal.rewardHubVisitor"
+  );
 }
 
 function getFaqItems(
-  identity: RewardHubIdentity
+  identity: RewardHubIdentity,
+  t: (key: string, variables?: Record<string, string | number>) => string
 ): FaqItem[] {
   if (
     identity.accountType ===
     "MEMBER"
   ) {
-    return MEMBER_FAQS;
+    return translateFaqItems(
+      MEMBER_FAQ_KEYS,
+      t
+    );
   }
 
   if (
     identity.accountType ===
     "MERCHANT"
   ) {
-    return MERCHANT_FAQS;
+    return translateFaqItems(
+      MERCHANT_FAQ_KEYS,
+      t
+    );
   }
 
-  return GUEST_FAQS;
+  return translateFaqItems(
+    GUEST_FAQ_KEYS,
+    t
+  );
 }
 
 /* ============================================================
@@ -1294,6 +1240,8 @@ function getFaqItems(
  */
 
 export default function SupportModal() {
+  const { t } = useLanguage();
+
   const [
     isOpen,
     setIsOpen,
@@ -1717,7 +1665,7 @@ export default function SupportModal() {
         setIsLoading(false);
 
         setLoadError(
-          "Unable to load customer support. Please check your internet connection and try again."
+          t("supportModal.loadError")
         );
       };
 
@@ -1727,11 +1675,13 @@ export default function SupportModal() {
   }, [
     shouldLoadWidget,
     syncIdentityToTawk,
+    t,
   ]);
 
   const faqItems =
     getFaqItems(
-      identity
+      identity,
+      t
     );
 
   /* ==========================================================
@@ -1756,14 +1706,14 @@ export default function SupportModal() {
       ].join(" ")}
       role="dialog"
       aria-modal="true"
-      aria-label="RewardHub Support Center"
+      aria-label={t("supportModal.aria.supportCenter")}
       aria-hidden={
         !isOpen
       }
     >
       <button
         type="button"
-        aria-label="Close customer support"
+        aria-label={t("supportModal.aria.closeSupport")}
         onClick={
           closeSupport
         }
@@ -1820,7 +1770,7 @@ export default function SupportModal() {
                   onClick={
                     goBack
                   }
-                  aria-label="Back to support home"
+                  aria-label={t("supportModal.aria.backHome")}
                   className="
                     inline-flex h-10 w-10
                     shrink-0 items-center justify-center
@@ -1860,11 +1810,11 @@ export default function SupportModal() {
                   <h2 className="truncate text-base font-black">
                     {activeView ===
                     "CHAT"
-                      ? "Live Support"
+                      ? t("supportModal.liveSupport")
                       : activeView ===
                           "FAQ"
-                        ? "Help & FAQ"
-                        : "Customer Support"}
+                        ? t("supportModal.helpFaq")
+                        : t("supportModal.customerSupport")}
                   </h2>
 
                   <span
@@ -1881,12 +1831,12 @@ export default function SupportModal() {
                     "
                   >
                     <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-                    Online
+                    {t("supportModal.online")}
                   </span>
                 </div>
 
                 <p className="mt-0.5 truncate text-[11px] font-semibold text-slate-400">
-                  RewardHub Support Team
+                  {t("supportModal.supportTeam")}
                 </p>
               </div>
             </div>
@@ -1896,8 +1846,8 @@ export default function SupportModal() {
               onClick={
                 closeSupport
               }
-              aria-label="Close customer support"
-              title="Close"
+              aria-label={t("supportModal.aria.closeSupport")}
+              title={t("supportModal.close")}
               className="
                 inline-flex h-10 w-10
                 shrink-0 items-center justify-center
@@ -1959,13 +1909,14 @@ export default function SupportModal() {
                 <div className="flex items-start justify-between gap-4">
                   <div className="min-w-0">
                     <p className="text-[10px] font-black uppercase tracking-[0.22em] text-amber-300">
-                      RewardHub Support
+                      {t("supportModal.rewardHubSupport")}
                     </p>
 
                     <h3 className="mt-2 truncate text-2xl font-black">
-                      Hi,{" "}
+                      {t("supportModal.hi")}{" "}
                       {getGreetingName(
-                        identity
+                        identity,
+                        t
                       )}{" "}
                       <span aria-hidden="true">
                         👋
@@ -1973,7 +1924,7 @@ export default function SupportModal() {
                     </h3>
 
                     <p className="mt-2 text-sm font-semibold text-slate-300">
-                      How can we help you today?
+                      {t("supportModal.howCanWeHelp")}
                     </p>
                   </div>
 
@@ -2012,13 +1963,14 @@ export default function SupportModal() {
                   <div className="min-w-0">
                     <p className="truncate text-sm font-black text-white">
                       {getIdentityLabel(
-                        identity
+                        identity,
+                        t
                       )}
                     </p>
 
                     <p className="mt-0.5 truncate text-[11px] font-semibold text-slate-400">
                       {identity.accountId ||
-                        "General support"}
+                        t("supportModal.generalSupport")}
                     </p>
                   </div>
 
@@ -2062,11 +2014,11 @@ export default function SupportModal() {
 
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-black text-slate-950">
-                    Start Live Chat
+                    {t("supportModal.startLiveChat")}
                   </p>
 
                   <p className="mt-1 text-xs font-semibold text-slate-500">
-                    Talk directly with the RewardHub Support Team.
+                    {t("supportModal.chatDescription")}
                   </p>
                 </div>
 
@@ -2112,11 +2064,11 @@ export default function SupportModal() {
 
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-black text-slate-950">
-                    Help & FAQ
+                    {t("supportModal.helpFaq")}
                   </p>
 
                   <p className="mt-1 text-xs font-semibold text-slate-500">
-                    Find quick answers for common RewardHub questions.
+                    {t("supportModal.faqDescription")}
                   </p>
                 </div>
 
@@ -2148,11 +2100,11 @@ export default function SupportModal() {
 
               <div className="min-w-0">
                 <p className="text-xs font-black text-emerald-900">
-                  Fast, account-aware support
+                  {t("supportModal.fastSupport")}
                 </p>
 
                 <p className="mt-1 text-[11px] font-semibold leading-5 text-emerald-800/75">
-                  Your account details are connected automatically when you start Live Chat.
+                  {t("supportModal.accountConnectedDescription")}
                 </p>
               </div>
             </div>
@@ -2195,16 +2147,16 @@ export default function SupportModal() {
 
                 <div>
                   <h3 className="text-lg font-black text-slate-950">
-                    Frequently Asked Questions
+                    {t("supportModal.frequentlyAskedQuestions")}
                   </h3>
 
                   <p className="mt-1 text-xs font-semibold leading-5 text-slate-500">
-                    Browse detailed answers tailored to your current RewardHub account type.
+                    {t("supportModal.faqIntro")}
                   </p>
 
                   <div className="mt-3 inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1.5 text-[10px] font-black text-slate-600">
                     <BadgeCheck className="h-3.5 w-3.5 text-emerald-600" />
-                    {faqItems.length} support topics
+                    {t("supportModal.supportTopics", { count: faqItems.length })}
                   </div>
                 </div>
               </div>
@@ -2316,7 +2268,7 @@ export default function SupportModal() {
               "
             >
               <Headphones className="h-4 w-4" />
-              Still need help? Start Live Chat
+              {t("supportModal.stillNeedHelp")}
             </button>
           </div>
 
@@ -2375,11 +2327,11 @@ export default function SupportModal() {
                 <LoaderCircle className="mt-5 h-6 w-6 animate-spin text-amber-500" />
 
                 <p className="mt-3 text-sm font-black text-slate-900">
-                  Connecting to Support…
+                  {t("supportModal.connecting")}
                 </p>
 
                 <p className="mt-1 text-xs font-semibold text-slate-400">
-                  Securing your RewardHub support session.
+                  {t("supportModal.securingSession")}
                 </p>
               </div>
             ) : null}
@@ -2408,7 +2360,7 @@ export default function SupportModal() {
                 </div>
 
                 <p className="mt-4 text-sm font-black text-slate-900">
-                  Support unavailable
+                  {t("supportModal.supportUnavailable")}
                 </p>
 
                 <p className="mt-2 text-xs font-semibold leading-5 text-slate-500">
@@ -2452,7 +2404,7 @@ export default function SupportModal() {
                     text-white
                   "
                 >
-                  Try Again
+                  {t("supportModal.tryAgain")}
                 </button>
               </div>
             ) : null}
@@ -2481,7 +2433,7 @@ export default function SupportModal() {
             <LockKeyhole className="h-3.5 w-3.5 text-emerald-600" />
 
             <p className="text-center text-[10px] font-semibold text-slate-500">
-              RewardHub Support Center • Connected to your current account.
+              {t("supportModal.footerConnected")}
             </p>
           </div>
         </footer>

@@ -880,5 +880,552 @@ memberRewardRedemptionDetail: {
   },
 },
 
+merchantCollect: {
+  collectPayment: "Terima Bayaran",
+
+  identifyMember: "1. Kenal Pasti Ahli",
+  identifyMemberDescription:
+    "Imbas kod QR ahli atau sentuh kad ahli.",
+
+  scanMemberQr:
+    "Imbas Kod QR Ahli",
+
+  tapMemberCard:
+    "Sentuh Kad Ahli",
+
+  cardStatus:
+    "Status Kad",
+
+  tapMemberCardToStart:
+    "Sentuh kad ahli untuk bermula",
+
+  clickCardBox:
+    "Klik kotak ID Kad kemudian minta pelanggan sentuh kad",
+
+  qrScanned:
+    "Kod QR diimbas. Sedang mencari ahli...",
+
+  searchingMember:
+    "Sedang mencari ahli...",
+
+  memberFound:
+    "Ahli Dijumpai",
+
+  cardNotFound:
+    "ID Kad tidak dijumpai",
+
+  memberId:
+    "ID Ahli",
+
+  memberTier:
+    "Tahap Ahli",
+
+  enterAmount:
+    "2. Masukkan Amaun",
+
+  cashback:
+    "Pulangan Tunai",
+
+  points:
+    "Mata Ganjaran",
+
+  customerPays:
+    "Pelanggan Bayar",
+
+  rewardCredits:
+    "3. Kredit Ganjaran",
+
+  rewardCreditsDescription:
+    "Kredit Ganjaran digunakan untuk penebusan dan bukan kaedah pembayaran.",
+
+  doNotUseCredits:
+    "Jangan Guna Kredit",
+
+  useRewardCredits:
+    "Guna Kredit Ganjaran",
+
+  creditBalance:
+    "Baki Kredit",
+
+  merchantLimit:
+    "Had Pedagang",
+
+  maxRedeem:
+    "Maksimum Tebus",
+
+  creditsUsed:
+    "Kredit Digunakan",
+
+  selectPaymentMethod:
+    "4. Pilih Kaedah Bayaran",
+
+  cash:
+    "Tunai",
+
+  duitNow:
+    "DuitNow",
+
+  tng:
+    "Touch 'n Go",
+
+  bank:
+    "Pindahan Bank",
+
+  card:
+    "Kad Kredit / Debit",
+
+  paymentSummary:
+    "Ringkasan Bayaran",
+
+  originalAmount:
+    "Amaun Asal",
+
+  rewardCreditsUsed:
+    "Kredit Ganjaran",
+
+  paymentMethod:
+    "Kaedah Bayaran",
+
+  recording:
+    "Sedang Merekod...",
+
+  paymentReceived:
+    "Bayaran Diterima",
+
+  paymentRecorded:
+    "Bayaran Direkodkan",
+
+  receipt:
+    "Resit",
+
+  noReceipt:
+    "Tiada resit dimuat naik",
+
+  uploadReceipt:
+    "Muat Naik Resit",
+
+  uploading:
+    "Sedang Memuat Naik...",
+
+  viewReceipt:
+    "Lihat Resit",
+
+  collectAnotherPayment:
+    "Terima Bayaran Lagi",
+
+  backToDashboard:
+    "Kembali ke Dashboard",
+},
+
+supportModal: {
+  aria: {
+    supportCenter: "Pusat Sokongan RewardHub",
+    closeSupport: "Tutup sokongan",
+    backHome: "Kembali ke halaman utama sokongan",
+  },
+
+  customerSupport: "Khidmat Pelanggan",
+  liveSupport: "Sokongan Langsung",
+  helpFaq: "Bantuan & FAQ",
+  online: "Dalam Talian",
+  supportTeam: "Pasukan Sokongan RewardHub",
+  close: "Tutup",
+
+  rewardHubSupport: "Sokongan RewardHub",
+  hi: "Hai",
+  greetingGuest: "pengunjung",
+  howCanWeHelp: "Bagaimana kami boleh membantu anda hari ini?",
+
+  memberLabel: "Ahli {{tier}}",
+  rewardHubMerchant: "Peniaga RewardHub",
+  rewardHubVisitor: "Pelawat RewardHub",
+  generalSupport: "Sokongan Umum",
+
+  tiers: {
+    silver: "Perak",
+    gold: "Emas",
+    platinum: "Platinum",
+  },
+
+  startLiveChat: "Mulakan Sembang Langsung",
+  chatDescription:
+    "Berhubung terus dengan pasukan sokongan RewardHub untuk bantuan akaun, pembayaran atau platform.",
+
+  faqDescription:
+    "Lihat jawapan tentang akaun, pembayaran, ganjaran, rujukan, penyelesaian dan ciri platform.",
+
+  fastSupport: "Sokongan Akaun Lebih Pantas",
+  accountConnectedDescription:
+    "Maklumat akaun RewardHub anda disambungkan secara automatik supaya pasukan sokongan boleh membantu dengan lebih cekap.",
+
+  frequentlyAskedQuestions: "Soalan Lazim",
+  faqIntro:
+    "Pilih soalan di bawah untuk melihat jawapan. Topik yang dipaparkan disesuaikan dengan jenis akaun semasa anda.",
+  supportTopics: "{{count}} topik sokongan",
+  stillNeedHelp: "Masih Perlukan Bantuan? Mulakan Sembang Langsung",
+
+  connecting: "Sedang menyambung ke Sokongan RewardHub...",
+  securingSession: "Sedang menyediakan sesi sokongan yang selamat.",
+  supportUnavailable: "Sokongan tidak tersedia buat sementara waktu",
+  loadError:
+    "Tidak dapat memuatkan sokongan langsung. Sila semak sambungan internet anda dan cuba lagi.",
+  tryAgain: "Cuba Lagi",
+
+  footerConnected:
+    "Akaun RewardHub anda disambungkan dengan selamat kepada sokongan.",
+
+  faq: {
+    member: {
+      item01: {
+        category: "Akaun",
+        question: "Bagaimana saya log masuk ke akaun ahli RewardHub?",
+        answer:
+          "Buka halaman Log Masuk Ahli dan masukkan alamat e-mel serta kata laluan yang didaftarkan dengan RewardHub. Jika anda terlupa kata laluan, gunakan Lupa Kata Laluan untuk mengesahkan akaun dan menetapkan kata laluan baharu.",
+      },
+      item02: {
+        category: "Akaun",
+        question: "Apa yang perlu saya lakukan jika terlupa kata laluan?",
+        answer:
+          "Pilih Lupa Kata Laluan pada halaman Log Masuk Ahli. Lengkapkan langkah pengesahan menggunakan nombor telefon atau e-mel berdaftar, kemudian tetapkan kata laluan baharu.",
+      },
+      item03: {
+        category: "Akaun",
+        question: "Bagaimana saya mengemas kini maklumat peribadi?",
+        answer:
+          "Buka Profil Ahli untuk menyemak nama, jantina, e-mel dan nombor telefon. Gunakan pilihan edit yang tersedia. Hubungi Sokongan RewardHub jika medan terlindung tidak boleh diubah secara langsung.",
+      },
+      item04: {
+        category: "Keahlian",
+        question: "Bagaimana tahap keahlian RewardHub berfungsi?",
+        answer:
+          "Setiap ahli bermula pada tahap Perak. Perbelanjaan layak seumur hidup boleh menaikkan anda ke Emas dan kemudian Platinum. Tahap seumur hidup tidak akan diturunkan selepas dibuka.",
+      },
+      item05: {
+        category: "Keahlian",
+        question: "Apakah syarat tahap Perak, Emas dan Platinum?",
+        answer:
+          "Perak ialah tahap lalai. Emas dibuka selepas RM5,000 perbelanjaan layak seumur hidup, dan Platinum dibuka selepas RM15,000.",
+      },
+      item06: {
+        category: "Pulangan Tunai",
+        question: "Bagaimana pulangan tunai saya dikira?",
+        answer:
+          "Pulangan tunai dikira daripada Marketing Budget aktif peniaga dan tahap keahlian anda. Perak menerima 10% daripada bajet tersebut, Emas 20% dan Platinum 30%. Pulangan tunai digunakan sebagai diskaun segera semasa pembayaran.",
+      },
+      item07: {
+        category: "Pembayaran",
+        question: "Bagaimana saya membayar di peniaga RewardHub?",
+        answer:
+          "Buka RewardHub Pay dan tunjukkan kod QR ahli atau kad fizikal anda kepada peniaga. Peniaga akan mengimbas atau menyentuh kad, memasukkan jumlah pembelian dan mengesahkan kaedah pembayaran.",
+      },
+      item08: {
+        category: "Pembayaran",
+        question: "Adakah RewardHub mengutip wang pembayaran saya?",
+        answer:
+          "Tidak. Dalam versi semasa, anda membayar terus kepada peniaga menggunakan kaedah pembayaran yang dipilih. RewardHub merekodkan transaksi, pulangan tunai, mata dan penggunaan Reward Credits yang layak.",
+      },
+      item09: {
+        category: "Reward Credits",
+        question: "Apakah Reward Credits?",
+        answer:
+          "Reward Credits ialah kredit boleh guna yang dilepaskan daripada ganjaran rujukan yang layak. Ia berasingan daripada pulangan tunai dan mata, dan boleh digunakan untuk mengurangkan pembayaran di peniaga yang menerimanya.",
+      },
+      item10: {
+        category: "Reward Credits",
+        question: "Mengapa saya tidak boleh menggunakan semua Reward Credits?",
+        answer:
+          "Peniaga mesti menerima Reward Credits dan mungkin menetapkan peratusan penebusan maksimum. Jumlah yang digunakan juga tidak boleh melebihi baki tersedia atau jumlah layak bagi transaksi tersebut.",
+      },
+      item11: {
+        category: "Mata",
+        question: "Bagaimana saya memperoleh mata RewardHub?",
+        answer:
+          "Perbelanjaan yang layak memperoleh mata mengikut kadar semasa RewardHub. Kadar standard ialah 1 mata bagi setiap RM1 perbelanjaan layak.",
+      },
+      item12: {
+        category: "Mata",
+        question: "Mata boleh digunakan untuk apa?",
+        answer:
+          "Mata digunakan untuk menebus ganjaran rasmi RewardHub dalam bahagian Mata & Ganjaran. Mata tidak boleh digunakan sebagai wang tunai dan berasingan daripada Reward Credits.",
+      },
+      item13: {
+        category: "Ganjaran",
+        question: "Bagaimana saya menebus ganjaran?",
+        answer:
+          "Buka Mata & Ganjaran, pilih ganjaran yang tersedia, semak mata diperlukan, stok dan butiran penghantaran, kemudian sahkan penebusan.",
+      },
+      item14: {
+        category: "Ganjaran",
+        question: "Di mana saya boleh melihat ganjaran yang telah ditebus?",
+        answer:
+          "Buka rekod penebusan daripada bahagian Mata & Ganjaran. Anda boleh melihat status ganjaran, kod baucar, maklumat penghantaran dan butiran penjejakan apabila tersedia.",
+      },
+      item15: {
+        category: "Rujukan",
+        question: "Bagaimana saya menjemput ahli baharu?",
+        answer:
+          "Buka Pusat Rujukan dan kongsi pautan rujukan ahli atau kod QR rujukan anda. Ahli baharu mesti mendaftar melalui maklumat rujukan anda supaya hubungan itu direkodkan.",
+      },
+      item16: {
+        category: "Rujukan",
+        question: "Bagaimana ganjaran rujukan ahli tiga tahap berfungsi?",
+        answer:
+          "Aktiviti peniaga yang layak daripada rangkaian rujukan anda boleh menjana Reward Credits yang dilepaskan pada Tahap 1, Tahap 2 dan Tahap 3 mengikut peraturan rujukan RewardHub semasa.",
+      },
+      item17: {
+        category: "Rujukan",
+        question: "Bolehkah saya merujuk peniaga?",
+        answer:
+          "Ahli boleh berkongsi pautan rujukan peniaga apabila ciri tersebut tersedia. Transaksi layak daripada peniaga yang berjaya dirujuk boleh menjana ganjaran rujukan peniaga kekal yang berkenaan.",
+      },
+      item18: {
+        category: "Marketplace",
+        question: "Bagaimana saya mencari peniaga yang mengambil bahagian?",
+        answer:
+          "Buka Marketplace dan cari mengikut nama peniaga, kategori, negeri atau kawasan. Halaman peniaga memaparkan ganjaran, penerimaan Reward Credits, waktu operasi, produk dan ulasan ahli.",
+      },
+      item19: {
+        category: "Kegemaran",
+        question: "Bagaimana saya menyimpan peniaga ke Kegemaran?",
+        answer:
+          "Tekan ikon kegemaran pada kad peniaga atau halaman butiran peniaga. Peniaga yang disimpan akan muncul dalam Kedai Kegemaran Saya.",
+      },
+      item20: {
+        category: "Ulasan",
+        question: "Bagaimana saya meninggalkan ulasan peniaga?",
+        answer:
+          "Selepas transaksi layak selesai, buka Sejarah Transaksi dan pilih Tinggalkan Ulasan. Pilih penilaian dan tambah komen pilihan sebelum menghantar.",
+      },
+      item21: {
+        category: "Transaksi",
+        question: "Di mana saya boleh menyemak sejarah pembayaran?",
+        answer:
+          "Buka Sejarah Transaksi untuk melihat peniaga, jumlah asal, pulangan tunai, Reward Credits digunakan, jumlah akhir dibayar, mata diperoleh dan status transaksi.",
+      },
+      item22: {
+        category: "Kad Fizikal",
+        question: "Bagaimana saya memohon kad fizikal RewardHub?",
+        answer:
+          "Buka Kad Fizikal dalam Portal Ahli, lengkapkan maklumat penerima dan penghantaran, kemudian hantar permohonan. Kad fizikal pertama adalah percuma mengikut polisi semasa.",
+      },
+      item23: {
+        category: "Kad Fizikal",
+        question: "Apa berlaku jika kad fizikal saya hilang atau rosak?",
+        answer:
+          "Hantar permohonan gantian daripada halaman Kad Fizikal. Kad lama akan dibekukan dan bayaran gantian semasa ialah RM8.",
+      },
+      item24: {
+        category: "Keselamatan",
+        question: "Apa yang perlu saya lakukan jika terlihat transaksi tidak dikenali?",
+        answer:
+          "Semak butiran transaksi terlebih dahulu, kemudian hubungi Sokongan RewardHub dengan segera bersama ID transaksi, tarikh dan jumlah. Anda juga disarankan menukar kata laluan untuk melindungi akaun.",
+      },
+    },
+
+    merchant: {
+      item01: {
+        category: "Akaun",
+        question: "Bagaimana saya log masuk ke Portal Peniaga?",
+        answer:
+          "Buka Log Masuk Peniaga dan masukkan alamat e-mel serta kata laluan yang didaftarkan untuk akaun peniaga. Gunakan Lupa Kata Laluan jika anda perlu menetapkan semula akses.",
+      },
+      item02: {
+        category: "Akaun",
+        question: "Bagaimana saya mengemas kini profil peniaga?",
+        answer:
+          "Buka Profil Peniaga untuk mengemas kini maklumat perniagaan yang disokong seperti penerangan, maklumat hubungan, logo, banner, galeri dan maklumat awam lain.",
+      },
+      item03: {
+        category: "Akaun",
+        question: "Bagaimana saya menukar kata laluan peniaga?",
+        answer:
+          "Buka Profil Peniaga, pergi ke Keselamatan dan pilih Tukar Kata Laluan. Masukkan kata laluan semasa dan kata laluan baharu, kemudian simpan.",
+      },
+      item04: {
+        category: "Pembayaran",
+        question: "Bagaimana saya menerima bayaran daripada ahli?",
+        answer:
+          "Buka Terima Bayaran, imbas kod QR ahli atau sentuh kad ahli, masukkan jumlah pembelian, semak pulangan tunai dan Reward Credits, pilih kaedah pembayaran dan rekod bayaran.",
+      },
+      item05: {
+        category: "Pembayaran",
+        question: "Siapa menerima bayaran pelanggan?",
+        answer:
+          "Pelanggan membayar terus kepada perniagaan anda. RewardHub tidak memegang wang pembayaran pelanggan dalam versi semasa.",
+      },
+      item06: {
+        category: "Pembayaran",
+        question: "Kaedah pembayaran apa yang boleh direkodkan?",
+        answer:
+          "Anda boleh merekodkan kaedah yang disokong seperti Tunai, DuitNow, TNG eWallet, Pindahan Bank dan Kad Kredit atau Debit.",
+      },
+      item07: {
+        category: "Pengenalpastian Ahli",
+        question: "Apa perlu dilakukan jika QR ahli tidak dapat diimbas?",
+        answer:
+          "Pastikan kebenaran kamera diaktifkan dan kod QR jelas. Anda boleh menukar kamera, memuat naik imej QR atau menggunakan kad fizikal ahli jika disokong.",
+      },
+      item08: {
+        category: "Transaksi",
+        question: "Di mana saya boleh melihat transaksi peniaga?",
+        answer:
+          "Buka Transaksi Peniaga untuk mencari dan menapis pembayaran yang direkodkan. Setiap rekod merangkumi jumlah asal, pulangan tunai, Reward Credits, bayaran pelanggan, mata dan resit.",
+      },
+      item09: {
+        category: "Resit",
+        question: "Bagaimana saya memuat naik resit transaksi?",
+        answer:
+          "Buka butiran transaksi dan pilih Muat Naik di bahagian Resit. Pilih fail imej dan tunggu pengesahan muat naik.",
+      },
+      item10: {
+        category: "Marketing Budget",
+        question: "Apakah Marketing Budget?",
+        answer:
+          "Marketing Budget ialah peratusan jualan ahli RewardHub yang layak dan diperuntukkan untuk pulangan tunai ahli, ganjaran rujukan serta operasi platform RewardHub.",
+      },
+      item11: {
+        category: "Marketing Budget",
+        question: "Apakah Marketing Budget minimum?",
+        answer:
+          "Marketing Budget standard minimum ialah 5%. Peniaga boleh memilih peratusan lebih tinggi berdasarkan kempen dan strategi pertumbuhan.",
+      },
+      item12: {
+        category: "Marketing Budget",
+        question: "Bolehkah saya menukar Marketing Budget?",
+        answer:
+          "Ya. Buka bahagian Pemasaran untuk menyemak dan mengemas kini Marketing Budget standard mengikut peraturan yang tersedia.",
+      },
+      item13: {
+        category: "Kempen",
+        question: "Apakah peningkatan bajet sementara?",
+        answer:
+          "Peningkatan bajet menaikkan Marketing Budget untuk tempoh tarikh yang dipilih supaya ahli menerima manfaat lebih tinggi semasa promosi.",
+      },
+      item14: {
+        category: "Pulangan Tunai",
+        question: "Bagaimana pulangan tunai ahli dikira?",
+        answer:
+          "Pulangan tunai bergantung pada Marketing Budget aktif anda dan tahap seumur hidup ahli. Perak menerima 10% daripada bajet, Emas 20% dan Platinum 30%.",
+      },
+      item15: {
+        category: "Reward Credits",
+        question: "Bolehkah saya memilih sama ada menerima Reward Credits?",
+        answer:
+          "Ya. Dalam tetapan Pemasaran, anda boleh mengaktifkan atau mematikan penerimaan Reward Credits dan menetapkan peratusan penebusan yang dibenarkan jika disokong.",
+      },
+      item16: {
+        category: "Reward Credits",
+        question: "Adakah Reward Credits mengubah kaedah pembayaran pelanggan?",
+        answer:
+          "Tidak. Reward Credits hanya mengurangkan jumlah layak yang perlu dibayar pelanggan. Kaedah pembayaran sebenar masih perlu direkodkan secara berasingan.",
+      },
+      item17: {
+        category: "Penyelesaian",
+        question: "Apakah penyelesaian peniaga?",
+        answer:
+          "Penyelesaian merekodkan jumlah yang perlu dibayar oleh perniagaan anda kepada RewardHub daripada Marketing Budget berkenaan selepas menolak pulangan tunai yang telah diberikan terus kepada ahli.",
+      },
+      item18: {
+        category: "Penyelesaian",
+        question: "Bilakah saya boleh memohon atau membayar penyelesaian?",
+        answer:
+          "Portal Peniaga semasa membenarkan tindakan penyelesaian dari 1 hingga 10 haribulan yang berkenaan.",
+      },
+      item19: {
+        category: "Penyelesaian",
+        question: "Bagaimana saya memuat naik resit bayaran penyelesaian?",
+        answer:
+          "Buka Pusat Penyelesaian, pilih Bayar atau Muat Naik Resit untuk penyelesaian tertunda, pindahkan jumlah yang dipaparkan dan muat naik imej resit bersama nota bayaran pilihan.",
+      },
+      item20: {
+        category: "Produk",
+        question: "Bagaimana saya menambah produk, perkhidmatan atau baucar?",
+        answer:
+          "Buka Produk Peniaga dan cipta senarai dengan nama, kategori, penerangan, harga, imej dan maklumat ketersediaan.",
+      },
+      item21: {
+        category: "Galeri",
+        question: "Bagaimana saya memuat naik foto galeri peniaga?",
+        answer:
+          "Buka bahagian galeri dalam Profil Peniaga atau Produk, pilih imej yang disokong dan muat naik. Anda juga boleh mengemas kini atau memadam item galeri jika tersedia.",
+      },
+      item22: {
+        category: "Ulasan",
+        question: "Bagaimana saya membalas ulasan ahli?",
+        answer:
+          "Buka Ulasan Peniaga, pilih ulasan dan hantar balasan peniaga. Pastikan balasan profesional dan berkaitan dengan pengalaman ahli.",
+      },
+      item23: {
+        category: "Marketplace",
+        question: "Bagaimana perniagaan saya dipaparkan dalam Marketplace?",
+        answer:
+          "Profil peniaga awam anda boleh memaparkan maklumat perniagaan, logo, banner, galeri, produk, ganjaran, tetapan Reward Credits, lokasi, waktu operasi dan ulasan.",
+      },
+      item24: {
+        category: "Notifikasi",
+        question: "Di mana saya boleh melihat kemas kini penting peniaga?",
+        answer:
+          "Buka Notifikasi Peniaga untuk melihat mesej belum dibaca dan dibaca berkaitan penyelesaian, kempen, aktiviti akaun dan kemas kini sistem.",
+      },
+      item25: {
+        category: "Sokongan",
+        question: "Maklumat apa perlu diberikan semasa menghubungi sokongan?",
+        answer:
+          "Berikan ID Peniaga anda serta ID transaksi, ID penyelesaian, tangkapan skrin, tarikh, jumlah atau mesej ralat yang berkaitan supaya pasukan sokongan boleh menyiasat dengan lebih cepat.",
+      },
+    },
+
+    guest: {
+      item01: {
+        category: "Tentang RewardHub",
+        question: "Apakah RewardHub?",
+        answer:
+          "RewardHub ialah rangkaian keahlian peniaga yang menghubungkan ahli dengan peniaga yang mengambil bahagian, manfaat ahli, ganjaran, mata dan ciri rujukan.",
+      },
+      item02: {
+        category: "Keahlian",
+        question: "Adakah percuma untuk menyertai RewardHub sebagai ahli?",
+        answer:
+          "Ya. Pendaftaran ahli adalah percuma di bawah model RewardHub semasa.",
+      },
+      item03: {
+        category: "Peniaga",
+        question: "Adakah percuma untuk mendaftar sebagai peniaga RewardHub?",
+        answer:
+          "Pendaftaran peniaga adalah percuma. Peniaga mengambil bahagian melalui Marketing Budget hanya apabila jualan ahli RewardHub yang layak direkodkan.",
+      },
+      item04: {
+        category: "Pendaftaran",
+        question: "Bagaimana saya mendaftar sebagai ahli?",
+        answer:
+          "Buka halaman Pendaftaran Ahli, lengkapkan maklumat peribadi yang diperlukan dan hantar borang. Gunakan pautan rujukan yang sah jika seseorang memperkenalkan anda.",
+      },
+      item05: {
+        category: "Pendaftaran",
+        question: "Bagaimana saya mendaftarkan perniagaan sebagai peniaga?",
+        answer:
+          "Buka Pendaftaran Peniaga dan berikan maklumat perniagaan, pemilik serta hubungan yang diperlukan. RewardHub mungkin menyemak permohonan sebelum pengaktifan.",
+      },
+      item06: {
+        category: "Marketplace",
+        question: "Bolehkah saya melihat peniaga RewardHub tanpa log masuk?",
+        answer:
+          "Akses Marketplace awam mungkin tersedia untuk melihat profil dan tawaran peniaga. Tindakan khas ahli memerlukan akaun ahli.",
+      },
+      item07: {
+        category: "Pembayaran",
+        question: "Adakah RewardHub memproses atau memegang bayaran pelanggan?",
+        answer:
+          "Tidak. Dalam versi semasa, pelanggan membayar terus kepada peniaga. RewardHub merekodkan maklumat transaksi dan ganjaran yang layak.",
+      },
+      item08: {
+        category: "Sokongan",
+        question: "Bagaimana saya menghubungi Sokongan RewardHub?",
+        answer:
+          "Buka Pusat Sokongan ini dan pilih Mulakan Sembang Langsung. Anda juga boleh menyemak topik FAQ sebelum memulakan perbualan.",
+      },
+    },
+  },
+},
 };
 export default ms;

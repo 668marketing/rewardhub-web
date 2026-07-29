@@ -1,6 +1,8 @@
 "use client";
 
 import {
+  createContext,
+  useContext,
   useEffect,
   useMemo,
   useState,
@@ -41,6 +43,360 @@ import {
   updateMerchantProductStatus,
   uploadMerchantProductImage,
 } from "@/lib/api";
+
+
+type LanguageCode = "en" | "zh" | "ms";
+
+const LANGUAGE_STORAGE_KEY = "rewardhub-language";
+
+const productTranslations = {
+  en: {
+    accountMissing: "Merchant account information was not found. Please log in again.",
+    merchantIdMissingAgain: "Merchant ID is missing. Please log out and log in again.",
+    merchantIdMissing: "Merchant ID is missing. Please log in again.",
+    unableLoad: "Unable to load products.",
+    updatedSuccess: "Product updated successfully.",
+    createdSuccess: "Product created successfully.",
+    unableUpdate: "Unable to update product.",
+    unableCreate: "Unable to create product.",
+    uploadedUrlMissing: "Uploaded image URL is missing.",
+    unableCover: "Unable to upload cover image.",
+    maxGallery: "A product can contain a maximum of 6 gallery images.",
+    unableGallery: "Unable to upload gallery images.",
+    statusUpdated: "{{name}} status updated.",
+    unableStatus: "Unable to update product status.",
+    deactivatedSuccess: "Product deactivated successfully.",
+    unableDeactivate: "Unable to deactivate product.",
+    catalogue: "Merchant Catalogue",
+    products: "Products",
+    intro: "Create and manage products, services, packages and vouchers displayed in RewardHub.",
+    addProduct: "Add Product",
+    totalProducts: "Total Products",
+    active: "Active",
+    draft: "Draft",
+    inactive: "Inactive",
+    searchPlaceholder: "Search product name or ID",
+    allStatuses: "All Statuses",
+    allTypes: "All Types",
+    product: "Product",
+    service: "Service",
+    package: "Package",
+    voucher: "Voucher",
+    allCategories: "All Categories",
+    refresh: "Refresh",
+    productCatalogue: "Product Catalogue",
+    showing: "Showing {{shown}} of {{total}} products",
+    featured: "Featured",
+    tableProduct: "Product",
+    type: "Type",
+    category: "Category",
+    price: "Price",
+    stock: "Stock",
+    status: "Status",
+    updated: "Updated",
+    actions: "Actions",
+    closeForm: "Close product form",
+    editProduct: "Edit Product",
+    createCatalogueItem: "Create a new catalogue item",
+    basicInformation: "Basic Information",
+    basicDescription: "Product type, name and description",
+    productType: "Product Type",
+    categoryExample: "Example: Drinks",
+    productName: "Product Name",
+    enterProductName: "Enter product name",
+    shortDescription: "Short Description",
+    shortPlaceholder: "Short summary shown in product cards",
+    fullDescription: "Full Description",
+    fullPlaceholder: "Describe the product, service, package or voucher",
+    pricingInventory: "Pricing and Inventory",
+    pricingDescription: "Configure price, points and stock",
+    originalPrice: "Original Price",
+    salePrice: "Sale Price",
+    optional: "Optional",
+    pointsEarned: "Points Earned",
+    productImages: "Product Images",
+    imageDescription: "Upload one cover and up to six gallery images",
+    publishing: "Publishing",
+    publishingDescription: "Control visibility and ordering",
+    sortOrder: "Sort Order",
+    featuredProduct: "Featured Product",
+    featuredDescription: "Highlight this item in selected marketplace sections.",
+    cancel: "Cancel",
+    saving: "Saving...",
+    saveChanges: "Save Changes",
+    createProduct: "Create Product",
+    edit: "Edit",
+    uploadingImage: "Uploading image...",
+    uploadCover: "Upload cover image",
+    imageRequirements: "JPG, PNG or WebP. Maximum 5 MB.",
+    replace: "Replace",
+    productCover: "Product cover",
+    galleryImages: "Gallery Images",
+    uploadedCount: "{{count}}/6 uploaded",
+    addImages: "Add Images",
+    noGalleryImages: "No gallery images",
+    deactivateProduct: "Deactivate Product?",
+    deactivateDescription: "{{name}} will be changed to Inactive and removed from public product listings.",
+    deactivating: "Deactivating...",
+    deactivate: "Deactivate",
+    loadingProducts: "Loading products...",
+    noMatching: "No matching products",
+    noProducts: "No products yet",
+    changeSearch: "Try changing your search or filters.",
+    createFirst: "Create your first product, service, package or voucher.",
+    productNameRequired: "Product name is required.",
+    categoryRequired: "Category is required.",
+    priceInvalid: "Price must be zero or higher.",
+    salePriceInvalid: "Sale price must be zero or higher.",
+    salePriceExceed: "Sale price cannot exceed the original price.",
+    stockInvalid: "Stock must be zero or higher.",
+    pointsInvalid: "Points earned must be zero or higher.",
+    imagesOnly: "Only image files are allowed.",
+    imageTooLarge: "Image cannot exceed 5 MB.",
+    unableReadImage: "Unable to read image file.",
+  },
+  zh: {
+    accountMissing: "找不到商家账户资料，请重新登录。",
+    merchantIdMissingAgain: "找不到商家 ID，请退出后重新登录。",
+    merchantIdMissing: "找不到商家 ID，请重新登录。",
+    unableLoad: "无法加载产品。",
+    updatedSuccess: "产品更新成功。",
+    createdSuccess: "产品创建成功。",
+    unableUpdate: "无法更新产品。",
+    unableCreate: "无法创建产品。",
+    uploadedUrlMissing: "找不到已上传图片的网址。",
+    unableCover: "无法上传封面图片。",
+    maxGallery: "每个产品最多只能包含 6 张相册图片。",
+    unableGallery: "无法上传相册图片。",
+    statusUpdated: "{{name}} 的状态已更新。",
+    unableStatus: "无法更新产品状态。",
+    deactivatedSuccess: "产品已成功停用。",
+    unableDeactivate: "无法停用产品。",
+    catalogue: "商家目录",
+    products: "产品管理",
+    intro: "创建和管理在 RewardHub 展示的产品、服务、配套和礼券。",
+    addProduct: "添加产品",
+    totalProducts: "产品总数",
+    active: "上架",
+    draft: "草稿",
+    inactive: "停用",
+    searchPlaceholder: "搜索产品名称或 ID",
+    allStatuses: "全部状态",
+    allTypes: "全部类型",
+    product: "产品",
+    service: "服务",
+    package: "配套",
+    voucher: "礼券",
+    allCategories: "全部分类",
+    refresh: "刷新",
+    productCatalogue: "产品目录",
+    showing: "显示 {{shown}} / {{total}} 个产品",
+    featured: "精选产品",
+    tableProduct: "产品",
+    type: "类型",
+    category: "分类",
+    price: "价格",
+    stock: "库存",
+    status: "状态",
+    updated: "更新时间",
+    actions: "操作",
+    closeForm: "关闭产品表单",
+    editProduct: "编辑产品",
+    createCatalogueItem: "创建新的目录项目",
+    basicInformation: "基本资料",
+    basicDescription: "设置产品类型、名称和说明",
+    productType: "产品类型",
+    categoryExample: "例如：饮料",
+    productName: "产品名称",
+    enterProductName: "输入产品名称",
+    shortDescription: "简短说明",
+    shortPlaceholder: "显示在产品卡片上的简短介绍",
+    fullDescription: "完整说明",
+    fullPlaceholder: "说明这个产品、服务、配套或礼券",
+    pricingInventory: "价格与库存",
+    pricingDescription: "设置价格、积分和库存",
+    originalPrice: "原价",
+    salePrice: "促销价",
+    optional: "选填",
+    pointsEarned: "可获得积分",
+    productImages: "产品图片",
+    imageDescription: "上传一张封面和最多六张相册图片",
+    publishing: "发布设置",
+    publishingDescription: "管理显示状态与排列顺序",
+    sortOrder: "排列顺序",
+    featuredProduct: "精选产品",
+    featuredDescription: "在指定的 Marketplace 区域重点展示此项目。",
+    cancel: "取消",
+    saving: "正在保存……",
+    saveChanges: "保存修改",
+    createProduct: "创建产品",
+    edit: "编辑",
+    uploadingImage: "正在上传图片……",
+    uploadCover: "上传封面图片",
+    imageRequirements: "支持 JPG、PNG 或 WebP，最大 5MB。",
+    replace: "更换",
+    productCover: "产品封面",
+    galleryImages: "相册图片",
+    uploadedCount: "已上传 {{count}}/6",
+    addImages: "添加图片",
+    noGalleryImages: "暂无相册图片",
+    deactivateProduct: "停用产品？",
+    deactivateDescription: "{{name}} 将被改为停用状态，并从公开产品列表移除。",
+    deactivating: "正在停用……",
+    deactivate: "停用",
+    loadingProducts: "正在加载产品……",
+    noMatching: "没有符合条件的产品",
+    noProducts: "目前还没有产品",
+    changeSearch: "请尝试更改搜索内容或筛选条件。",
+    createFirst: "创建第一个产品、服务、配套或礼券。",
+    productNameRequired: "必须填写产品名称。",
+    categoryRequired: "必须填写分类。",
+    priceInvalid: "价格必须为 0 或以上。",
+    salePriceInvalid: "促销价必须为 0 或以上。",
+    salePriceExceed: "促销价不能高于原价。",
+    stockInvalid: "库存必须为 0 或以上。",
+    pointsInvalid: "可获得积分必须为 0 或以上。",
+    imagesOnly: "只允许上传图片文件。",
+    imageTooLarge: "图片不可超过 5MB。",
+    unableReadImage: "无法读取图片文件。",
+  },
+  ms: {
+    accountMissing: "Maklumat akaun pedagang tidak ditemui. Sila log masuk semula.",
+    merchantIdMissingAgain: "ID pedagang tidak ditemui. Sila log keluar dan log masuk semula.",
+    merchantIdMissing: "ID pedagang tidak ditemui. Sila log masuk semula.",
+    unableLoad: "Tidak dapat memuatkan produk.",
+    updatedSuccess: "Produk berjaya dikemas kini.",
+    createdSuccess: "Produk berjaya dicipta.",
+    unableUpdate: "Tidak dapat mengemas kini produk.",
+    unableCreate: "Tidak dapat mencipta produk.",
+    uploadedUrlMissing: "URL imej yang dimuat naik tidak ditemui.",
+    unableCover: "Tidak dapat memuat naik imej muka hadapan.",
+    maxGallery: "Satu produk boleh mempunyai maksimum 6 imej galeri.",
+    unableGallery: "Tidak dapat memuat naik imej galeri.",
+    statusUpdated: "Status {{name}} telah dikemas kini.",
+    unableStatus: "Tidak dapat mengemas kini status produk.",
+    deactivatedSuccess: "Produk berjaya dinyahaktifkan.",
+    unableDeactivate: "Tidak dapat menyahaktifkan produk.",
+    catalogue: "Katalog Pedagang",
+    products: "Produk",
+    intro: "Cipta dan urus produk, perkhidmatan, pakej dan baucar yang dipaparkan di RewardHub.",
+    addProduct: "Tambah Produk",
+    totalProducts: "Jumlah Produk",
+    active: "Aktif",
+    draft: "Draf",
+    inactive: "Tidak Aktif",
+    searchPlaceholder: "Cari nama atau ID produk",
+    allStatuses: "Semua Status",
+    allTypes: "Semua Jenis",
+    product: "Produk",
+    service: "Perkhidmatan",
+    package: "Pakej",
+    voucher: "Baucar",
+    allCategories: "Semua Kategori",
+    refresh: "Muat Semula",
+    productCatalogue: "Katalog Produk",
+    showing: "Memaparkan {{shown}} daripada {{total}} produk",
+    featured: "Pilihan",
+    tableProduct: "Produk",
+    type: "Jenis",
+    category: "Kategori",
+    price: "Harga",
+    stock: "Stok",
+    status: "Status",
+    updated: "Dikemas Kini",
+    actions: "Tindakan",
+    closeForm: "Tutup borang produk",
+    editProduct: "Edit Produk",
+    createCatalogueItem: "Cipta item katalog baharu",
+    basicInformation: "Maklumat Asas",
+    basicDescription: "Jenis, nama dan penerangan produk",
+    productType: "Jenis Produk",
+    categoryExample: "Contoh: Minuman",
+    productName: "Nama Produk",
+    enterProductName: "Masukkan nama produk",
+    shortDescription: "Penerangan Ringkas",
+    shortPlaceholder: "Ringkasan yang dipaparkan pada kad produk",
+    fullDescription: "Penerangan Penuh",
+    fullPlaceholder: "Terangkan produk, perkhidmatan, pakej atau baucar",
+    pricingInventory: "Harga dan Inventori",
+    pricingDescription: "Tetapkan harga, mata dan stok",
+    originalPrice: "Harga Asal",
+    salePrice: "Harga Jualan",
+    optional: "Pilihan",
+    pointsEarned: "Mata Diperoleh",
+    productImages: "Imej Produk",
+    imageDescription: "Muat naik satu imej muka hadapan dan sehingga enam imej galeri",
+    publishing: "Penerbitan",
+    publishingDescription: "Kawal paparan dan susunan",
+    sortOrder: "Susunan",
+    featuredProduct: "Produk Pilihan",
+    featuredDescription: "Tonjolkan item ini dalam bahagian Marketplace terpilih.",
+    cancel: "Batal",
+    saving: "Sedang Menyimpan...",
+    saveChanges: "Simpan Perubahan",
+    createProduct: "Cipta Produk",
+    edit: "Edit",
+    uploadingImage: "Sedang memuat naik imej...",
+    uploadCover: "Muat naik imej muka hadapan",
+    imageRequirements: "JPG, PNG atau WebP. Maksimum 5MB.",
+    replace: "Ganti",
+    productCover: "Imej muka hadapan produk",
+    galleryImages: "Imej Galeri",
+    uploadedCount: "{{count}}/6 dimuat naik",
+    addImages: "Tambah Imej",
+    noGalleryImages: "Tiada imej galeri",
+    deactivateProduct: "Nyahaktifkan Produk?",
+    deactivateDescription: "{{name}} akan ditukar kepada Tidak Aktif dan dikeluarkan daripada senarai awam.",
+    deactivating: "Sedang Menyahaktifkan...",
+    deactivate: "Nyahaktifkan",
+    loadingProducts: "Sedang memuatkan produk...",
+    noMatching: "Tiada produk sepadan",
+    noProducts: "Belum ada produk",
+    changeSearch: "Cuba ubah carian atau penapis anda.",
+    createFirst: "Cipta produk, perkhidmatan, pakej atau baucar pertama anda.",
+    productNameRequired: "Nama produk diperlukan.",
+    categoryRequired: "Kategori diperlukan.",
+    priceInvalid: "Harga mesti sifar atau lebih tinggi.",
+    salePriceInvalid: "Harga jualan mesti sifar atau lebih tinggi.",
+    salePriceExceed: "Harga jualan tidak boleh melebihi harga asal.",
+    stockInvalid: "Stok mesti sifar atau lebih tinggi.",
+    pointsInvalid: "Mata yang diperoleh mesti sifar atau lebih tinggi.",
+    imagesOnly: "Hanya fail imej dibenarkan.",
+    imageTooLarge: "Imej tidak boleh melebihi 5MB.",
+    unableReadImage: "Tidak dapat membaca fail imej.",
+  },
+} as const;
+
+type ProductTranslation = {
+  [Key in keyof typeof productTranslations.en]: string;
+};
+
+const ProductLanguageContext = createContext<{
+  language: LanguageCode;
+  t: ProductTranslation;
+}>({
+  language: "en",
+  t: productTranslations.en,
+});
+
+function normalizeLanguage(value: string | null): LanguageCode {
+  return value === "zh" || value === "ms" ? value : "en";
+}
+
+function fillTranslation(
+  value: string,
+  replacements: Record<string, string | number>
+) {
+  return Object.entries(replacements).reduce(
+    (result, [key, replacement]) =>
+      result.replaceAll(`{{${key}}}`, String(replacement)),
+    value
+  );
+}
+
+function useProductLanguage() {
+  return useContext(ProductLanguageContext);
+}
 
 /* ============================================================
  * Types
@@ -154,6 +510,8 @@ const EMPTY_FORM: ProductFormState = {
  */
 
 export default function MerchantProductsPage() {
+  const [language, setLanguage] = useState<LanguageCode>("en");
+  const t = productTranslations[language];
   const [merchantId, setMerchantId] =
     useState("");
 
@@ -247,6 +605,40 @@ export default function MerchantProductsPage() {
     useState(false);
 
   useEffect(() => {
+    setLanguage(
+      normalizeLanguage(localStorage.getItem(LANGUAGE_STORAGE_KEY))
+    );
+
+    function handleLanguageChange(event: Event) {
+      const customEvent = event as CustomEvent<{ language?: string }>;
+
+      setLanguage(
+        normalizeLanguage(
+          customEvent.detail?.language ||
+            localStorage.getItem(LANGUAGE_STORAGE_KEY)
+        )
+      );
+    }
+
+    window.addEventListener(
+      "rewardhub-language-change",
+      handleLanguageChange as EventListener
+    );
+    window.addEventListener("storage", handleLanguageChange as EventListener);
+
+    return () => {
+      window.removeEventListener(
+        "rewardhub-language-change",
+        handleLanguageChange as EventListener
+      );
+      window.removeEventListener(
+        "storage",
+        handleLanguageChange as EventListener
+      );
+    };
+  }, []);
+
+  useEffect(() => {
     const storedMerchantId =
       getStoredMerchantId();
 
@@ -257,7 +649,7 @@ export default function MerchantProductsPage() {
 
     if (!storedMerchantId) {
       setPageError(
-        "Merchant account information was not found. Please log in again."
+        t.accountMissing
       );
 
       setLoading(false);
@@ -373,7 +765,7 @@ export default function MerchantProductsPage() {
       setPageError(
         getErrorMessage(
           error,
-          "Unable to load products."
+          t.unableLoad
         )
       );
     } finally {
@@ -590,14 +982,14 @@ export default function MerchantProductsPage() {
 
     if (!activeMerchantId) {
       setFormError(
-        "Merchant ID is missing. Please log out and log in again."
+        t.merchantIdMissingAgain
       );
 
       return;
     }
 
     const validationError =
-      validateProductForm(form);
+      validateProductForm(form, t);
 
     if (validationError) {
       setFormError(
@@ -676,7 +1068,7 @@ export default function MerchantProductsPage() {
         });
 
         setSuccessMessage(
-          "Product updated successfully."
+          t.updatedSuccess
         );
       } else {
         await createMerchantProduct(
@@ -684,7 +1076,7 @@ export default function MerchantProductsPage() {
         );
 
         setSuccessMessage(
-          "Product created successfully."
+          t.createdSuccess
         );
       }
 
@@ -705,8 +1097,8 @@ export default function MerchantProductsPage() {
         getErrorMessage(
           error,
           editingProduct
-            ? "Unable to update product."
-            : "Unable to create product."
+            ? t.unableUpdate
+            : t.unableCreate
         )
       );
     } finally {
@@ -730,7 +1122,7 @@ export default function MerchantProductsPage() {
 
     if (!activeMerchantId) {
       setFormError(
-        "Merchant ID is missing. Please log in again."
+        t.merchantIdMissing
       );
 
       return;
@@ -741,7 +1133,7 @@ export default function MerchantProductsPage() {
     }
 
     const fileError =
-      validateImageFile(file);
+      validateImageFile(file, t);
 
     if (fileError) {
       setFormError(fileError);
@@ -754,7 +1146,8 @@ export default function MerchantProductsPage() {
 
       const base64 =
         await fileToDataUrl(
-          file
+          file,
+          t.unableReadImage
         );
 
       const response =
@@ -788,7 +1181,7 @@ export default function MerchantProductsPage() {
 
       if (!imageUrl) {
         throw new Error(
-          "Uploaded image URL is missing."
+          t.uploadedUrlMissing
         );
       }
 
@@ -800,7 +1193,7 @@ export default function MerchantProductsPage() {
       setFormError(
         getErrorMessage(
           error,
-          "Unable to upload cover image."
+          t.unableCover
         )
       );
     } finally {
@@ -826,7 +1219,7 @@ export default function MerchantProductsPage() {
 
     if (!activeMerchantId) {
       setFormError(
-        "Merchant ID is missing. Please log in again."
+        t.merchantIdMissing
       );
 
       return;
@@ -842,7 +1235,7 @@ export default function MerchantProductsPage() {
       6
     ) {
       setFormError(
-        "A product can contain a maximum of 6 gallery images."
+        t.maxGallery
       );
 
       return;
@@ -850,7 +1243,7 @@ export default function MerchantProductsPage() {
 
     for (const file of files) {
       const fileError =
-        validateImageFile(file);
+        validateImageFile(file, t);
 
       if (fileError) {
         setFormError(fileError);
@@ -868,7 +1261,8 @@ export default function MerchantProductsPage() {
       for (const file of files) {
         const base64 =
           await fileToDataUrl(
-            file
+            file,
+            t.unableReadImage
           );
 
         const response =
@@ -919,7 +1313,7 @@ export default function MerchantProductsPage() {
       setFormError(
         getErrorMessage(
           error,
-          "Unable to upload gallery images."
+          t.unableGallery
         )
       );
     } finally {
@@ -950,7 +1344,7 @@ export default function MerchantProductsPage() {
 
     if (!activeMerchantId) {
       setPageError(
-        "Merchant ID is missing. Please log in again."
+        t.merchantIdMissing
       );
 
       return;
@@ -981,7 +1375,7 @@ export default function MerchantProductsPage() {
       });
 
       setSuccessMessage(
-        `${product.productName} status updated.`
+        fillTranslation(t.statusUpdated, { name: product.productName })
       );
 
       await loadProducts(
@@ -992,7 +1386,7 @@ export default function MerchantProductsPage() {
       setPageError(
         getErrorMessage(
           error,
-          "Unable to update product status."
+          t.unableStatus
         )
       );
     } finally {
@@ -1006,7 +1400,7 @@ export default function MerchantProductsPage() {
 
     if (!activeMerchantId) {
       setPageError(
-        "Merchant ID is missing. Please log in again."
+        t.merchantIdMissing
       );
 
       return;
@@ -1031,7 +1425,7 @@ export default function MerchantProductsPage() {
       setDeletingProduct(null);
 
       setSuccessMessage(
-        "Product deactivated successfully."
+        t.deactivatedSuccess
       );
 
       await loadProducts(
@@ -1042,7 +1436,7 @@ export default function MerchantProductsPage() {
       setPageError(
         getErrorMessage(
           error,
-          "Unable to deactivate product."
+          t.unableDeactivate
         )
       );
     } finally {
@@ -1056,7 +1450,7 @@ export default function MerchantProductsPage() {
 
     if (!activeMerchantId) {
       setPageError(
-        "Merchant ID is missing. Please log in again."
+        t.merchantIdMissing
       );
 
       return;
@@ -1069,7 +1463,8 @@ export default function MerchantProductsPage() {
   }
 
   return (
-    <>
+    <ProductLanguageContext.Provider value={{ language, t }}>
+      <>
       <MerchantNav />
 
       <main className="min-h-screen bg-[#f6f7fb] px-4 py-5 pb-28 sm:px-6 sm:py-6 md:px-8 xl:px-12">
@@ -1078,18 +1473,15 @@ export default function MerchantProductsPage() {
             <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
               <div>
                 <p className="text-[10px] font-black uppercase tracking-[0.25em] text-amber-300 sm:text-xs">
-                  Merchant Catalogue
+                  {t.catalogue}
                 </p>
 
                 <h1 className="mt-3 text-3xl font-black sm:text-4xl md:text-5xl">
-                  Products
+                  {t.products}
                 </h1>
 
                 <p className="mt-3 max-w-2xl text-xs font-bold leading-5 text-slate-400 sm:text-sm sm:leading-6">
-                  Create and manage
-                  products, services,
-                  packages and vouchers
-                  displayed in RewardHub.
+                  {t.intro}
                 </p>
               </div>
 
@@ -1101,32 +1493,32 @@ export default function MerchantProductsPage() {
                 className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-emerald-400 px-5 text-sm font-black text-slate-950 transition hover:bg-emerald-300"
               >
                 <Plus className="h-4 w-4" />
-                Add Product
+                {t.addProduct}
               </button>
             </div>
 
             <div className="mt-7 grid grid-cols-2 gap-3 sm:mt-8 sm:gap-4 xl:grid-cols-4">
               <SummaryCard
                 icon={Boxes}
-                title="Total Products"
+                title={t.totalProducts}
                 value={summary.total}
               />
 
               <SummaryCard
                 icon={CheckCircle2}
-                title="Active"
+                title={t.active}
                 value={summary.active}
               />
 
               <SummaryCard
                 icon={Archive}
-                title="Draft"
+                title={t.draft}
                 value={summary.draft}
               />
 
               <SummaryCard
                 icon={CircleOff}
-                title="Inactive"
+                title={t.inactive}
                 value={summary.inactive}
               />
             </div>
@@ -1166,7 +1558,7 @@ export default function MerchantProductsPage() {
                       event.target.value
                     )
                   }
-                  placeholder="Search product name or ID"
+                  placeholder={t.searchPlaceholder}
                   className="h-12 w-full rounded-2xl border border-slate-200 bg-white pl-11 pr-4 text-sm font-bold text-slate-950 outline-none transition focus:border-slate-950"
                 />
               </label>
@@ -1178,7 +1570,7 @@ export default function MerchantProductsPage() {
                 }
               >
                 <option value="ALL">
-                  All Statuses
+                  {t.allStatuses}
                 </option>
                 <option value="ACTIVE">
                   Active
@@ -1198,19 +1590,19 @@ export default function MerchantProductsPage() {
                 }
               >
                 <option value="ALL">
-                  All Types
+                  {t.allTypes}
                 </option>
                 <option value="PRODUCT">
-                  Product
+                  {t.product}
                 </option>
                 <option value="SERVICE">
-                  Service
+                  {t.service}
                 </option>
                 <option value="PACKAGE">
-                  Package
+                  {t.package}
                 </option>
                 <option value="VOUCHER">
-                  Voucher
+                  {t.voucher}
                 </option>
               </FilterSelect>
 
@@ -1223,7 +1615,7 @@ export default function MerchantProductsPage() {
                 }
               >
                 <option value="ALL">
-                  All Categories
+                  {t.allCategories}
                 </option>
 
                 {categories.map(
@@ -1249,7 +1641,7 @@ export default function MerchantProductsPage() {
                 {refreshing ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
-                  "Refresh"
+                  t.refresh
                 )}
               </button>
             </div>
@@ -1259,7 +1651,7 @@ export default function MerchantProductsPage() {
             <div className="flex items-center justify-between gap-4 border-b border-slate-100 px-5 py-5 sm:px-7">
               <div>
                 <h2 className="text-xl font-black text-slate-950 sm:text-2xl">
-                  Product Catalogue
+                  {t.productCatalogue}
                 </h2>
 
                 <p className="mt-1 text-xs font-bold text-slate-500 sm:text-sm">
@@ -1274,7 +1666,7 @@ export default function MerchantProductsPage() {
 
               <div className="hidden text-right sm:block">
                 <p className="text-xs font-black text-slate-400">
-                  Featured
+                  {t.featured}
                 </p>
 
                 <p className="mt-1 text-lg font-black text-slate-950">
@@ -1337,35 +1729,35 @@ export default function MerchantProductsPage() {
                     <thead>
                       <tr className="border-b border-slate-100 text-left text-[11px] font-black uppercase tracking-[0.12em] text-slate-400">
                         <th className="px-6 py-4">
-                          Product
+                          {t.tableProduct}
                         </th>
 
                         <th className="px-4 py-4">
-                          Type
+                          {t.type}
                         </th>
 
                         <th className="px-4 py-4">
-                          Category
+                          {t.category}
                         </th>
 
                         <th className="px-4 py-4 text-right">
-                          Price
+                          {t.price}
                         </th>
 
                         <th className="px-4 py-4 text-right">
-                          Stock
+                          {t.stock}
                         </th>
 
                         <th className="px-4 py-4">
-                          Status
+                          {t.status}
                         </th>
 
                         <th className="px-4 py-4">
-                          Updated
+                          {t.updated}
                         </th>
 
                         <th className="px-6 py-4 text-right">
-                          Actions
+                          {t.actions}
                         </th>
                       </tr>
                     </thead>
@@ -1460,7 +1852,8 @@ export default function MerchantProductsPage() {
           void confirmDeleteProduct()
         }
       />
-    </>
+      </>
+    </ProductLanguageContext.Provider>
   );
 }
 
@@ -1517,6 +1910,7 @@ function ProductDrawer({
     index: number
   ) => void;
 }) {
+  const { t } = useProductLanguage();
   if (!open) {
     return null;
   }
@@ -1530,7 +1924,7 @@ function ProductDrawer({
     <div className="fixed inset-0 z-[100]">
       <button
         type="button"
-        aria-label="Close product form"
+        aria-label={t.closeForm}
         onClick={onClose}
         className="absolute inset-0 bg-slate-950/70 backdrop-blur-sm"
       />
@@ -1549,14 +1943,14 @@ function ProductDrawer({
             <div>
               <h2 className="text-xl font-black text-slate-950">
                 {editingProduct
-                  ? "Edit Product"
-                  : "Add Product"}
+                  ? t.editProduct
+                  : t.addProduct}
               </h2>
 
               <p className="mt-1 text-xs font-bold text-slate-500">
                 {editingProduct
                   ? editingProduct.productId
-                  : "Create a new catalogue item"}
+                  : t.createCatalogueItem}
               </p>
             </div>
           </div>
@@ -1580,12 +1974,12 @@ function ProductDrawer({
 
           <div className="space-y-7">
             <FormSection
-              title="Basic Information"
-              description="Product type, name and description"
+              title={t.basicInformation}
+              description={t.basicDescription}
             >
               <div className="grid gap-4 sm:grid-cols-2">
                 <FormSelect
-                  label="Product Type"
+                  label={t.productType}
                   value={
                     form.productType
                   }
@@ -1597,26 +1991,26 @@ function ProductDrawer({
                   }
                 >
                   <option value="PRODUCT">
-                    Product
+                    {t.product}
                   </option>
 
                   <option value="SERVICE">
-                    Service
+                    {t.service}
                   </option>
 
                   <option value="PACKAGE">
-                    Package
+                    {t.package}
                   </option>
 
                   <option value="VOUCHER">
-                    Voucher
+                    {t.voucher}
                   </option>
                 </FormSelect>
 
                 <FormInput
-                  label="Category"
+                  label={t.category}
                   value={form.category}
-                  placeholder="Example: Drinks"
+                  placeholder={t.categoryExample}
                   onChange={(value) =>
                     onChange(
                       "category",
@@ -1628,13 +2022,13 @@ function ProductDrawer({
 
               <div className="mt-4">
                 <FormInput
-                  label="Product Name"
+                  label={t.productName}
                   required
                   value={
                     form.productName
                   }
                   maxLength={120}
-                  placeholder="Enter product name"
+                  placeholder={t.enterProductName}
                   onChange={(value) =>
                     onChange(
                       "productName",
@@ -1646,13 +2040,13 @@ function ProductDrawer({
 
               <div className="mt-4">
                 <FormTextArea
-                  label="Short Description"
+                  label={t.shortDescription}
                   value={
                     form.shortDescription
                   }
                   maxLength={250}
                   rows={3}
-                  placeholder="Short summary shown in product cards"
+                  placeholder={t.shortPlaceholder}
                   onChange={(value) =>
                     onChange(
                       "shortDescription",
@@ -1664,13 +2058,13 @@ function ProductDrawer({
 
               <div className="mt-4">
                 <FormTextArea
-                  label="Full Description"
+                  label={t.fullDescription}
                   value={
                     form.description
                   }
                   maxLength={5000}
                   rows={6}
-                  placeholder="Describe the product, service, package or voucher"
+                  placeholder={t.fullPlaceholder}
                   onChange={(value) =>
                     onChange(
                       "description",
@@ -1682,12 +2076,12 @@ function ProductDrawer({
             </FormSection>
 
             <FormSection
-              title="Pricing and Inventory"
-              description="Configure price, points and stock"
+              title={t.pricingInventory}
+              description={t.pricingDescription}
             >
               <div className="grid gap-4 sm:grid-cols-2">
                 <FormInput
-                  label="Original Price"
+                  label={t.originalPrice}
                   type="number"
                   min="0"
                   step="0.01"
@@ -1703,7 +2097,7 @@ function ProductDrawer({
                 />
 
                 <FormInput
-                  label="Sale Price"
+                  label={t.salePrice}
                   type="number"
                   min="0"
                   step="0.01"
@@ -1711,7 +2105,7 @@ function ProductDrawer({
                   value={
                     form.salePrice
                   }
-                  placeholder="Optional"
+                  placeholder={t.optional}
                   onChange={(value) =>
                     onChange(
                       "salePrice",
@@ -1721,7 +2115,7 @@ function ProductDrawer({
                 />
 
                 <FormInput
-                  label="Stock"
+                  label={t.stock}
                   type="number"
                   min="0"
                   step="1"
@@ -1736,7 +2130,7 @@ function ProductDrawer({
                 />
 
                 <FormInput
-                  label="Points Earned"
+                  label={t.pointsEarned}
                   type="number"
                   min="0"
                   step="0.01"
@@ -1755,8 +2149,8 @@ function ProductDrawer({
             </FormSection>
 
             <FormSection
-              title="Product Images"
-              description="Upload one cover and up to six gallery images"
+              title={t.productImages}
+              description={t.imageDescription}
             >
               <CoverImageUploader
                 imageUrl={
@@ -1795,12 +2189,12 @@ function ProductDrawer({
             </FormSection>
 
             <FormSection
-              title="Publishing"
-              description="Control visibility and ordering"
+              title={t.publishing}
+              description={t.publishingDescription}
             >
               <div className="grid gap-4 sm:grid-cols-2">
                 <FormSelect
-                  label="Status"
+                  label={t.status}
                   value={form.status}
                   onChange={(value) =>
                     onChange(
@@ -1810,20 +2204,20 @@ function ProductDrawer({
                   }
                 >
                   <option value="DRAFT">
-                    Draft
+                    {t.draft}
                   </option>
 
                   <option value="ACTIVE">
-                    Active
+                    {t.active}
                   </option>
 
                   <option value="INACTIVE">
-                    Inactive
+                    {t.inactive}
                   </option>
                 </FormSelect>
 
                 <FormInput
-                  label="Sort Order"
+                  label={t.sortOrder}
                   type="number"
                   min="0"
                   step="1"
@@ -1843,13 +2237,11 @@ function ProductDrawer({
               <label className="mt-5 flex cursor-pointer items-center justify-between gap-5 rounded-2xl border border-slate-200 bg-slate-50 p-4">
                 <div>
                   <p className="text-sm font-black text-slate-950">
-                    Featured Product
+                    {t.featuredProduct}
                   </p>
 
                   <p className="mt-1 text-xs font-bold leading-5 text-slate-500">
-                    Highlight this item
-                    in selected marketplace
-                    sections.
+                    {t.featuredDescription}
                   </p>
                 </div>
 
@@ -1879,7 +2271,7 @@ function ProductDrawer({
       onClick={onClose}
       className="inline-flex h-12 w-full items-center justify-center rounded-2xl border border-slate-200 bg-white px-6 text-sm font-black text-slate-600 transition hover:border-slate-950 hover:text-slate-950 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
     >
-      Cancel
+      {t.cancel}
     </button>
 
     <button
@@ -1897,10 +2289,10 @@ function ProductDrawer({
       )}
 
       {saving
-        ? "Saving..."
+        ? t.saving
         : editingProduct
-          ? "Save Changes"
-          : "Create Product"}
+          ? t.saveChanges
+          : t.createProduct}
     </button>
   </div>
 </footer>
@@ -1929,6 +2321,7 @@ function ProductTableRow({
     status: ProductStatus
   ) => void;
 }) {
+  const { language, t } = useProductLanguage();
   return (
     <tr className="border-b border-slate-100 text-sm font-bold text-slate-700 transition hover:bg-slate-50">
       <td className="px-6 py-5">
@@ -1957,7 +2350,8 @@ function ProductTableRow({
 
       <td className="px-4 py-5">
         {formatProductType(
-          product.productType
+          product.productType,
+          t
         )}
       </td>
 
@@ -1990,15 +2384,15 @@ function ProductTableRow({
             className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-black text-slate-700 outline-none"
           >
             <option value="ACTIVE">
-              Active
+              {t.active}
             </option>
 
             <option value="DRAFT">
-              Draft
+              {t.draft}
             </option>
 
             <option value="INACTIVE">
-              Inactive
+              {t.inactive}
             </option>
           </select>
         )}
@@ -2007,7 +2401,8 @@ function ProductTableRow({
       <td className="whitespace-nowrap px-4 py-5 text-xs text-slate-500">
         {formatDate(
           product.updatedAt ||
-            product.createdAt
+            product.createdAt,
+          language
         )}
       </td>
 
@@ -2019,7 +2414,7 @@ function ProductTableRow({
             className="inline-flex h-10 items-center gap-2 rounded-xl border border-slate-200 px-4 text-xs font-black text-slate-700 transition hover:border-slate-950 hover:text-slate-950"
           >
             <Edit3 className="h-3.5 w-3.5" />
-            Edit
+            {t.edit}
           </button>
 
           <button
@@ -2055,6 +2450,7 @@ function ProductMobileCard({
     status: ProductStatus
   ) => void;
 }) {
+  const { t } = useProductLanguage();
   return (
     <article className="rounded-[1.5rem] border border-slate-100 bg-slate-50 p-4">
       <div className="flex gap-4">
@@ -2098,21 +2494,21 @@ function ProductMobileCard({
 
       <div className="mt-4 grid grid-cols-3 gap-2">
         <MobileInfo
-          label="Price"
+          label={t.price}
           value={formatMoney(
             product.effectivePrice
           )}
         />
 
         <MobileInfo
-          label="Stock"
+          label={t.stock}
           value={String(
             product.stock
           )}
         />
 
         <MobileInfo
-          label="Category"
+          label={t.category}
           value={
             product.category || "—"
           }
@@ -2136,15 +2532,15 @@ function ProductMobileCard({
             className="h-11 min-w-0 rounded-xl border border-slate-200 bg-white px-3 text-xs font-black text-slate-700 outline-none"
           >
             <option value="ACTIVE">
-              Active
+              {t.active}
             </option>
 
             <option value="DRAFT">
-              Draft
+              {t.draft}
             </option>
 
             <option value="INACTIVE">
-              Inactive
+              {t.inactive}
             </option>
           </select>
         )}
@@ -2189,6 +2585,7 @@ function CoverImageUploader({
 
   onRemove: () => void;
 }) {
+  const { t } = useProductLanguage();
   if (imageUrl) {
     return (
       <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-slate-50">
@@ -2196,7 +2593,7 @@ function CoverImageUploader({
   src={getDriveImageUrl(
     imageUrl
   )}
-  alt="Product cover"
+  alt={t.productCover}
   className="h-64 w-full object-contain"
   onError={(event) => {
     event.currentTarget.style.display =
@@ -2207,7 +2604,7 @@ function CoverImageUploader({
         <div className="absolute right-3 top-3 flex gap-2">
           <label className="flex h-10 cursor-pointer items-center gap-2 rounded-xl bg-slate-950 px-4 text-xs font-black text-white shadow-lg">
             <Upload className="h-3.5 w-3.5" />
-            Replace
+            {t.replace}
 
             <input
               type="file"
@@ -2241,13 +2638,12 @@ function CoverImageUploader({
 
       <p className="mt-4 text-sm font-black text-slate-950">
         {uploading
-          ? "Uploading image..."
-          : "Upload cover image"}
+          ? t.uploadingImage
+          : t.uploadCover}
       </p>
 
       <p className="mt-2 text-xs font-bold text-slate-500">
-        JPG, PNG or WebP.
-        Maximum 5 MB.
+        {t.imageRequirements}
       </p>
 
       <input
@@ -2278,17 +2674,17 @@ function GalleryUploader({
     index: number
   ) => void;
 }) {
+  const { t } = useProductLanguage();
   return (
     <div>
       <div className="flex items-center justify-between gap-4">
         <div>
           <p className="text-sm font-black text-slate-950">
-            Gallery Images
+            {t.galleryImages}
           </p>
 
           <p className="mt-1 text-xs font-bold text-slate-500">
-            {gallery.length}/6
-            uploaded
+            {fillTranslation(t.uploadedCount, { count: gallery.length })}
           </p>
         </div>
 
@@ -2307,7 +2703,7 @@ function GalleryUploader({
             <Plus className="h-3.5 w-3.5" />
           )}
 
-          Add Images
+          {t.addImages}
 
           <input
             type="file"
@@ -2362,7 +2758,7 @@ function GalleryUploader({
             <FileImage className="mx-auto h-6 w-6 text-slate-300" />
 
             <p className="mt-2 text-xs font-bold text-slate-400">
-              No gallery images
+              {t.noGalleryImages}
             </p>
           </div>
         </div>
@@ -2389,6 +2785,7 @@ function DeleteProductDialog({
   onClose: () => void;
   onConfirm: () => void;
 }) {
+  const { t } = useProductLanguage();
   if (!product) {
     return null;
   }
@@ -2401,16 +2798,11 @@ function DeleteProductDialog({
         </div>
 
         <h2 className="mt-5 text-2xl font-black text-slate-950">
-          Deactivate Product?
+          {t.deactivateProduct}
         </h2>
 
         <p className="mt-3 text-sm font-bold leading-6 text-slate-500">
-          <span className="text-slate-950">
-            {product.productName}
-          </span>{" "}
-          will be changed to
-          Inactive and removed from
-          public product listings.
+          {fillTranslation(t.deactivateDescription, { name: product.productName })}
         </p>
 
         <div className="mt-7 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
@@ -2436,8 +2828,8 @@ function DeleteProductDialog({
             )}
 
             {deleting
-              ? "Deactivating..."
-              : "Deactivate"}
+              ? t.deactivating
+              : t.deactivate}
           </button>
         </div>
       </div>
@@ -2774,6 +3166,8 @@ function StatusBadge({
 }: {
   status: ProductStatus;
 }) {
+  const { t } = useProductLanguage();
+
   const classes =
     status === "ACTIVE"
       ? "bg-emerald-100 text-emerald-700"
@@ -2785,7 +3179,7 @@ function StatusBadge({
     <span
       className={`inline-flex rounded-full px-3 py-1 text-[10px] font-black ${classes}`}
     >
-      {formatStatus(status)}
+      {formatStatus(status, t)}
     </span>
   );
 }
@@ -2795,9 +3189,11 @@ function TypeBadge({
 }: {
   type: ProductType;
 }) {
+  const { t } = useProductLanguage();
+
   return (
     <span className="inline-flex rounded-full bg-blue-50 px-3 py-1 text-[10px] font-black text-blue-700">
-      {formatProductType(type)}
+      {formatProductType(type, t)}
     </span>
   );
 }
@@ -2823,12 +3219,14 @@ function MobileInfo({
 }
 
 function ProductsLoading() {
+  const { t } = useProductLanguage();
+
   return (
     <div className="flex min-h-80 flex-col items-center justify-center px-6 py-16 text-center">
       <Loader2 className="h-8 w-8 animate-spin text-slate-400" />
 
       <p className="mt-4 text-sm font-black text-slate-500">
-        Loading products...
+        {t.loadingProducts}
       </p>
     </div>
   );
@@ -2841,6 +3239,8 @@ function ProductsEmpty({
   hasProducts: boolean;
   onCreate: () => void;
 }) {
+  const { t } = useProductLanguage();
+
   return (
     <div className="flex min-h-80 flex-col items-center justify-center px-6 py-16 text-center">
       <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-100 text-slate-400">
@@ -2849,14 +3249,14 @@ function ProductsEmpty({
 
       <h3 className="mt-5 text-xl font-black text-slate-950">
         {hasProducts
-          ? "No matching products"
-          : "No products yet"}
+          ? t.noMatching
+          : t.noProducts}
       </h3>
 
       <p className="mt-2 max-w-md text-sm font-bold leading-6 text-slate-500">
         {hasProducts
-          ? "Try changing your search or filters."
-          : "Create your first product, service, package or voucher."}
+          ? t.changeSearch
+          : t.createFirst}
       </p>
 
       {!hasProducts ? (
@@ -2866,7 +3266,7 @@ function ProductsEmpty({
           className="mt-6 inline-flex h-12 items-center gap-2 rounded-2xl bg-slate-950 px-6 text-sm font-black text-white"
         >
           <Plus className="h-4 w-4" />
-          Add Product
+          {t.addProduct}
         </button>
       ) : null}
     </div>
@@ -3066,18 +3466,19 @@ function normalizeSummary(
 }
 
 function validateProductForm(
-  form: ProductFormState
+  form: ProductFormState,
+  t: ProductTranslation
 ) {
   if (
     !form.productName.trim()
   ) {
-    return "Product name is required.";
+    return t.productNameRequired;
   }
 
   if (
     !form.category.trim()
   ) {
-    return "Category is required.";
+    return t.categoryRequired;
   }
 
   const price =
@@ -3104,7 +3505,7 @@ function validateProductForm(
     !Number.isFinite(price) ||
     price < 0
   ) {
-    return "Price must be zero or higher.";
+    return t.priceInvalid;
   }
 
   if (
@@ -3113,7 +3514,7 @@ function validateProductForm(
     ) ||
     salePrice < 0
   ) {
-    return "Sale price must be zero or higher.";
+    return t.salePriceInvalid;
   }
 
   if (
@@ -3121,14 +3522,14 @@ function validateProductForm(
     price > 0 &&
     salePrice > price
   ) {
-    return "Sale price cannot exceed the original price.";
+    return t.salePriceExceed;
   }
 
   if (
     !Number.isFinite(stock) ||
     stock < 0
   ) {
-    return "Stock must be zero or higher.";
+    return t.stockInvalid;
   }
 
   if (
@@ -3137,35 +3538,37 @@ function validateProductForm(
     ) ||
     pointsEarned < 0
   ) {
-    return "Points earned must be zero or higher.";
+    return t.pointsInvalid;
   }
 
   return "";
 }
 
 function validateImageFile(
-  file: File
+  file: File,
+  t: ProductTranslation
 ) {
   if (
     !file.type.startsWith(
       "image/"
     )
   ) {
-    return "Only image files are allowed.";
+    return t.imagesOnly;
   }
 
   if (
     file.size >
     5 * 1024 * 1024
   ) {
-    return "Image cannot exceed 5 MB.";
+    return t.imageTooLarge;
   }
 
   return "";
 }
 
 function fileToDataUrl(
-  file: File
+  file: File,
+  errorMessage: string
 ): Promise<string> {
   return new Promise(
     (resolve, reject) => {
@@ -3185,7 +3588,7 @@ function fileToDataUrl(
 
         reject(
           new Error(
-            "Unable to read image file."
+            errorMessage
           )
         );
       };
@@ -3193,7 +3596,7 @@ function fileToDataUrl(
       reader.onerror = () => {
         reject(
           new Error(
-            "Unable to read image file."
+            errorMessage
           )
         );
       };
@@ -3402,7 +3805,8 @@ function formatMoney(
 }
 
 function formatDate(
-  value: string
+  value: string,
+  language: LanguageCode
 ) {
   if (!value) {
     return "—";
@@ -3420,7 +3824,7 @@ function formatDate(
   }
 
   return new Intl.DateTimeFormat(
-    "en-MY",
+    language === "zh" ? "zh-CN" : language === "ms" ? "ms-MY" : "en-MY",
     {
       timeZone:
         "Asia/Kuala_Lumpur",
@@ -3432,35 +3836,37 @@ function formatDate(
 }
 
 function formatProductType(
-  value: ProductType
+  value: ProductType,
+  t: ProductTranslation
 ) {
   if (value === "SERVICE") {
-    return "Service";
+    return t.service;
   }
 
   if (value === "PACKAGE") {
-    return "Package";
+    return t.package;
   }
 
   if (value === "VOUCHER") {
-    return "Voucher";
+    return t.voucher;
   }
 
-  return "Product";
+  return t.product;
 }
 
 function formatStatus(
-  value: ProductStatus
+  value: ProductStatus,
+  t: ProductTranslation
 ) {
   if (value === "ACTIVE") {
-    return "Active";
+    return t.active;
   }
 
   if (value === "INACTIVE") {
-    return "Inactive";
+    return t.inactive;
   }
 
-  return "Draft";
+  return t.draft;
 }
 
 function getErrorMessage(

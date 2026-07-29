@@ -7,7 +7,247 @@ import {
   uploadTransactionReceipt,
 } from "@/lib/api";
 
+
+type LanguageCode = "en" | "zh" | "ms";
+
+const LANGUAGE_STORAGE_KEY = "rewardhub-language";
+
+const translations = {
+  en: {
+    loadFailed: "Failed to load transactions",
+    receiptUploaded: "Receipt uploaded successfully",
+    uploadFailed: "Upload failed",
+    merchantTransactions: "{t.merchantTransactions}",
+    transactionHistory: "{t.transactionHistory}",
+    description:
+      "Track customer payments, instant cashback, Reward Credits used, and points issued.",
+    customerPays: "{t.customerPays}",
+    originalSales: "{t.originalSales}",
+    cashbackGiven: "{t.cashbackGiven}",
+    rewardCreditsUsed: "{t.rewardCreditsUsed}",
+    pointsIssued: "{t.pointsIssued}",
+    pointsUnit: "pts",
+    allTransactions: "{t.allTransactions}",
+    showingTransactions: "Showing {{count}} transaction(s)",
+    searchPlaceholder: "Search TX / Member ID",
+    allDates: "All Dates",
+    today: "Today",
+    yesterday: "Yesterday",
+    thisMonth: "This Month",
+    allMethods: "All Methods",
+    cash: "Cash",
+    duitNow: "DuitNow",
+    tng: "TNG",
+    bank: "Bank",
+    card: "Card",
+    noTransactions: "No transactions found.",
+    loadingTransactions: "Loading transactions...",
+    dateTime: "Date / Time",
+    transactionId: "Transaction ID",
+    member: "Member",
+    original: "Original",
+    cashback: "Cashback",
+    rewardCredit: "Reward Credit",
+    points: "Points",
+    method: "Method",
+    status: "Status",
+    receipt: "Receipt",
+    view: "View",
+    payment: "Payment",
+    creditsUsed: "Credits Used",
+    viewReceipt: "{t.viewReceipt}",
+    noReceipt: "{t.noReceipt}",
+    transactionDetail: "{t.transactionDetail}",
+    memberId: "Member ID",
+    originalAmount: "Original Amount",
+    rewardCredits: "Reward Credits",
+    pointsEarned: "Points Earned",
+    paymentMethod: "Payment Method",
+    upload: "Upload",
+    close: "Close",
+    receiptPreview: "{t.receiptPreview}",
+    receiptAlt: "Receipt",
+    completed: "Completed",
+    pending: "Pending",
+    cancelled: "Cancelled",
+  },
+  zh: {
+    loadFailed: "无法加载交易记录",
+    receiptUploaded: "收据上传成功",
+    uploadFailed: "上传失败",
+    merchantTransactions: "商家交易",
+    transactionHistory: "交易记录",
+    description:
+      "查看顾客付款、即时 Cashback、使用的 Reward Credits 和发放的积分。",
+    customerPays: "顾客实付",
+    originalSales: "原始销售额",
+    cashbackGiven: "已发放 Cashback",
+    rewardCreditsUsed: "已使用 Reward Credits",
+    pointsIssued: "已发放积分",
+    pointsUnit: "积分",
+    allTransactions: "所有交易",
+    showingTransactions: "显示 {{count}} 笔交易",
+    searchPlaceholder: "搜索交易编号 / 会员 ID",
+    allDates: "全部日期",
+    today: "今天",
+    yesterday: "昨天",
+    thisMonth: "本月",
+    allMethods: "全部付款方式",
+    cash: "现金",
+    duitNow: "DuitNow",
+    tng: "TNG",
+    bank: "银行转账",
+    card: "银行卡",
+    noTransactions: "找不到交易记录。",
+    loadingTransactions: "正在加载交易记录……",
+    dateTime: "日期 / 时间",
+    transactionId: "交易编号",
+    member: "会员",
+    original: "原始金额",
+    cashback: "Cashback",
+    rewardCredit: "Reward Credit",
+    points: "积分",
+    method: "付款方式",
+    status: "状态",
+    receipt: "收据",
+    view: "查看",
+    payment: "付款",
+    creditsUsed: "已使用 Credits",
+    viewReceipt: "查看收据",
+    noReceipt: "没有收据",
+    transactionDetail: "交易详情",
+    memberId: "会员 ID",
+    originalAmount: "原始金额",
+    rewardCredits: "Reward Credits",
+    pointsEarned: "获得积分",
+    paymentMethod: "付款方式",
+    upload: "上传",
+    close: "关闭",
+    receiptPreview: "收据预览",
+    receiptAlt: "收据",
+    completed: "已完成",
+    pending: "待处理",
+    cancelled: "已取消",
+  },
+  ms: {
+    loadFailed: "Gagal memuatkan transaksi",
+    receiptUploaded: "Resit berjaya dimuat naik",
+    uploadFailed: "Muat naik gagal",
+    merchantTransactions: "Transaksi Pedagang",
+    transactionHistory: "Sejarah Transaksi",
+    description:
+      "Jejaki bayaran pelanggan, Cashback segera, Reward Credits digunakan dan mata yang dikeluarkan.",
+    customerPays: "Bayaran Pelanggan",
+    originalSales: "Jualan Asal",
+    cashbackGiven: "Cashback Diberikan",
+    rewardCreditsUsed: "Reward Credits Digunakan",
+    pointsIssued: "Mata Dikeluarkan",
+    pointsUnit: "mata",
+    allTransactions: "Semua Transaksi",
+    showingTransactions: "Memaparkan {{count}} transaksi",
+    searchPlaceholder: "Cari TX / ID Ahli",
+    allDates: "Semua Tarikh",
+    today: "Hari Ini",
+    yesterday: "Semalam",
+    thisMonth: "Bulan Ini",
+    allMethods: "Semua Kaedah",
+    cash: "Tunai",
+    duitNow: "DuitNow",
+    tng: "TNG",
+    bank: "Bank",
+    card: "Kad",
+    noTransactions: "Tiada transaksi ditemui.",
+    loadingTransactions: "Memuatkan transaksi...",
+    dateTime: "Tarikh / Masa",
+    transactionId: "ID Transaksi",
+    member: "Ahli",
+    original: "Asal",
+    cashback: "Cashback",
+    rewardCredit: "Reward Credit",
+    points: "Mata",
+    method: "Kaedah",
+    status: "Status",
+    receipt: "Resit",
+    view: "Lihat",
+    payment: "Bayaran",
+    creditsUsed: "Credits Digunakan",
+    viewReceipt: "Lihat Resit",
+    noReceipt: "Tiada Resit",
+    transactionDetail: "Butiran Transaksi",
+    memberId: "ID Ahli",
+    originalAmount: "Jumlah Asal",
+    rewardCredits: "Reward Credits",
+    pointsEarned: "Mata Diperoleh",
+    paymentMethod: "Kaedah Bayaran",
+    upload: "Muat Naik",
+    close: "Tutup",
+    receiptPreview: "Pratonton Resit",
+    receiptAlt: "Resit",
+    completed: "Selesai",
+    pending: "Tertunda",
+    cancelled: "Dibatalkan",
+  },
+} as const;
+
+function normalizeLanguage(value: string | null): LanguageCode {
+  return value === "zh" || value === "ms" ? value : "en";
+}
+
+function fillText(
+  value: string,
+  replacements: Record<string, string | number>
+) {
+  return Object.entries(replacements).reduce(
+    (result, [key, replacement]) =>
+      result.replaceAll(`{{${key}}}`, String(replacement)),
+    value
+  );
+}
+
+function usePageLanguage() {
+  const [language, setLanguage] = useState<LanguageCode>("en");
+
+  useEffect(() => {
+    setLanguage(
+      normalizeLanguage(localStorage.getItem(LANGUAGE_STORAGE_KEY))
+    );
+
+    function handleLanguageChange(event: Event) {
+      const customEvent = event as CustomEvent<{ language?: string }>;
+
+      setLanguage(
+        normalizeLanguage(
+          customEvent.detail?.language ||
+            localStorage.getItem(LANGUAGE_STORAGE_KEY)
+        )
+      );
+    }
+
+    window.addEventListener(
+      "rewardhub-language-change",
+      handleLanguageChange as EventListener
+    );
+    window.addEventListener("storage", handleLanguageChange as EventListener);
+
+    return () => {
+      window.removeEventListener(
+        "rewardhub-language-change",
+        handleLanguageChange as EventListener
+      );
+      window.removeEventListener(
+        "storage",
+        handleLanguageChange as EventListener
+      );
+    };
+  }, []);
+
+  const t = useMemo(() => translations[language], [language]);
+
+  return { language, t };
+}
+
 export default function MerchantTransactionsPage() {
+  const { language, t } = usePageLanguage();
   const [transactions, setTransactions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -23,7 +263,14 @@ export default function MerchantTransactionsPage() {
   }, []);
 
   async function loadTransactions() {
-    const merchant = JSON.parse(localStorage.getItem("merchant") || "{}");
+    let merchant: any = {};
+
+    try {
+      merchant = JSON.parse(localStorage.getItem("merchant") || "{}");
+    } catch {
+      merchant = {};
+    }
+
     const merchantId = merchant?.merchantId || merchant?.MERCHANT_ID;
 
     if (!merchantId) {
@@ -40,7 +287,7 @@ export default function MerchantTransactionsPage() {
       setTransactions(res?.data?.data?.transactions || []);
     } catch (err) {
       console.error(err);
-      alert("Failed to load transactions");
+      alert(t.loadFailed);
     } finally {
       setLoading(false);
     }
@@ -75,9 +322,9 @@ export default function MerchantTransactionsPage() {
             : old
         );
 
-        alert("Receipt uploaded successfully");
+        alert(t.receiptUploaded);
       } catch (err: any) {
-        alert(err.message || "Upload failed");
+        alert(err?.message || t.uploadFailed);
       }
     };
 
@@ -134,29 +381,28 @@ export default function MerchantTransactionsPage() {
         <section className="mx-auto w-full max-w-7xl">
           <div className="rounded-[1.75rem] bg-slate-950 p-5 text-white shadow-2xl sm:rounded-[2rem] sm:p-7 md:rounded-[2.5rem] md:p-9">
             <p className="text-[10px] font-black uppercase tracking-[0.22em] text-amber-300 sm:text-xs sm:tracking-[0.25em]">
-              Merchant Transactions
+              {t.merchantTransactions}
             </p>
 
             <h1 className="mt-3 text-3xl font-black sm:text-4xl md:text-5xl">
-              Transaction History
+              {t.transactionHistory}
             </h1>
 
             <p className="mt-3 max-w-2xl text-xs font-bold leading-5 text-slate-400 sm:text-sm sm:leading-6">
-              Track customer payments, instant cashback, Reward Credits used,
-              and points issued.
+              {t.description}
             </p>
 
             <div className="mt-6 grid grid-cols-2 gap-3 sm:mt-8 sm:gap-4 xl:grid-cols-5">
-              <Stat title="Customer Pays" value={`RM${money(totalPayAmount)}`} />
-              <Stat title="Original Sales" value={`RM${money(totalOriginal)}`} />
-              <Stat title="Cashback Given" value={`RM${money(totalCashback)}`} />
+              <Stat title="{t.customerPays}" value={`RM${money(totalPayAmount)}`} />
+              <Stat title="{t.originalSales}" value={`RM${money(totalOriginal)}`} />
+              <Stat title="{t.cashbackGiven}" value={`RM${money(totalCashback)}`} />
               <Stat
-                title="Reward Credits Used"
+                title="{t.rewardCreditsUsed}"
                 value={`RM${money(totalRewardCredits)}`}
               />
               <Stat
-                title="Points Issued"
-                value={`${totalPoints} pts`}
+                title="{t.pointsIssued}"
+                value={`${totalPoints} ${t.pointsUnit}`}
                 wideOnMobile
               />
             </div>
@@ -166,10 +412,10 @@ export default function MerchantTransactionsPage() {
             <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
               <div>
                 <h2 className="text-xl font-black text-slate-950 sm:text-2xl">
-                  All Transactions
+                  {t.allTransactions}
                 </h2>
                 <p className="mt-1 text-[11px] font-bold text-slate-500 sm:text-sm">
-                  Showing {filtered.length} transaction(s)
+                  {fillText(t.showingTransactions, { count: filtered.length })}
                 </p>
               </div>
 
@@ -177,7 +423,7 @@ export default function MerchantTransactionsPage() {
                 <input
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Search TX / Member ID"
+                  placeholder={t.searchPlaceholder}
                   className="col-span-2 rounded-xl border border-slate-200 px-4 py-3 text-xs font-bold outline-none focus:border-slate-950 sm:rounded-2xl sm:px-5 sm:py-4 sm:text-sm lg:col-span-1"
                 />
 
@@ -186,10 +432,10 @@ export default function MerchantTransactionsPage() {
                   onChange={(e) => setDateFilter(e.target.value)}
                   className="min-w-0 rounded-xl border border-slate-200 px-3 py-3 text-xs font-bold outline-none focus:border-slate-950 sm:rounded-2xl sm:px-5 sm:py-4 sm:text-sm"
                 >
-                  <option value="All">All Dates</option>
-                  <option value="Today">Today</option>
-                  <option value="Yesterday">Yesterday</option>
-                  <option value="This Month">This Month</option>
+                  <option value="All">{t.allDates}</option>
+                  <option value="Today">{t.today}</option>
+                  <option value="Yesterday">{t.yesterday}</option>
+                  <option value="This Month">{t.thisMonth}</option>
                 </select>
 
                 <select
@@ -197,12 +443,12 @@ export default function MerchantTransactionsPage() {
                   onChange={(e) => setMethod(e.target.value)}
                   className="min-w-0 rounded-xl border border-slate-200 px-3 py-3 text-xs font-bold outline-none focus:border-slate-950 sm:rounded-2xl sm:px-5 sm:py-4 sm:text-sm"
                 >
-                  <option value="All">All Methods</option>
-                  <option value="Cash">Cash</option>
-                  <option value="DuitNow">DuitNow</option>
-                  <option value="TNG">TNG</option>
-                  <option value="Bank">Bank</option>
-                  <option value="Card">Card</option>
+                  <option value="All">{t.allMethods}</option>
+                  <option value="Cash">{t.cash}</option>
+                  <option value="DuitNow">{t.duitNow}</option>
+                  <option value="TNG">{t.tng}</option>
+                  <option value="Bank">{t.bank}</option>
+                  <option value="Card">{t.card}</option>
                 </select>
               </div>
             </div>
@@ -215,14 +461,15 @@ export default function MerchantTransactionsPage() {
                   tx={tx}
                   onOpen={() => setSelectedTx(tx)}
                   onPreviewReceipt={(url) => setPreviewReceipt(url)}
+                  language={language}
                 />
               ))}
 
               {!loading && filtered.length === 0 && (
-                <EmptyState text="No transactions found." />
+                <EmptyState text={t.noTransactions} />
               )}
 
-              {loading && <EmptyState text="Loading transactions..." />}
+              {loading && <EmptyState text={t.loadingTransactions} />}
             </div>
 
             {/* Desktop table */}
@@ -230,17 +477,17 @@ export default function MerchantTransactionsPage() {
               <table className="w-full min-w-[1150px]">
                 <thead>
                   <tr className="border-b border-slate-200 text-left text-xs font-black uppercase tracking-wider text-slate-400">
-                    <th className="px-4 py-4">Date / Time</th>
-                    <th className="px-4 py-4">Transaction ID</th>
-                    <th className="px-4 py-4">Member</th>
-                    <th className="px-4 py-4 text-right">Original</th>
-                    <th className="px-4 py-4 text-right">Cashback</th>
-                    <th className="px-4 py-4 text-right">Reward Credit</th>
-                    <th className="px-4 py-4 text-right">Customer Pays</th>
-                    <th className="px-4 py-4 text-right">Points</th>
-                    <th className="px-4 py-4">Method</th>
-                    <th className="px-4 py-4">Status</th>
-                    <th className="px-4 py-4">Receipt</th>
+                    <th className="px-4 py-4">{t.dateTime}</th>
+                    <th className="px-4 py-4">{t.transactionId}</th>
+                    <th className="px-4 py-4">{t.member}</th>
+                    <th className="px-4 py-4 text-right">{t.original}</th>
+                    <th className="px-4 py-4 text-right">{t.cashback}</th>
+                    <th className="px-4 py-4 text-right">{t.rewardCredit}</th>
+                    <th className="px-4 py-4 text-right">{t.customerPays}</th>
+                    <th className="px-4 py-4 text-right">{t.points}</th>
+                    <th className="px-4 py-4">{t.method}</th>
+                    <th className="px-4 py-4">{t.status}</th>
+                    <th className="px-4 py-4">{t.receipt}</th>
                   </tr>
                 </thead>
 
@@ -252,7 +499,7 @@ export default function MerchantTransactionsPage() {
                       className="cursor-pointer border-b border-slate-100 text-sm font-bold text-slate-700 hover:bg-slate-50"
                     >
                       <td className="whitespace-nowrap px-4 py-5">
-                        {formatDate(tx.createdAt)}
+                        {formatDate(tx.createdAt, language)}
                       </td>
 
                       <td className="px-4 py-5 font-black text-slate-950">
@@ -308,10 +555,10 @@ export default function MerchantTransactionsPage() {
               </table>
 
               {!loading && filtered.length === 0 && (
-                <EmptyState text="No transactions found." />
+                <EmptyState text={t.noTransactions} />
               )}
 
-              {loading && <EmptyState text="Loading transactions..." />}
+              {loading && <EmptyState text={t.loadingTransactions} />}
             </div>
           </div>
         </section>
@@ -322,6 +569,7 @@ export default function MerchantTransactionsPage() {
             onClose={() => setSelectedTx(null)}
             onPreviewReceipt={(url: string) => setPreviewReceipt(url)}
             onUploadReceipt={handleUploadReceipt}
+            language={language}
           />
         )}
 
@@ -329,6 +577,7 @@ export default function MerchantTransactionsPage() {
           <ReceiptPreviewModal
             url={previewReceipt}
             onClose={() => setPreviewReceipt("")}
+            language={language}
           />
         )}
       </main>
@@ -340,11 +589,15 @@ function MobileTransactionCard({
   tx,
   onOpen,
   onPreviewReceipt,
+  language,
 }: {
   tx: any;
   onOpen: () => void;
   onPreviewReceipt: (url: string) => void;
+  language: LanguageCode;
 }) {
+  const t = translations[language];
+
   return (
     <button
       type="button"
@@ -354,7 +607,7 @@ function MobileTransactionCard({
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
           <p className="truncate text-sm font-black text-slate-950">
-            {tx.memberId || "Member"}
+            {tx.memberId || t.member}
           </p>
 
           <div className="mt-2">
@@ -362,7 +615,7 @@ function MobileTransactionCard({
           </div>
 
           <p className="mt-2 text-[10px] font-bold text-slate-500">
-            {tx.paymentMethod || "Payment"} • {formatDate(tx.createdAt)}
+            {tx.paymentMethod || t.payment} • {formatDate(tx.createdAt, language)}
           </p>
 
           <p className="mt-1 truncate text-[9px] font-bold text-slate-400">
@@ -372,30 +625,30 @@ function MobileTransactionCard({
 
         <div className="shrink-0 text-right">
           <p className="text-[9px] font-black uppercase tracking-[0.08em] text-slate-400">
-            Customer Pays
+            {t.customerPays}
           </p>
           <p className="mt-1 text-lg font-black text-slate-950">
             RM{money(tx.payAmount)}
           </p>
           <p className="mt-1 text-[10px] font-bold text-emerald-700">
-            Cashback RM{money(tx.cashback)}
+            {t.cashback} RM{money(tx.cashback)}
           </p>
         </div>
       </div>
 
       <div className="mt-4 grid grid-cols-2 gap-2">
-        <MiniInfo title="Original" value={`RM${money(tx.amount)}`} />
+        <MiniInfo title={t.original} value={`RM${money(tx.amount)}`} />
         <MiniInfo
-          title="Credits Used"
+          title={t.creditsUsed}
           value={`RM${money(tx.rewardCreditsUsed)}`}
         />
         <MiniInfo
-          title="Points"
-          value={`${Number(tx.pointsEarned || 0)} pts`}
+          title={t.points}
+          value={`${Number(tx.pointsEarned || 0)} ${t.pointsUnit}`}
         />
 
         <div className="rounded-xl bg-white p-3">
-          <p className="text-[9px] font-black text-slate-400">Receipt</p>
+          <p className="text-[9px] font-black text-slate-400">{t.receipt}</p>
           {tx.receiptUrl ? (
             <span
               onClick={(e) => {
@@ -404,10 +657,10 @@ function MobileTransactionCard({
               }}
               className="mt-1 inline-block text-xs font-black text-blue-600"
             >
-              View Receipt
+              {t.viewReceipt}
             </span>
           ) : (
-            <p className="mt-1 text-xs font-black text-slate-400">No Receipt</p>
+            <p className="mt-1 text-xs font-black text-slate-400">{t.noReceipt}</p>
           )}
         </div>
       </div>
@@ -420,18 +673,22 @@ function TransactionDetailModal({
   onClose,
   onPreviewReceipt,
   onUploadReceipt,
+  language,
 }: {
   tx: any;
   onClose: () => void;
   onPreviewReceipt: (url: string) => void;
   onUploadReceipt: (transactionId: string, file: File) => void;
+  language: LanguageCode;
 }) {
+  const t = translations[language];
+
   return (
     <div className="fixed inset-0 z-[70] flex items-end justify-center bg-black/50 px-3 py-3 sm:items-center sm:px-4">
       <div className="max-h-[92vh] w-full max-w-lg overflow-y-auto rounded-[1.75rem] bg-white p-5 shadow-2xl sm:rounded-3xl sm:p-8">
         <div className="flex items-center justify-between gap-4">
           <h2 className="text-xl font-black text-slate-950 sm:text-2xl">
-            Transaction Detail
+            {t.transactionDetail}
           </h2>
 
           <button
@@ -443,25 +700,25 @@ function TransactionDetailModal({
         </div>
 
         <div className="mt-5 space-y-3 text-xs font-bold text-slate-700 sm:mt-6 sm:space-y-4 sm:text-sm">
-          <Detail label="Transaction ID" value={tx.transactionId} />
-          <Detail label="Member ID" value={tx.memberId || "-"} />
-          <Detail label="Date / Time" value={formatDate(tx.createdAt)} />
-          <Detail label="Original Amount" value={`RM${money(tx.amount)}`} />
-          <Detail label="Cashback" value={`RM${money(tx.cashback)}`} />
+          <Detail label={t.transactionId} value={tx.transactionId} />
+          <Detail label={t.memberId} value={tx.memberId || "-"} />
+          <Detail label={t.dateTime} value={formatDate(tx.createdAt, language)} />
+          <Detail label={t.originalAmount} value={`RM${money(tx.amount)}`} />
+          <Detail label={t.cashback} value={`RM${money(tx.cashback)}`} />
           <Detail
-            label="Reward Credits"
+            label={t.rewardCredits}
             value={`RM${money(tx.rewardCreditsUsed)}`}
           />
-          <Detail label="Customer Pays" value={`RM${money(tx.payAmount)}`} />
+          <Detail label="{t.customerPays}" value={`RM${money(tx.payAmount)}`} />
           <Detail
-            label="Points Earned"
-            value={`${Number(tx.pointsEarned || 0)} pts`}
+            label={t.pointsEarned}
+            value={`${Number(tx.pointsEarned || 0)} ${t.pointsUnit}`}
           />
-          <Detail label="Payment Method" value={tx.paymentMethod || "-"} />
-          <Detail label="Status" value={tx.status || "Completed"} />
+          <Detail label={t.paymentMethod} value={tx.paymentMethod || "-"} />
+          <Detail label={t.status} value={tx.status || "Completed"} />
 
           <div className="flex items-center justify-between gap-4 border-b border-slate-100 pb-3">
-            <span className="text-slate-400">Receipt</span>
+            <span className="text-slate-400">{t.receipt}</span>
 
             <div className="flex items-center gap-2">
               {tx.receiptUrl ? (
@@ -506,10 +763,14 @@ function TransactionDetailModal({
 function ReceiptPreviewModal({
   url,
   onClose,
+  language,
 }: {
   url: string;
   onClose: () => void;
+  language: LanguageCode;
 }) {
+  const t = translations[language];
+
   return (
     <div
       onClick={onClose}
@@ -521,7 +782,7 @@ function ReceiptPreviewModal({
       >
         <div className="flex items-center justify-between gap-4">
           <h2 className="text-xl font-black text-slate-950 sm:text-2xl">
-            Receipt Preview
+            {t.receiptPreview}
           </h2>
 
           <button
@@ -535,7 +796,7 @@ function ReceiptPreviewModal({
         <div className="mt-4 max-h-[78vh] overflow-auto rounded-2xl border border-slate-200 bg-slate-50 p-2 sm:mt-5 sm:p-3">
           <img
             src={getReceiptImageUrl(url)}
-            alt="Receipt"
+            alt={t.receiptAlt}
             className="mx-auto max-h-[72vh] w-auto rounded-xl object-contain"
           />
         </div>
@@ -581,6 +842,8 @@ function MiniInfo({ title, value }: { title: string; value: any }) {
 }
 
 function StatusBadge({ status }: { status: string }) {
+  const { t } = usePageLanguage();
+
   const color =
     status === "Completed"
       ? "bg-emerald-100 text-emerald-700"
@@ -594,7 +857,13 @@ function StatusBadge({ status }: { status: string }) {
     <span
       className={`inline-flex rounded-full px-2.5 py-1 text-[10px] font-black sm:px-3 sm:text-xs ${color}`}
     >
-      {status}
+      {status === "Completed"
+        ? t.completed
+        : status === "Pending"
+          ? t.pending
+          : status === "Cancelled"
+            ? t.cancelled
+            : status}
     </span>
   );
 }
@@ -626,18 +895,25 @@ function money(value: any) {
   return Number(value || 0).toFixed(2);
 }
 
-function formatDate(date: any) {
+function formatDate(date: any, language: LanguageCode) {
   if (!date) return "-";
 
-  return new Date(date).toLocaleString("en-GB", {
+  return new Date(date).toLocaleString(
+    language === "zh"
+      ? "zh-CN"
+      : language === "ms"
+        ? "ms-MY"
+        : "en-GB",
+    {
     timeZone: "Asia/Kuala_Lumpur",
     day: "2-digit",
     month: "short",
     year: "numeric",
     hour: "2-digit",
     minute: "2-digit",
-    hour12: true,
-  });
+      hour12: true,
+    }
+  );
 }
 
 function getReceiptImageUrl(url: string) {

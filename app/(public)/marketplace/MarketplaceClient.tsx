@@ -3,6 +3,8 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 
+import { useLanguage } from "@/hooks/useLanguage";
+
 const mainCategories = [
   "All",
   "Food & Beverage",
@@ -166,6 +168,203 @@ export default function MarketplaceClient({
   merchants,
   refCode,
 }: MarketplaceClientProps) {
+  const {
+    language,
+  } = useLanguage();
+
+  const pageText = {
+    en: {
+      searchPlaceholder: "Search merchant, category or location...",
+      allStates: "All States",
+      allAreas: "All Areas",
+      selectStateFirst: "Select State First",
+      showLess: "Show Less",
+      moreCategories: "More Categories",
+      featured: "Featured",
+      popularMerchants: "Popular Merchants",
+      showing: "Showing",
+      merchants: "merchants",
+      viewAll: "View All",
+      merchant: "Merchant",
+      cashback: "Cashback",
+      available: "Available",
+      campaign: "Campaign",
+      active: "Active",
+      comingSoon: "Coming Soon",
+      viewMerchant: "View Merchant",
+      unavailable: "Merchant Unavailable",
+      noMerchants: "No merchants found.",
+      malaysia: "Malaysia",
+      clientReady: "Client Ready",
+      clientNotReady: "Client Not Ready",
+    },
+
+    zh: {
+      searchPlaceholder: "搜索商家、分类或地区...",
+      allStates: "全部州属",
+      allAreas: "全部地区",
+      selectStateFirst: "请先选择州属",
+      showLess: "收起分类",
+      moreCategories: "更多分类",
+      featured: "精选",
+      popularMerchants: "热门商家",
+      showing: "目前显示",
+      merchants: "家商家",
+      viewAll: "查看全部",
+      merchant: "商家",
+      cashback: "现金回扣",
+      available: "可享有",
+      campaign: "推广活动",
+      active: "进行中",
+      comingSoon: "即将推出",
+      viewMerchant: "查看商家",
+      unavailable: "商家暂不可用",
+      noMerchants: "找不到符合条件的商家。",
+      malaysia: "马来西亚",
+      clientReady: "页面已准备",
+      clientNotReady: "页面尚未准备",
+    },
+
+    ms: {
+      searchPlaceholder: "Cari peniaga, kategori atau lokasi...",
+      allStates: "Semua Negeri",
+      allAreas: "Semua Kawasan",
+      selectStateFirst: "Pilih Negeri Terlebih Dahulu",
+      showLess: "Tunjuk Kurang",
+      moreCategories: "Lebih Banyak Kategori",
+      featured: "Pilihan",
+      popularMerchants: "Peniaga Popular",
+      showing: "Memaparkan",
+      merchants: "peniaga",
+      viewAll: "Lihat Semua",
+      merchant: "Peniaga",
+      cashback: "Pulangan Tunai",
+      available: "Tersedia",
+      campaign: "Kempen",
+      active: "Aktif",
+      comingSoon: "Akan Datang",
+      viewMerchant: "Lihat Peniaga",
+      unavailable: "Peniaga Tidak Tersedia",
+      noMerchants: "Tiada peniaga ditemui.",
+      malaysia: "Malaysia",
+      clientReady: "Pelanggan Sedia",
+      clientNotReady: "Pelanggan Belum Sedia",
+    },
+  } as const;
+
+  const categoryText: Record<
+    string,
+    Record<"en" | "zh" | "ms", string>
+  > = {
+    All: {
+      en: "All",
+      zh: "全部",
+      ms: "Semua",
+    },
+    "Food & Beverage": {
+      en: "Food & Beverage",
+      zh: "餐饮",
+      ms: "Makanan & Minuman",
+    },
+    Cafe: {
+      en: "Cafe",
+      zh: "咖啡馆",
+      ms: "Kafe",
+    },
+    Retail: {
+      en: "Retail",
+      zh: "零售",
+      ms: "Runcit",
+    },
+    Fashion: {
+      en: "Fashion",
+      zh: "时尚",
+      ms: "Fesyen",
+    },
+    Beauty: {
+      en: "Beauty",
+      zh: "美容",
+      ms: "Kecantikan",
+    },
+    "Health & Wellness": {
+      en: "Health & Wellness",
+      zh: "健康与保健",
+      ms: "Kesihatan & Kesejahteraan",
+    },
+    Fitness: {
+      en: "Fitness",
+      zh: "健身",
+      ms: "Kecergasan",
+    },
+    "Hotel & Travel": {
+      en: "Hotel & Travel",
+      zh: "酒店与旅游",
+      ms: "Hotel & Pelancongan",
+    },
+    Education: {
+      en: "Education",
+      zh: "教育",
+      ms: "Pendidikan",
+    },
+    "Home & Living": {
+      en: "Home & Living",
+      zh: "家居生活",
+      ms: "Rumah & Kehidupan",
+    },
+    Automotive: {
+      en: "Automotive",
+      zh: "汽车",
+      ms: "Automotif",
+    },
+    Pets: {
+      en: "Pets",
+      zh: "宠物",
+      ms: "Haiwan Peliharaan",
+    },
+    Electronics: {
+      en: "Electronics",
+      zh: "电子产品",
+      ms: "Elektronik",
+    },
+    "Online Store": {
+      en: "Online Store",
+      zh: "网店",
+      ms: "Kedai Dalam Talian",
+    },
+    "Professional Services": {
+      en: "Professional Services",
+      zh: "专业服务",
+      ms: "Perkhidmatan Profesional",
+    },
+    Entertainment: {
+      en: "Entertainment",
+      zh: "娱乐",
+      ms: "Hiburan",
+    },
+    Wholesale: {
+      en: "Wholesale",
+      zh: "批发",
+      ms: "Borong",
+    },
+    Other: {
+      en: "Other",
+      zh: "其他",
+      ms: "Lain-lain",
+    },
+  };
+
+  const copy =
+    pageText[language];
+
+  function getCategoryLabel(
+    category: string
+  ) {
+    return (
+      categoryText[category]?.[
+        language
+      ] || category
+    );
+  }
   const [keyword, setKeyword] = useState("");
   const [activeCategory, setActiveCategory] = useState("All");
   const [selectedState, setSelectedState] = useState("");
@@ -194,16 +393,6 @@ export default function MarketplaceClient({
       const merchantArea = String(
         merchant?.area || merchant?.AREA || ""
       ).trim();
-
-      <div
-  className={`mb-3 rounded-xl px-3 py-2 text-center text-xs font-black ${
-    clientReady
-      ? "bg-emerald-100 text-emerald-700"
-      : "bg-red-100 text-red-700"
-  }`}
->
-  {clientReady ? "Client Ready" : "Client Not Ready"}
-</div>
 
       const name = String(
         merchant?.displayName ||
@@ -256,22 +445,40 @@ export default function MarketplaceClient({
     setSelectedArea("");
   }
 
-  console.log("PUBLIC MARKETPLACE CLIENT IS RUNNING", {
-  keyword,
-  selectedState,
-  selectedArea,
-  activeCategory,
-  merchantCount: safeMerchants.length,
-});
+  console.log(
+    "PUBLIC MARKETPLACE CLIENT IS RUNNING",
+    {
+      keyword,
+      selectedState,
+      selectedArea,
+      activeCategory,
+      merchantCount:
+        safeMerchants.length,
+    }
+  );
 
   return (
     <>
-      <div className="mt-5 rounded-[1.5rem] bg-white p-3 shadow-xl sm:mt-8 sm:rounded-2xl sm:p-4">
+      <div
+        className={[
+          "mt-5 rounded-xl px-3 py-2",
+          "text-center text-xs font-black",
+          clientReady
+            ? "bg-emerald-100 text-emerald-700"
+            : "bg-red-100 text-red-700",
+        ].join(" ")}
+      >
+        {clientReady
+          ? copy.clientReady
+          : copy.clientNotReady}
+      </div>
+
+      <div className="mt-3 rounded-[1.5rem] bg-white p-3 shadow-xl sm:mt-4 sm:rounded-2xl sm:p-4">
         <input
           value={keyword}
           onChange={(event) => setKeyword(event.target.value)}
           className="w-full rounded-xl px-4 py-3 text-xs font-medium text-slate-900 outline-none sm:px-5 sm:py-4 sm:text-base"
-          placeholder="Search merchant, category or location..."
+          placeholder={copy.searchPlaceholder}
         />
       </div>
 
@@ -284,7 +491,7 @@ export default function MarketplaceClient({
           }}
           className="w-full min-w-0 rounded-xl border border-slate-200 bg-white px-3 py-3 text-xs font-bold text-slate-700 outline-none focus:border-slate-950 sm:rounded-2xl sm:px-5 sm:py-4 sm:text-sm"
         >
-          <option value="">All States</option>
+          <option value="">{copy.allStates}</option>
 
           {Object.keys(areaOptions).map((stateName) => (
             <option key={stateName} value={stateName}>
@@ -300,7 +507,7 @@ export default function MarketplaceClient({
           className="w-full min-w-0 rounded-xl border border-slate-200 bg-white px-3 py-3 text-xs font-bold text-slate-700 outline-none focus:border-slate-950 disabled:bg-slate-100 disabled:text-slate-400 sm:rounded-2xl sm:px-5 sm:py-4 sm:text-sm"
         >
           <option value="">
-            {selectedState ? "All Areas" : "Select State First"}
+            {selectedState ? copy.allAreas : copy.selectStateFirst}
           </option>
 
           {(areaOptions[selectedState] || []).map((areaName) => (
@@ -315,7 +522,7 @@ export default function MarketplaceClient({
         {(showAllCategories ? mainCategories : visibleCategories).map(
           (category) => (
             <button
-              key={category}
+              key={getCategoryLabel(category)}
               type="button"
               onClick={() => setActiveCategory(category)}
               className={`shrink-0 whitespace-nowrap rounded-full border px-3 py-2 text-[10px] font-bold shadow-sm transition sm:px-5 sm:py-3 sm:text-sm ${
@@ -324,7 +531,7 @@ export default function MarketplaceClient({
                   : "border-slate-200 bg-white text-slate-700 hover:bg-slate-950 hover:text-white"
               }`}
             >
-              {category}
+              {getCategoryLabel(category)}
             </button>
           )
         )}
@@ -334,22 +541,22 @@ export default function MarketplaceClient({
           onClick={() => setShowAllCategories((current) => !current)}
           className="shrink-0 whitespace-nowrap rounded-full border border-amber-300 bg-amber-50 px-3 py-2 text-[10px] font-black text-amber-800 shadow-sm hover:bg-amber-100 sm:px-5 sm:py-3 sm:text-sm"
         >
-          {showAllCategories ? "Show Less" : "More Categories"}
+          {showAllCategories ? copy.showLess : copy.moreCategories}
         </button>
       </div>
 
       <div className="mt-7 flex items-end justify-between gap-4 sm:mt-12">
         <div className="min-w-0">
           <p className="text-[10px] font-black uppercase tracking-[0.16em] text-blue-600 sm:text-sm sm:tracking-[0.2em]">
-            Featured
+            {copy.featured}
           </p>
 
           <h2 className="mt-1 text-2xl font-black tracking-tight text-slate-950 sm:mt-2 sm:text-4xl">
-            Popular Merchants
+            {copy.popularMerchants}
           </h2>
 
           <p className="mt-1 text-[11px] font-bold text-slate-500 sm:mt-2 sm:text-sm">
-            Showing {filteredMerchants.length} merchants
+            {copy.showing} {filteredMerchants.length} {copy.merchants}
           </p>
         </div>
 
@@ -358,7 +565,7 @@ export default function MarketplaceClient({
           onClick={resetFilters}
           className="shrink-0 rounded-full border border-slate-200 bg-white px-4 py-2.5 text-[10px] font-bold text-slate-700 shadow-sm sm:px-5 sm:py-3 sm:text-sm"
         >
-          View All
+          {copy.viewAll}
         </button>
       </div>
 
@@ -392,25 +599,30 @@ export default function MarketplaceClient({
           ).trim();
 
           const rawLocation =
-  merchant.location ??
-  merchant.LOCATION ??
-  merchant.address ??
-  merchant.ADDRESS ??
-  "";
+            merchant?.location ??
+            merchant?.LOCATION ??
+            merchant?.address ??
+            merchant?.ADDRESS ??
+            "";
 
-const locationText =
-  [merchantArea, merchantState].filter(Boolean).join(", ") ||
-  (typeof rawLocation === "string"
-    ? rawLocation
-    : "Malaysia");
+          const locationText =
+            [merchantArea, merchantState]
+              .filter(Boolean)
+              .join(", ") ||
+            (typeof rawLocation === "string" &&
+            rawLocation.trim()
+              ? rawLocation
+              : copy.malaysia);
 
-          const logoUrl = String(
-            merchant?.logoUrl ||
-              merchant?.LOGO_URL ||
-              merchant?.logoURL ||
-              merchant?.LOGO ||
-              ""
-          ).trim();
+          const logoUrl = getDisplayImageUrl(
+            String(
+              merchant?.logoUrl ||
+                merchant?.LOGO_URL ||
+                merchant?.logoURL ||
+                merchant?.LOGO ||
+                ""
+            ).trim()
+          );
 
           const goldCashback = Number(
             merchant?.goldCashback ??
@@ -438,10 +650,10 @@ const locationText =
               <div className="flex aspect-square items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-slate-200 to-slate-100 text-xl font-black text-slate-400 sm:rounded-3xl sm:text-3xl">
                 {logoUrl ? (
                   <img
-              src={merchant.logoUrl}
-              alt={merchantName}
-              className="h-full w-full rounded-2xl object-cover"
-            />
+                    src={logoUrl}
+                    alt={merchantName}
+                    className="h-full w-full rounded-2xl object-cover"
+                  />
                 ) : (
                   merchantName.slice(0, 2).toUpperCase()
                 )}
@@ -453,30 +665,30 @@ const locationText =
                 </h3>
 
                 <p className="mt-1 line-clamp-2 text-[9px] font-semibold leading-4 text-slate-500 sm:text-sm sm:leading-5">
-                  {category || "Merchant"} • {locationText}
+                  {getCategoryLabel(category) || copy.merchant} • {locationText}
                 </p>
               </div>
 
               <div className="mt-3 grid grid-cols-2 gap-2 sm:mt-5 sm:gap-3">
                 <div className="rounded-xl bg-emerald-50 p-2.5 sm:rounded-2xl sm:p-3">
                   <p className="text-[9px] font-bold text-emerald-700 sm:text-xs">
-                    Cashback
+                    {copy.cashback}
                   </p>
 
                   <p className="mt-1 text-xs font-black text-emerald-900 sm:text-base">
                     {goldCashback > 0
                       ? `Gold ${goldCashback}%`
-                      : "Available"}
+                      : copy.available}
                   </p>
                 </div>
 
                 <div className="rounded-xl bg-amber-50 p-2.5 sm:rounded-2xl sm:p-3">
                   <p className="text-[9px] font-bold text-amber-700 sm:text-xs">
-                    Campaign
+                    {copy.campaign}
                   </p>
 
                   <p className="mt-1 text-xs font-black text-amber-900 sm:text-base">
-                    {marketingBudget > 0 ? "Active" : "Coming Soon"}
+                    {marketingBudget > 0 ? copy.active : copy.comingSoon}
                   </p>
                 </div>
               </div>
@@ -486,7 +698,7 @@ const locationText =
                   href={merchantHref}
                   className="mt-3 block w-full rounded-xl bg-slate-950 py-3 text-center text-[10px] font-black text-white no-underline transition group-hover:bg-blue-600 sm:mt-5 sm:rounded-2xl sm:py-4 sm:text-sm"
                 >
-                  View Merchant
+                  {copy.viewMerchant}
                 </Link>
               ) : (
                 <button
@@ -494,7 +706,7 @@ const locationText =
                   disabled
                   className="mt-3 block w-full cursor-not-allowed rounded-xl bg-slate-300 py-3 text-center text-[10px] font-black text-white sm:mt-5 sm:rounded-2xl sm:py-4 sm:text-sm"
                 >
-                  Merchant Unavailable
+                  {copy.unavailable}
                 </button>
               )}
             </div>
@@ -503,7 +715,7 @@ const locationText =
 
         {filteredMerchants.length === 0 && (
           <div className="col-span-2 rounded-[1.5rem] bg-white p-6 text-center text-xs font-bold text-slate-500 sm:rounded-[2rem] sm:p-10 sm:text-sm md:col-span-2 xl:col-span-4">
-            No merchants found.
+            {copy.noMerchants}
           </div>
         )}
       </div>
