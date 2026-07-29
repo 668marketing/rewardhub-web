@@ -1,6 +1,9 @@
 "use client";
 
 import {
+  Headphones,
+} from "lucide-react";
+import {
   useEffect,
   useState,
 } from "react";
@@ -31,6 +34,7 @@ export default function Header() {
       referralId: "Referral ID",
       openMenu: "Open navigation menu",
       closeMenu: "Close navigation menu",
+      openSupport: "Open RewardHub Support",
     },
 
     zh: {
@@ -42,6 +46,7 @@ export default function Header() {
       referralId: "推荐编号",
       openMenu: "打开导航菜单",
       closeMenu: "关闭导航菜单",
+      openSupport: "打开 RewardHub 客服",
     },
 
     ms: {
@@ -53,6 +58,7 @@ export default function Header() {
       referralId: "ID Rujukan",
       openMenu: "Buka menu navigasi",
       closeMenu: "Tutup menu navigasi",
+      openSupport: "Buka Sokongan RewardHub",
     },
   } as const;
 
@@ -134,6 +140,16 @@ export default function Header() {
     setMenuOpen(false);
   }
 
+  function openSupport() {
+    setMenuOpen(false);
+
+    window.dispatchEvent(
+      new CustomEvent(
+        "rewardhub-open-support"
+      )
+    );
+  }
+
   return (
     <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/95 backdrop-blur-xl">
       <div className="mx-auto flex min-h-20 w-full max-w-7xl items-center justify-between px-4 py-3 sm:px-6 md:px-8 lg:min-h-24 xl:px-12">
@@ -203,30 +219,51 @@ export default function Header() {
               copy.merchantRegister
             }
           </DesktopLink>
+
+          <SupportIconButton
+            label={
+              copy.openSupport
+            }
+            onClick={
+              openSupport
+            }
+          />
         </nav>
 
-        <button
-          type="button"
-          onClick={() =>
-            setMenuOpen(
-              (current) =>
-                !current
-            )
-          }
-          aria-label={
-            menuOpen
-              ? copy.closeMenu
-              : copy.openMenu
-          }
-          aria-expanded={
-            menuOpen
-          }
-          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-white text-xl font-black text-slate-950 shadow-sm transition active:scale-95 lg:hidden"
-        >
-          {menuOpen
-            ? "✕"
-            : "☰"}
-        </button>
+        <div className="flex items-center gap-2 lg:hidden">
+          <SupportIconButton
+            label={
+              copy.openSupport
+            }
+            onClick={
+              openSupport
+            }
+            mobile
+          />
+
+          <button
+            type="button"
+            onClick={() =>
+              setMenuOpen(
+                (current) =>
+                  !current
+              )
+            }
+            aria-label={
+              menuOpen
+                ? copy.closeMenu
+                : copy.openMenu
+            }
+            aria-expanded={
+              menuOpen
+            }
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-white text-xl font-black text-slate-950 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 active:scale-95"
+          >
+            {menuOpen
+              ? "✕"
+              : "☰"}
+          </button>
+        </div>
       </div>
 
       {menuOpen && (
@@ -312,6 +349,43 @@ export default function Header() {
         </nav>
       )}
     </header>
+  );
+}
+
+function SupportIconButton({
+  label,
+  onClick,
+  mobile = false,
+}: {
+  label: string;
+  onClick: () => void;
+  mobile?: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={
+        onClick
+      }
+      aria-label={
+        label
+      }
+      title={
+        label
+      }
+      className={[
+        "group flex shrink-0 items-center justify-center",
+        "border border-slate-200 bg-white text-slate-800",
+        "shadow-sm transition",
+        "hover:border-amber-300 hover:bg-amber-50 hover:text-amber-700",
+        "active:scale-95",
+        mobile
+          ? "h-11 w-11 rounded-2xl"
+          : "h-[46px] w-[46px] rounded-2xl",
+      ].join(" ")}
+    >
+      <Headphones className="h-5 w-5 transition-transform group-hover:scale-110" />
+    </button>
   );
 }
 
