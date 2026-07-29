@@ -25,8 +25,29 @@ export default function ProfilePage() {
   }, []);
 
   function logout() {
+    /*
+     * Clear both RewardHub account sessions.
+     *
+     * A device may previously have logged in as both Member and Merchant.
+     * Removing only the Member record would allow Merchant Login to
+     * immediately reopen the old Merchant account from localStorage.
+     */
     localStorage.removeItem("member");
-    router.push("/login");
+    localStorage.removeItem("merchant");
+
+    /*
+     * Clear the identity remembered by the RewardHub Tawk integration.
+     * The key is stored in sessionStorage by SupportModal.
+     */
+    sessionStorage.removeItem(
+      "rewardhub_tawk_identity"
+    );
+
+    /*
+     * Use replace so the authenticated profile page is not kept in the
+     * browser history after logout.
+     */
+    router.replace("/login");
   }
 
   const name =
