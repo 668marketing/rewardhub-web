@@ -69,16 +69,8 @@ type TawkAuthResponse = {
   message?: string;
 };
 
-type TawkVisitor = {
-  name?: string;
-  email?: string;
-  phone?: string;
-  hash?: string;
-};
-
 type TawkApi = {
   embedded?: string;
-  visitor?: TawkVisitor;
 
   onLoad?: () => void;
 
@@ -1002,135 +994,6 @@ function callTawkSetAttributes(
 }
 
 
-
-function applyPreloadVisitor(
-  tawk: TawkApi,
-  identity:
-    RewardHubIdentity,
-  auth?: {
-    userId: string;
-    hash: string;
-  }
-): void {
-  if (
-    identity.accountType ===
-      "GUEST" ||
-    !identity.accountId
-  ) {
-    tawk.visitor = {
-      name:
-        identity.displayName ||
-        "RewardHub Visitor",
-    };
-
-    return;
-  }
-
-  const visitor:
-    TawkVisitor = {
-    name:
-      identity.displayName,
-  };
-
-  if (identity.email) {
-    visitor.email =
-      identity.email;
-  }
-
-  if (identity.phone) {
-    visitor.phone =
-      identity.phone;
-  }
-
-  /*
-   * Keep the secure hash available before the widget script starts.
-   * The same authenticated RewardHub identity is then confirmed again
-   * with login() and setAttributes() after Tawk finishes loading.
-   */
-  if (auth?.hash) {
-    visitor.hash =
-      auth.hash;
-  }
-
-  tawk.visitor =
-    visitor;
-}
-
-async function prepareTawkBeforeScript(
-  tawk: TawkApi
-): Promise<{
-  identity:
-    RewardHubIdentity;
-  auth: {
-    userId: string;
-    hash: string;
-  } | null;
-}> {
-  const identity =
-    getCurrentIdentity();
-
-  if (
-    identity.accountType ===
-      "GUEST" ||
-    !identity.accountId
-  ) {
-    applyPreloadVisitor(
-      tawk,
-      identity
-    );
-
-    return {
-      identity,
-      auth: null,
-    };
-  }
-
-  const authResponse =
-    await getTawkSecureAuth(
-      identity
-    );
-
-  if (
-    !authResponse.success ||
-    !authResponse.userId ||
-    !authResponse.hash
-  ) {
-    console.error(
-      "[RewardHub Tawk] Preload authentication failed:",
-      authResponse.message
-    );
-
-    applyPreloadVisitor(
-      tawk,
-      identity
-    );
-
-    return {
-      identity,
-      auth: null,
-    };
-  }
-
-  const auth = {
-    userId:
-      authResponse.userId,
-    hash:
-      authResponse.hash,
-  };
-
-  applyPreloadVisitor(
-    tawk,
-    identity,
-    auth
-  );
-
-  return {
-    identity,
-    auth,
-  };
-}
-
-
 /* ============================================================
  * Support Center Types
  * ============================================================
@@ -1660,17 +1523,6 @@ export default function SupportModal() {
       initialIdentity
     );
 
-  const preloadAuthRef =
-    useRef<{
-      userId: string;
-      hash: string;
-    } | null>(
-      null
-    );
-
-  const initializationStartedRef =
-    useRef(false);
-
   /* ==========================================================
    * Securely connect the current RewardHub identity
    * ==========================================================
@@ -2014,192 +1866,72 @@ export default function SupportModal() {
       return;
     }
 
-    let cancelled =
-      false;
+    if (
+      widgetLoadedRef.current
+    ) {
+      void syncIdentityToTawk();
+      setIsLoading(false);
 
-    async function initializeTawk() {
-      const currentTawk =
-        window.Tawk_API ||
-        {};
+      return;
+    }
 
-      window.Tawk_API =
-        currentTawk;
+    const existingScript =
+      document.getElementById(
+        TAWK_SCRIPT_ID
+      ) as HTMLScriptElement | null;
 
-      currentTawk.embedded =
-        TAWK_CONTAINER_ID;
+    window.Tawk_API =
+      window.Tawk_API || {};
 
-      /*
-       * If Tawk is already available, do not inject another script.
-       * This commonly happens when the PWA returns from the background
-       * or the support modal is opened again.
-       */
-      if (
-        widgetLoadedRef.current ||
-        currentTawk.login ||
-        currentTawk.setAttributes
-      ) {
+    window.Tawk_LoadStart =
+      new Date();
+
+    window.Tawk_API.embedded =
+      TAWK_CONTAINER_ID;
+
+    window.Tawk_API.onLoad =
+      () => {
         widgetLoadedRef.current =
           true;
 
-        if (!cancelled) {
-          setIsLoading(false);
-          setLoadError("");
-        }
+        setIsLoading(false);
+        setLoadError("");
 
         void syncIdentityToTawk();
-        return;
-      }
+      };
 
-      /*
-       * Prepare visitor details before the embed script starts.
-       * This is important for standalone PWA sessions, where Tawk can
-       * create an anonymous iframe visitor before onLoad callbacks run.
-       */
-      if (
-        !initializationStartedRef.current
-      ) {
-        initializationStartedRef.current =
-          true;
-
-        const prepared =
-          await prepareTawkBeforeScript(
-            currentTawk
-          );
-
-        preloadAuthRef.current =
-          prepared.auth;
-
-        identityRef.current =
-          prepared.identity;
-
-        if (!cancelled) {
-          setIdentity(
-            prepared.identity
-          );
-        }
-      } else {
-        const currentIdentity =
-          getCurrentIdentity();
-
-        identityRef.current =
-          currentIdentity;
-
-        if (!cancelled) {
-          setIdentity(
-            currentIdentity
-          );
-        }
-
-        applyPreloadVisitor(
-          currentTawk,
-          currentIdentity,
-          preloadAuthRef.current ||
-            undefined
-        );
-      }
-
-      if (cancelled) {
-        return;
-      }
-
-      window.Tawk_LoadStart =
-        new Date();
-
-      currentTawk.onLoad =
-        () => {
-          widgetLoadedRef.current =
-            true;
-
-          if (!cancelled) {
-            setIsLoading(false);
-            setLoadError("");
-          }
-
-          /*
-           * login() + setAttributes() remain the authoritative sync
-           * after the preloaded visitor has created the initial session.
-           */
-          void syncIdentityToTawk();
-        };
-
-      const existingScript =
-        document.getElementById(
-          TAWK_SCRIPT_ID
-        ) as HTMLScriptElement | null;
-
-      if (existingScript) {
-        /*
-         * The script may already be present in a resumed PWA document.
-         * If the API has appeared, sync immediately. Otherwise keep the
-         * onLoad handler above and wait briefly for the existing script.
-         */
-        window.setTimeout(
-          () => {
-            if (
-              window.Tawk_API
-                ?.login ||
-              window.Tawk_API
-                ?.setAttributes
-            ) {
-              widgetLoadedRef.current =
-                true;
-
-              if (!cancelled) {
-                setIsLoading(false);
-                setLoadError("");
-              }
-
-              void syncIdentityToTawk();
-            }
-          },
-          500
-        );
-
-        return;
-      }
-
-      const script =
-        document.createElement(
-          "script"
-        );
-
-      script.id =
-        TAWK_SCRIPT_ID;
-
-      script.async = true;
-      script.src =
-        TAWK_SCRIPT_URL;
-      script.charset =
-        "UTF-8";
-      script.crossOrigin =
-        "anonymous";
-
-      script.onerror =
-        () => {
-          initializationStartedRef.current =
-            false;
-
-          if (!cancelled) {
-            setIsLoading(false);
-
-            setLoadError(
-              t(
-                "supportModal.loadError"
-              )
-            );
-          }
-        };
-
-      document.head.appendChild(
-        script
-      );
+    if (existingScript) {
+      return;
     }
 
-    void initializeTawk();
+    const script =
+      document.createElement(
+        "script"
+      );
 
-    return () => {
-      cancelled = true;
-    };
+    script.id =
+      TAWK_SCRIPT_ID;
+
+    script.async = true;
+    script.src =
+      TAWK_SCRIPT_URL;
+    script.charset =
+      "UTF-8";
+    script.crossOrigin =
+      "anonymous";
+
+    script.onerror =
+      () => {
+        setIsLoading(false);
+
+        setLoadError(
+          t("supportModal.loadError")
+        );
+      };
+
+    document.head.appendChild(
+      script
+    );
   }, [
     shouldLoadWidget,
     syncIdentityToTawk,
@@ -2910,15 +2642,6 @@ export default function SupportModal() {
 
                     widgetLoadedRef.current =
                       false;
-
-                    initializationStartedRef.current =
-                      false;
-
-                    preloadAuthRef.current =
-                      null;
-
-                    window.Tawk_API =
-                      undefined;
 
                     setShouldLoadWidget(
                       false
