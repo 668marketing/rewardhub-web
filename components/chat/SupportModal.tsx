@@ -94,6 +94,16 @@ type TawkApi = {
     ) => void
   ) => void;
 
+  setAttributes?: (
+    attributes: Record<
+      string,
+      string
+    >,
+    callback?: (
+      error?: unknown
+    ) => void
+  ) => void;
+
   shutdown?: () => void;
 };
 
@@ -798,6 +808,189 @@ function callTawkLogin(
 }
 
 
+
+function getStoredLanguage(): string {
+  if (
+    typeof window ===
+    "undefined"
+  ) {
+    return "en";
+  }
+
+  const storedLanguage =
+    window.localStorage.getItem(
+      "rewardhub-language"
+    ) ||
+    window.localStorage.getItem(
+      "rewardhub_language"
+    ) ||
+    "en";
+
+  if (
+    storedLanguage === "zh" ||
+    storedLanguage === "ms"
+  ) {
+    return storedLanguage;
+  }
+
+  return "en";
+}
+
+function getCurrentPage(): string {
+  if (
+    typeof window ===
+    "undefined"
+  ) {
+    return "";
+  }
+
+  return `${window.location.pathname}${window.location.search}`;
+}
+
+function buildTawkAttributes(
+  identity:
+    RewardHubIdentity,
+  auth: {
+    userId: string;
+    hash: string;
+  }
+): Record<
+  string,
+  string
+> {
+  const attributes: Record<
+    string,
+    string
+  > = {
+    hash:
+      auth.hash,
+
+    name:
+      identity.displayName,
+
+    "account-type":
+      identity.accountType,
+
+    "account-id":
+      identity.accountId,
+
+    "display-name":
+      identity.displayName,
+
+    language:
+      getStoredLanguage(),
+
+    "current-page":
+      getCurrentPage(),
+
+    "rewardhub-user-id":
+      auth.userId,
+  };
+
+  if (identity.email) {
+    attributes.email =
+      identity.email;
+
+    attributes[
+      "account-email"
+    ] =
+      identity.email;
+  }
+
+  if (identity.phone) {
+    attributes.phone =
+      identity.phone;
+  }
+
+  if (
+    identity.accountType ===
+    "MEMBER"
+  ) {
+    attributes[
+      "member-id"
+    ] =
+      identity.accountId;
+
+    attributes[
+      "member-tier"
+    ] =
+      identity.tier ||
+      "Silver";
+
+    attributes[
+      "business-name"
+    ] = "-";
+  }
+
+  if (
+    identity.accountType ===
+    "MERCHANT"
+  ) {
+    attributes[
+      "merchant-id"
+    ] =
+      identity.accountId;
+
+    attributes[
+      "business-name"
+    ] =
+      identity.businessName ||
+      identity.displayName ||
+      identity.accountId;
+
+    attributes[
+      "member-tier"
+    ] = "-";
+  }
+
+  return attributes;
+}
+
+function callTawkSetAttributes(
+  tawk: TawkApi,
+  identity:
+    RewardHubIdentity,
+  auth: {
+    userId: string;
+    hash: string;
+  }
+): Promise<void> {
+  return new Promise(
+    (resolve, reject) => {
+      if (
+        !tawk.setAttributes
+      ) {
+        reject(
+          new Error(
+            "Tawk setAttributes is unavailable."
+          )
+        );
+
+        return;
+      }
+
+      const attributes =
+        buildTawkAttributes(
+          identity,
+          auth
+        );
+
+      tawk.setAttributes(
+        attributes,
+        (error) => {
+          if (error) {
+            reject(error);
+            return;
+          }
+
+          resolve();
+        }
+      );
+    }
+  );
+}
+
+
 /* ============================================================
  * Support Center Types
  * ============================================================
@@ -1384,13 +1577,6 @@ export default function SupportModal() {
         return;
       }
 
-      if (
-        previousIdentityKey ===
-        currentIdentityKey
-      ) {
-        return;
-      }
-
       const auth =
         await getTawkSecureAuth(
           currentIdentity
@@ -1409,7 +1595,12 @@ export default function SupportModal() {
         return;
       }
 
+      const identityChanged =
+        previousIdentityKey !==
+        currentIdentityKey;
+
       if (
+        identityChanged &&
         previousIdentityKey &&
         previousIdentityKey !==
           "GUEST"
@@ -1420,7 +1611,20 @@ export default function SupportModal() {
       }
 
       try {
-        await callTawkLogin(
+        if (identityChanged) {
+          await callTawkLogin(
+            tawk,
+            currentIdentity,
+            {
+              userId:
+                auth.userId,
+              hash:
+                auth.hash,
+            }
+          );
+        }
+
+        await callTawkSetAttributes(
           tawk,
           currentIdentity,
           {
@@ -1437,7 +1641,7 @@ export default function SupportModal() {
         );
 
         console.log(
-          "[RewardHub Tawk] Secure identity connected:",
+          "[RewardHub Tawk] Identity and attributes connected:",
           {
             accountType:
               currentIdentity
@@ -1450,11 +1654,21 @@ export default function SupportModal() {
             displayName:
               currentIdentity
                 .displayName,
+
+            email:
+              currentIdentity
+                .email,
+
+            currentPage:
+              getCurrentPage(),
+
+            language:
+              getStoredLanguage(),
           }
         );
       } catch (error) {
         console.error(
-          "[RewardHub Tawk] Secure login failed:",
+          "[RewardHub Tawk] Identity sync failed:",
           error
         );
       }
