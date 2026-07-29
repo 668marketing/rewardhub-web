@@ -38,11 +38,94 @@ const TAWK_CONTAINER_ID =
 const TAWK_SCRIPT_ID =
   "rewardhub-tawk-embed-script";
 
-const TAWK_BROWSER_SCRIPT_URL =
-  "https://embed.tawk.to/6a66a6f1e36efe1d4eb18b53/1juj0bd7p";
+const TAWK_PROPERTY_ID =
+  "6a66a6f1e36efe1d4eb18b53";
 
-const TAWK_PWA_SCRIPT_URL =
-  "https://embed.tawk.to/6a66a6f1e36efe1d4eb18b53/1jumepn9r";
+type RewardHubLanguage =
+  | "en"
+  | "zh"
+  | "ms";
+
+type TawkWidgetMode =
+  | "WEBSITE"
+  | "PUBLIC"
+  | "PWA";
+
+type TawkWidgetConfig = {
+  widgetId: string;
+  scriptUrl: string;
+};
+
+const TAWK_WIDGETS: Record<
+  TawkWidgetMode,
+  Record<
+    RewardHubLanguage,
+    TawkWidgetConfig
+  >
+> = {
+  WEBSITE: {
+    en: {
+      widgetId:
+        "1juj0bd7p",
+      scriptUrl:
+        "https://embed.tawk.to/6a66a6f1e36efe1d4eb18b53/1juj0bd7p",
+    },
+    zh: {
+      widgetId:
+        "1jummlp50",
+      scriptUrl:
+        "https://embed.tawk.to/6a66a6f1e36efe1d4eb18b53/1jummlp50",
+    },
+    ms: {
+      widgetId:
+        "1jumncj7i",
+      scriptUrl:
+        "https://embed.tawk.to/6a66a6f1e36efe1d4eb18b53/1jumncj7i",
+    },
+  },
+
+  PUBLIC: {
+    en: {
+      widgetId:
+        "1jumj44e3",
+      scriptUrl:
+        "https://embed.tawk.to/6a66a6f1e36efe1d4eb18b53/1jumj44e3",
+    },
+    zh: {
+      widgetId:
+        "1jumjlkph",
+      scriptUrl:
+        "https://embed.tawk.to/6a66a6f1e36efe1d4eb18b53/1jumjlkph",
+    },
+    ms: {
+      widgetId:
+        "1jumk3s6a",
+      scriptUrl:
+        "https://embed.tawk.to/6a66a6f1e36efe1d4eb18b53/1jumk3s6a",
+    },
+  },
+
+  PWA: {
+    en: {
+      widgetId:
+        "1jumepn9r",
+      scriptUrl:
+        "https://embed.tawk.to/6a66a6f1e36efe1d4eb18b53/1jumepn9r",
+    },
+    zh: {
+      widgetId:
+        "1jumkqb13",
+      scriptUrl:
+        "https://embed.tawk.to/6a66a6f1e36efe1d4eb18b53/1jumkqb13",
+    },
+    ms: {
+      widgetId:
+        "1jumlgja0",
+      scriptUrl:
+        "https://embed.tawk.to/6a66a6f1e36efe1d4eb18b53/1jumlgja0",
+    },
+  },
+};
 
 /* ============================================================
  * Types
@@ -153,10 +236,71 @@ function isStandalonePwa(): boolean {
   );
 }
 
-function getTawkScriptUrl(): string {
-  return isStandalonePwa()
-    ? TAWK_PWA_SCRIPT_URL
-    : TAWK_BROWSER_SCRIPT_URL;
+function normalizeLanguage(
+  language: string
+): RewardHubLanguage {
+  if (language === "zh") {
+    return "zh";
+  }
+
+  if (language === "ms") {
+    return "ms";
+  }
+
+  return "en";
+}
+
+function getTawkWidgetMode(
+  identity: RewardHubIdentity
+): TawkWidgetMode {
+  if (
+    identity.accountType ===
+      "GUEST" ||
+    !identity.accountId
+  ) {
+    return "PUBLIC";
+  }
+
+  if (isStandalonePwa()) {
+    return "PWA";
+  }
+
+  return "WEBSITE";
+}
+
+function getTawkWidgetSelection(
+  identity: RewardHubIdentity
+): {
+  key: string;
+  mode: TawkWidgetMode;
+  language: RewardHubLanguage;
+  widgetId: string;
+  scriptUrl: string;
+} {
+  const language =
+    normalizeLanguage(
+      getStoredLanguage()
+    );
+
+  const mode =
+    getTawkWidgetMode(
+      identity
+    );
+
+  const widget =
+    TAWK_WIDGETS[mode][
+      language
+    ];
+
+  return {
+    key: `${mode}:${language}:${widget.widgetId}`,
+    mode,
+    language,
+    widgetId:
+      widget.widgetId,
+    scriptUrl:
+      widget.scriptUrl,
+  };
 }
 
 /* ============================================================
@@ -1603,6 +1747,16 @@ export default function SupportModal() {
   const widgetLoadedRef =
     useRef(false);
 
+  const loadedWidgetKeyRef =
+    useRef("");
+
+  const pendingWidgetSelectionRef =
+    useRef(
+      getTawkWidgetSelection(
+        initialIdentity
+      )
+    );
+
   const identityRef =
     useRef<
       RewardHubIdentity
@@ -1643,9 +1797,18 @@ export default function SupportModal() {
        * Normal Safari/Chrome browser sessions continue using the
        * original widget and RewardHub secure identity sync.
        */
-      if (isStandalonePwa()) {
+      const widgetMode =
+        getTawkWidgetMode(
+          currentIdentity
+        );
+
+      if (
+        widgetMode !==
+        "WEBSITE"
+      ) {
         console.log(
-          "[RewardHub Tawk] PWA widget active; using pre-chat identification."
+          "[RewardHub Tawk] Secure identity sync skipped:",
+          widgetMode
         );
 
         return;
@@ -1886,6 +2049,52 @@ export default function SupportModal() {
       []
     );
 
+  const resetTawkWidget =
+    useCallback(() => {
+      try {
+        window.Tawk_API
+          ?.shutdown?.();
+      } catch (error) {
+        console.warn(
+          "[RewardHub Tawk] Shutdown warning:",
+          error
+        );
+      }
+
+      const existingScript =
+        document.getElementById(
+          TAWK_SCRIPT_ID
+        );
+
+      existingScript?.remove();
+
+      const container =
+        document.getElementById(
+          TAWK_CONTAINER_ID
+        );
+
+      if (container) {
+        container.innerHTML =
+          "";
+      }
+
+      window.Tawk_API =
+        undefined;
+
+      window.Tawk_LoadStart =
+        undefined;
+
+      widgetLoadedRef.current =
+        false;
+
+      loadedWidgetKeyRef.current =
+        "";
+
+      setShouldLoadWidget(
+        false
+      );
+    }, []);
+
   const openSupport =
     useCallback(() => {
       const currentIdentity =
@@ -1922,13 +2131,17 @@ export default function SupportModal() {
         currentIdentity
       );
 
-      /*
-       * The installed PWA uses a short pre-chat form.
-       * Copy the Member or Merchant ID before opening it so the
-       * user only needs to paste the ID into the form.
-       */
+      const widgetSelection =
+        getTawkWidgetSelection(
+          currentIdentity
+        );
+
+      pendingWidgetSelectionRef.current =
+        widgetSelection;
+
       if (
-        isStandalonePwa() &&
+        widgetSelection.mode ===
+          "PWA" &&
         currentIdentity.accountType !==
           "GUEST" &&
         currentIdentity.accountId
@@ -1940,6 +2153,30 @@ export default function SupportModal() {
 
       setLoadError("");
       setActiveView("CHAT");
+
+      const mustReloadWidget =
+        Boolean(
+          loadedWidgetKeyRef.current
+        ) &&
+        loadedWidgetKeyRef.current !==
+          widgetSelection.key;
+
+      if (mustReloadWidget) {
+        resetTawkWidget();
+
+        window.setTimeout(
+          () => {
+            setIsLoading(true);
+            setShouldLoadWidget(
+              true
+            );
+          },
+          60
+        );
+
+        return;
+      }
+
       setShouldLoadWidget(
         true
       );
@@ -1960,6 +2197,7 @@ export default function SupportModal() {
       }
     }, [
       copyAccountId,
+      resetTawkWidget,
       syncIdentityToTawk,
     ]);
 
@@ -2077,10 +2315,45 @@ export default function SupportModal() {
       return;
     }
 
+    const currentIdentity =
+      getCurrentIdentity();
+
+    const widgetSelection =
+      pendingWidgetSelectionRef
+        .current.key
+        ? pendingWidgetSelectionRef
+            .current
+        : getTawkWidgetSelection(
+            currentIdentity
+          );
+
+    pendingWidgetSelectionRef.current =
+      widgetSelection;
+
     const existingScript =
       document.getElementById(
         TAWK_SCRIPT_ID
       ) as HTMLScriptElement | null;
+
+    if (
+      existingScript &&
+      existingScript.dataset
+        .rewardhubWidgetKey !==
+        widgetSelection.key
+    ) {
+      resetTawkWidget();
+
+      window.setTimeout(
+        () => {
+          setShouldLoadWidget(
+            true
+          );
+        },
+        60
+      );
+
+      return;
+    }
 
     window.Tawk_API =
       window.Tawk_API || {};
@@ -2096,11 +2369,19 @@ export default function SupportModal() {
         widgetLoadedRef.current =
           true;
 
+        loadedWidgetKeyRef.current =
+          widgetSelection.key;
+
         console.log(
           "[RewardHub Tawk] Widget loaded:",
-          isStandalonePwa()
-            ? "PWA pre-chat widget"
-            : "Browser secure-identity widget"
+          {
+            mode:
+              widgetSelection.mode,
+            language:
+              widgetSelection.language,
+            widgetId:
+              widgetSelection.widgetId,
+          }
         );
 
         setIsLoading(false);
@@ -2123,12 +2404,23 @@ export default function SupportModal() {
 
     script.async = true;
     script.src =
-      getTawkScriptUrl();
+      widgetSelection.scriptUrl;
+
+    script.dataset.rewardhubPropertyId =
+      TAWK_PROPERTY_ID;
 
     script.dataset.rewardhubMode =
-      isStandalonePwa()
-        ? "pwa"
-        : "browser";
+      widgetSelection.mode;
+
+    script.dataset.rewardhubLanguage =
+      widgetSelection.language;
+
+    script.dataset.rewardhubWidgetId =
+      widgetSelection.widgetId;
+
+    script.dataset.rewardhubWidgetKey =
+      widgetSelection.key;
+
     script.charset =
       "UTF-8";
     script.crossOrigin =
@@ -2147,6 +2439,7 @@ export default function SupportModal() {
       script
     );
   }, [
+    resetTawkWidget,
     shouldLoadWidget,
     syncIdentityToTawk,
     t,
@@ -2926,19 +3219,12 @@ export default function SupportModal() {
                     setLoadError("");
                     setIsLoading(true);
 
-                    const failedScript =
-                      document.getElementById(
-                        TAWK_SCRIPT_ID
+                    resetTawkWidget();
+
+                    pendingWidgetSelectionRef.current =
+                      getTawkWidgetSelection(
+                        getCurrentIdentity()
                       );
-
-                    failedScript?.remove();
-
-                    widgetLoadedRef.current =
-                      false;
-
-                    setShouldLoadWidget(
-                      false
-                    );
 
                     window.setTimeout(
                       () => {
@@ -2946,7 +3232,7 @@ export default function SupportModal() {
                           true
                         );
                       },
-                      50
+                      60
                     );
                   }}
                   className="
