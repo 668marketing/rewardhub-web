@@ -1533,7 +1533,15 @@ export default function SupportModal() {
       const tawk =
         window.Tawk_API;
 
-      if (!tawk) {
+      if (
+        !tawk ||
+        !tawk.login ||
+        !tawk.setAttributes
+      ) {
+        console.warn(
+          "[RewardHub Tawk] API is not ready yet."
+        );
+
         return;
       }
 
@@ -1577,6 +1585,10 @@ export default function SupportModal() {
           "GUEST"
         );
 
+        console.log(
+          "[RewardHub Tawk] Guest support session active."
+        );
+
         return;
       }
 
@@ -1602,28 +1614,20 @@ export default function SupportModal() {
         previousIdentityKey !==
         currentIdentityKey;
 
-      if (
-        identityChanged &&
-        previousIdentityKey &&
-        previousIdentityKey !==
-          "GUEST"
-      ) {
-        await callTawkLogout(
-          tawk
-        );
-      }
-
       try {
-        if (identityChanged) {
-          await callTawkLogin(
-            tawk,
-            currentIdentity,
-            {
-              userId:
-                auth.userId,
-              hash:
-                auth.hash,
-            }
+        /*
+         * Only log out when the actual RewardHub account changed.
+         * Do not log out whenever the same member opens chat again,
+         * because that can break or replace an existing conversation.
+         */
+        if (
+          identityChanged &&
+          previousIdentityKey &&
+          previousIdentityKey !==
+            "GUEST"
+        ) {
+          await callTawkLogout(
+            tawk
           );
         }
 
@@ -1634,6 +1638,25 @@ export default function SupportModal() {
             auth.hash,
         };
 
+        /*
+         * Always call login(), even when sessionStorage says this is
+         * the same member or merchant.
+         *
+         * Tawk documents that login() refreshes and reconnects the
+         * visitor session. This is important for an iOS Home Screen PWA,
+         * whose WebView may resume while retaining stale sessionStorage
+         * but losing the authenticated Tawk connection.
+         */
+        await callTawkLogin(
+          tawk,
+          currentIdentity,
+          secureIdentity
+        );
+
+        /*
+         * Send all RewardHub attributes after the authenticated
+         * Tawk session has been refreshed.
+         */
         await callTawkSetAttributes(
           tawk,
           currentIdentity,
@@ -1641,14 +1664,23 @@ export default function SupportModal() {
         );
 
         /*
-         * Tawk login refreshes and reconnects the visitor session.
-         * Re-send attributes after short delays so the new authenticated
-         * session receives them even when login propagation is asynchronous.
+         * The refreshed Tawk connection can take a few seconds to
+         * propagate. Send the attributes again after short delays.
          */
         window.setTimeout(
           () => {
+            const latestTawk =
+              window.Tawk_API;
+
+            if (
+              !latestTawk
+                ?.setAttributes
+            ) {
+              return;
+            }
+
             void callTawkSetAttributes(
-              tawk,
+              latestTawk,
               getCurrentIdentity(),
               secureIdentity
             ).catch(
@@ -1665,8 +1697,18 @@ export default function SupportModal() {
 
         window.setTimeout(
           () => {
+            const latestTawk =
+              window.Tawk_API;
+
+            if (
+              !latestTawk
+                ?.setAttributes
+            ) {
+              return;
+            }
+
             void callTawkSetAttributes(
-              tawk,
+              latestTawk,
               getCurrentIdentity(),
               secureIdentity
             ).catch(
@@ -1687,7 +1729,7 @@ export default function SupportModal() {
         );
 
         console.log(
-          "[RewardHub Tawk] Identity and attributes connected:",
+          "[RewardHub Tawk] Identity login and attributes connected:",
           {
             accountType:
               currentIdentity
@@ -1710,6 +1752,8 @@ export default function SupportModal() {
 
             language:
               getStoredLanguage(),
+
+            identityChanged,
           }
         );
       } catch (error) {
