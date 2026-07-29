@@ -673,29 +673,43 @@ function getMerchantIdentity(
 
 function getCurrentIdentity():
   RewardHubIdentity {
-  const merchantStorage =
-    parseStoredObject(
-      "merchant"
-    );
+  const guestIdentity:
+    RewardHubIdentity = {
+    accountType:
+      "GUEST",
 
-  const memberStorage =
-    parseStoredObject(
-      "member"
-    );
+    accountId: "",
+
+    displayName:
+      "RewardHub Visitor",
+
+    email: "",
+    phone: "",
+    tier: "",
+    businessName: "",
+  };
+
+  if (
+    typeof window ===
+    "undefined"
+  ) {
+    return guestIdentity;
+  }
 
   const pathname =
-    typeof window !==
-    "undefined"
-      ? window.location.pathname
-      : "";
+    window.location.pathname;
 
-  const isMerchantPortal =
-    pathname ===
-      "/merchant" ||
-    pathname.startsWith(
-      "/merchant/"
-    );
-
+  /*
+   * Member authenticated portal:
+   * /member
+   * /member/dashboard
+   * /member/profile
+   * /member/pay
+   * and all other /member/... pages.
+   *
+   * Public Member pages such as /login, /register and
+   * /forgot-password are outside /member, so they remain guests.
+   */
   const isMemberPortal =
     pathname ===
       "/member" ||
@@ -704,77 +718,110 @@ function getCurrentIdentity():
     );
 
   /*
-   * Use the current portal path first.
-   *
-   * A browser may contain both saved Member and Merchant
-   * sessions. The active URL decides which identity should
-   * be sent to Tawk.
+   * Some public Merchant pages use a /merchant/... route.
+   * They must remain guests even when old Merchant data still
+   * exists in localStorage.
    */
-  if (
-    isMerchantPortal &&
-    merchantStorage
-  ) {
-    const merchantIdentity =
-      getMerchantIdentity(
-        merchantStorage
-      );
+  const merchantPublicPaths = [
+    "/merchant/login",
+    "/merchant/forgot-password",
+    "/merchant/reset-password",
+  ];
 
-    if (merchantIdentity) {
-      return merchantIdentity;
-    }
-  }
-
-  if (
-    isMemberPortal &&
-    memberStorage
-  ) {
-    const memberIdentity =
-      getMemberIdentity(
-        memberStorage
-      );
-
-    if (memberIdentity) {
-      return memberIdentity;
-    }
-  }
+  const isMerchantPublicPage =
+    merchantPublicPaths.some(
+      (publicPath) =>
+        pathname ===
+          publicPath ||
+        pathname.startsWith(
+          `${publicPath}/`
+        )
+    );
 
   /*
-   * Fallback for pages outside the two portals.
+   * Merchant authenticated portal:
+   * /merchant
+   * /merchant/dashboard
+   * /merchant/profile
+   * and other protected /merchant/... pages,
+   * excluding the public routes above.
    */
-  if (memberStorage) {
+  const isMerchantPortal =
+    (
+      pathname ===
+        "/merchant" ||
+      pathname.startsWith(
+        "/merchant/"
+      )
+    ) &&
+    !isMerchantPublicPage;
+
+  /*
+   * Every page outside an authenticated portal is Public.
+   *
+   * This includes:
+   * /
+   * /marketplace
+   * /login
+   * /register
+   * /forgot-password
+   * /merchant/login
+   * /merchant/forgot-password
+   * /merchantregister
+   *
+   * Old Member or Merchant records in localStorage must not make
+   * these Public pages appear logged in.
+   */
+  if (
+    !isMemberPortal &&
+    !isMerchantPortal
+  ) {
+    return guestIdentity;
+  }
+
+  if (isMemberPortal) {
+    const memberStorage =
+      parseStoredObject(
+        "member"
+      );
+
+    if (!memberStorage) {
+      return guestIdentity;
+    }
+
     const memberIdentity =
       getMemberIdentity(
         memberStorage
       );
 
-    if (memberIdentity) {
-      return memberIdentity;
-    }
+    return (
+      memberIdentity ||
+      guestIdentity
+    );
   }
 
-  if (merchantStorage) {
+  if (isMerchantPortal) {
+    const merchantStorage =
+      parseStoredObject(
+        "merchant"
+      );
+
+    if (!merchantStorage) {
+      return guestIdentity;
+    }
+
     const merchantIdentity =
       getMerchantIdentity(
         merchantStorage
       );
 
-    if (merchantIdentity) {
-      return merchantIdentity;
-    }
+    return (
+      merchantIdentity ||
+      guestIdentity
+    );
   }
 
-  return {
-    accountType:
-      "GUEST",
-
-    accountId: "",
-    displayName:
-      "RewardHub Visitor",
-    email: "",
-    phone: "",
-    tier: "",
-    businessName: "",
-  };
+  return guestIdentity;
 }
 
 /* ============================================================
