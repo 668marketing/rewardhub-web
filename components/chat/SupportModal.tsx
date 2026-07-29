@@ -5,7 +5,9 @@ import {
   ChevronRight,
   BadgeCheck,
   CircleHelp,
+  Check,
   Clock3,
+  Copy,
   Headphones,
   LoaderCircle,
   LockKeyhole,
@@ -1473,6 +1475,37 @@ function getFaqItems(
   );
 }
 
+function getCopyMessage(
+  identity: RewardHubIdentity
+): string {
+  const language =
+    getStoredLanguage();
+
+  const accountLabel =
+    identity.accountType ===
+    "MERCHANT"
+      ? language === "zh"
+        ? "商家 ID"
+        : language === "ms"
+          ? "ID Peniaga"
+          : "Merchant ID"
+      : language === "zh"
+        ? "会员 ID"
+        : language === "ms"
+          ? "ID Ahli"
+          : "Member ID";
+
+  if (language === "zh") {
+    return `${accountLabel} 已复制，请粘贴到客服表格。`;
+  }
+
+  if (language === "ms") {
+    return `${accountLabel} telah disalin. Sila tampal dalam borang sokongan.`;
+  }
+
+  return `${accountLabel} copied. Please paste it into the support form.`;
+}
+
 /* ============================================================
  * Support Modal
  * ============================================================
@@ -1518,6 +1551,17 @@ export default function SupportModal() {
     setOpenFaqIndex,
   ] =
     useState<number | null>(
+      null
+    );
+
+  const [
+    copyNotice,
+    setCopyNotice,
+  ] =
+    useState("");
+
+  const copyNoticeTimerRef =
+    useRef<number | null>(
       null
     );
 
@@ -1785,6 +1829,63 @@ export default function SupportModal() {
    * ==========================================================
    */
 
+  const copyAccountId =
+    useCallback(
+      async (
+        currentIdentity:
+          RewardHubIdentity
+      ): Promise<boolean> => {
+        if (
+          !currentIdentity.accountId ||
+          currentIdentity.accountType ===
+            "GUEST"
+        ) {
+          return false;
+        }
+
+        try {
+          await navigator.clipboard.writeText(
+            currentIdentity.accountId
+          );
+
+          if (
+            copyNoticeTimerRef.current !==
+            null
+          ) {
+            window.clearTimeout(
+              copyNoticeTimerRef.current
+            );
+          }
+
+          setCopyNotice(
+            getCopyMessage(
+              currentIdentity
+            )
+          );
+
+          copyNoticeTimerRef.current =
+            window.setTimeout(
+              () => {
+                setCopyNotice("");
+                copyNoticeTimerRef.current =
+                  null;
+              },
+              2800
+            );
+
+          return true;
+        } catch (error) {
+          console.error(
+            "[RewardHub Support] Unable to copy account ID:",
+            error
+          );
+
+          return false;
+        }
+      },
+      []
+    );
+
   const openSupport =
     useCallback(() => {
       const currentIdentity =
@@ -1798,6 +1899,7 @@ export default function SupportModal() {
       );
 
       setLoadError("");
+      setCopyNotice("");
       setOpenFaqIndex(null);
       setActiveView("HOME");
       setIsOpen(true);
@@ -1809,7 +1911,33 @@ export default function SupportModal() {
     }, []);
 
   const openLiveChat =
-    useCallback(() => {
+    useCallback(async () => {
+      const currentIdentity =
+        getCurrentIdentity();
+
+      identityRef.current =
+        currentIdentity;
+
+      setIdentity(
+        currentIdentity
+      );
+
+      /*
+       * The installed PWA uses a short pre-chat form.
+       * Copy the Member or Merchant ID before opening it so the
+       * user only needs to paste the ID into the form.
+       */
+      if (
+        isStandalonePwa() &&
+        currentIdentity.accountType !==
+          "GUEST" &&
+        currentIdentity.accountId
+      ) {
+        await copyAccountId(
+          currentIdentity
+        );
+      }
+
       setLoadError("");
       setActiveView("CHAT");
       setShouldLoadWidget(
@@ -1831,6 +1959,7 @@ export default function SupportModal() {
         setIsLoading(true);
       }
     }, [
+      copyAccountId,
       syncIdentityToTawk,
     ]);
 
@@ -1839,6 +1968,19 @@ export default function SupportModal() {
       setOpenFaqIndex(null);
       setActiveView("HOME");
     }, []);
+
+  useEffect(() => {
+    return () => {
+      if (
+        copyNoticeTimerRef.current !==
+        null
+      ) {
+        window.clearTimeout(
+          copyNoticeTimerRef.current
+        );
+      }
+    };
+  }, []);
 
   /* ==========================================================
    * Global support button event
@@ -2071,6 +2213,45 @@ export default function SupportModal() {
             : "translate-y-4 scale-[0.97]",
         ].join(" ")}
       >
+        {copyNotice ? (
+          <div
+            className="
+              pointer-events-none
+              absolute left-1/2 top-4
+              z-[100]
+              w-[calc(100%-2rem)]
+              -translate-x-1/2
+              rounded-2xl
+              border border-emerald-200
+              bg-white/95
+              px-4 py-3
+              shadow-[0_16px_45px_rgba(15,23,42,0.22)]
+              backdrop-blur
+            "
+            role="status"
+            aria-live="polite"
+          >
+            <div className="flex items-start gap-3">
+              <span
+                className="
+                  mt-0.5 inline-flex
+                  h-7 w-7 shrink-0
+                  items-center justify-center
+                  rounded-full
+                  bg-emerald-100
+                  text-emerald-700
+                "
+              >
+                <Check className="h-4 w-4" />
+              </span>
+
+              <p className="text-xs font-black leading-5 text-slate-800">
+                {copyNotice}
+              </p>
+            </div>
+          </div>
+        ) : null}
+
         {/* RewardHub branded header */}
         <header
           className="
@@ -2300,10 +2481,50 @@ export default function SupportModal() {
                       )}
                     </p>
 
-                    <p className="mt-0.5 truncate text-[11px] font-semibold text-slate-400">
-                      {identity.accountId ||
-                        t("supportModal.generalSupport")}
-                    </p>
+                    {identity.accountId &&
+                    identity.accountType !==
+                      "GUEST" ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          void copyAccountId(
+                            identity
+                          );
+                        }}
+                        title={
+                          getStoredLanguage() ===
+                          "zh"
+                            ? "点击复制"
+                            : getStoredLanguage() ===
+                                "ms"
+                              ? "Klik untuk salin"
+                              : "Click to copy"
+                        }
+                        className="
+                          group mt-1 inline-flex
+                          max-w-full items-center
+                          gap-1.5 rounded-lg
+                          text-left text-[11px]
+                          font-semibold
+                          text-slate-400
+                          transition
+                          hover:text-amber-300
+                          active:scale-[0.98]
+                        "
+                      >
+                        <span className="truncate">
+                          {identity.accountId}
+                        </span>
+
+                        <Copy className="h-3.5 w-3.5 shrink-0 transition group-hover:scale-110" />
+                      </button>
+                    ) : (
+                      <p className="mt-0.5 truncate text-[11px] font-semibold text-slate-400">
+                        {t(
+                          "supportModal.generalSupport"
+                        )}
+                      </p>
+                    )}
                   </div>
 
                   <ShieldCheck className="h-5 w-5 shrink-0 text-emerald-400" />
