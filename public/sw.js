@@ -1,4 +1,4 @@
-const CACHE_NAME = "rewardhub-v4";
+const CACHE_NAME = "rewardhub-v11";
 
 const STATIC_ASSETS = [
   "/",
@@ -25,12 +25,7 @@ self.addEventListener(
         })
     );
 
-    /*
-      不要在这里调用 self.skipWaiting()。
-
-      新 Service Worker 必须先进入 waiting 状态，
-      PWARegister 才能显示“New version available”提示。
-    */
+    self.skipWaiting();
   }
 );
 
@@ -89,13 +84,16 @@ self.addEventListener(
     const request =
       event.request;
 
-    if (request.method !== "GET") {
+    if (
+      request.method !== "GET"
+    ) {
       return;
     }
 
-    const requestUrl = new URL(
-      request.url
-    );
+    const requestUrl =
+      new URL(
+        request.url
+      );
 
     if (
       requestUrl.origin !==
@@ -115,9 +113,41 @@ self.addEventListener(
       return;
     }
 
-    // 页面导航：优先网络，失败才使用缓存或离线页
+    const isPwaMetadata =
+      requestUrl.pathname ===
+        "/manifest.webmanifest" ||
+      requestUrl.pathname ===
+        "/manifest.json" ||
+      requestUrl.pathname.startsWith(
+        "/icons/"
+      ) ||
+      requestUrl.pathname ===
+        "/icon.png" ||
+      requestUrl.pathname ===
+        "/apple-icon.png" ||
+      requestUrl.pathname ===
+        "/favicon.ico";
+
+    if (isPwaMetadata) {
+      event.respondWith(
+        fetch(
+          request,
+          {
+            cache: "no-store",
+          }
+        ).catch(function () {
+          return caches.match(
+            request
+          );
+        })
+      );
+
+      return;
+    }
+
     if (
-      request.mode === "navigate"
+      request.mode ===
+      "navigate"
     ) {
       event.respondWith(
         fetch(request)
@@ -132,7 +162,9 @@ self.addEventListener(
                 response.clone();
 
               caches
-                .open(CACHE_NAME)
+                .open(
+                  CACHE_NAME
+                )
                 .then(function (
                   cache
                 ) {
@@ -164,7 +196,6 @@ self.addEventListener(
       return;
     }
 
-    // 静态资源：缓存优先，后台获取新版
     event.respondWith(
       caches
         .match(request)
@@ -216,13 +247,23 @@ self.addEventListener(
   "push",
   function (event) {
     var defaultData = {
-      title: "RewardHub",
+      title:
+        "RewardHub",
+
       body:
         "You have a new RewardHub notification.",
-      icon: "/icons/icon-192.png",
-      badge: "/icons/icon-192.png",
-      url: "/member/dashboard",
-      tag: "rewardhub-notification",
+
+      icon:
+        "/icons/icon-192.png",
+
+      badge:
+        "/icons/icon-192.png",
+
+      url:
+        "/member/dashboard",
+
+      tag:
+        "rewardhub-notification",
     };
 
     var notificationData =
@@ -298,10 +339,11 @@ self.addEventListener(
     };
 
     event.waitUntil(
-      self.registration.showNotification(
-        title,
-        options
-      )
+      self.registration
+        .showNotification(
+          title,
+          options
+        )
     );
   }
 );
@@ -317,16 +359,20 @@ self.addEventListener(
         ? event.notification.data.url
         : "/member/dashboard";
 
-    var absoluteUrl = new URL(
-      targetUrl,
-      self.location.origin
-    ).href;
+    var absoluteUrl =
+      new URL(
+        targetUrl,
+        self.location.origin
+      ).href;
 
     event.waitUntil(
       self.clients
         .matchAll({
-          type: "window",
-          includeUncontrolled: true,
+          type:
+            "window",
+
+          includeUncontrolled:
+            true,
         })
         .then(function (
           clientList
@@ -354,9 +400,10 @@ self.addEventListener(
           if (
             self.clients.openWindow
           ) {
-            return self.clients.openWindow(
-              absoluteUrl
-            );
+            return self.clients
+              .openWindow(
+                absoluteUrl
+              );
           }
 
           return undefined;
