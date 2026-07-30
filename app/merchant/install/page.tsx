@@ -16,7 +16,7 @@ import { useEffect, useMemo, useState } from "react";
 type Language = "en" | "zh" | "ms";
 type DeviceType = "ios" | "android" | "desktop";
 
-const APP_NAME = "RewardHub Business";
+const APP_NAME = "RH Business";
 const BUSINESS_LOGIN_PATH = "/merchant/login";
 
 const content = {
