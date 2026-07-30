@@ -1,12 +1,9 @@
-const CACHE_NAME = "rewardhub-v2";
+const CACHE_NAME = "rewardhub-v4";
 
 const STATIC_ASSETS = [
   "/",
   "/login",
   "/offline",
-  "/icons/icon-192.png",
-  "/icons/icon-512.png",
-  "/icons/icon-maskable-512.png",
 ];
 
 self.addEventListener(
