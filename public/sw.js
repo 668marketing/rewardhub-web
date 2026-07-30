@@ -1,11 +1,43 @@
-const CACHE_NAME = "rewardhub-v13";
+const IS_BUSINESS_APP =
+  self.location.hostname.includes(
+    "rewardhub-business"
+  );
+
+const APP_VARIANT = IS_BUSINESS_APP
+  ? "business"
+  : "member";
+
+const CACHE_NAME =
+  "rewardhub-" +
+  APP_VARIANT +
+  "-v14";
+
+const DEFAULT_START_URL =
+  IS_BUSINESS_APP
+    ? "/merchant/login"
+    : "/member/login";
+
+const DEFAULT_DASHBOARD_URL =
+  IS_BUSINESS_APP
+    ? "/merchant/dashboard"
+    : "/member/dashboard";
+
+const DEFAULT_APP_NAME =
+  IS_BUSINESS_APP
+    ? "RewardHub Business"
+    : "RewardHub";
+
+const DEFAULT_ICON =
+  IS_BUSINESS_APP
+    ? "/icons/business/icon-192.png"
+    : "/icons/member/icon-192.png";
 
 const STATIC_ASSETS = [
   "/",
-  "/login",
-  "/member/login",
-  "/merchant/login",
+  DEFAULT_START_URL,
   "/offline",
+  "/manifest.webmanifest",
+  DEFAULT_ICON,
 ];
 
 self.addEventListener(
@@ -51,9 +83,7 @@ self.addEventListener(
       Promise.all([
         caches
           .keys()
-          .then(function (
-            cacheNames
-          ) {
+          .then(function (cacheNames) {
             return Promise.all(
               cacheNames
                 .filter(function (
@@ -93,9 +123,7 @@ self.addEventListener(
     }
 
     const requestUrl =
-      new URL(
-        request.url
-      );
+      new URL(request.url);
 
     if (
       requestUrl.origin !==
@@ -135,12 +163,9 @@ self.addEventListener(
 
     if (isPwaMetadata) {
       event.respondWith(
-        fetch(
-          request,
-          {
-            cache: "no-store",
-          }
-        ).catch(function () {
+        fetch(request, {
+          cache: "no-store",
+        }).catch(function () {
           return caches.match(
             request
           );
@@ -156,9 +181,7 @@ self.addEventListener(
     ) {
       event.respondWith(
         fetch(request)
-          .then(function (
-            response
-          ) {
+          .then(function (response) {
             if (
               response &&
               response.ok
@@ -167,12 +190,8 @@ self.addEventListener(
                 response.clone();
 
               caches
-                .open(
-                  CACHE_NAME
-                )
-                .then(function (
-                  cache
-                ) {
+                .open(CACHE_NAME)
+                .then(function (cache) {
                   cache.put(
                     request,
                     responseClone
@@ -220,9 +239,7 @@ self.addEventListener(
                     response.clone();
 
                   caches
-                    .open(
-                      CACHE_NAME
-                    )
+                    .open(CACHE_NAME)
                     .then(function (
                       cache
                     ) {
@@ -253,22 +270,26 @@ self.addEventListener(
   function (event) {
     var defaultData = {
       title:
-        "RewardHub",
+        DEFAULT_APP_NAME,
 
       body:
-        "You have a new RewardHub notification.",
+        IS_BUSINESS_APP
+          ? "You have a new RewardHub Business notification."
+          : "You have a new RewardHub notification.",
 
       icon:
-        "/icons/icon-192.png",
+        DEFAULT_ICON,
 
       badge:
-        "/icons/icon-192.png",
+        DEFAULT_ICON,
 
       url:
-        "/member/dashboard",
+        DEFAULT_DASHBOARD_URL,
 
       tag:
-        "rewardhub-notification",
+        IS_BUSINESS_APP
+          ? "rewardhub-business-notification"
+          : "rewardhub-member-notification",
     };
 
     var notificationData =
@@ -362,7 +383,7 @@ self.addEventListener(
       event.notification.data &&
       event.notification.data.url
         ? event.notification.data.url
-        : "/member/dashboard";
+        : DEFAULT_DASHBOARD_URL;
 
     var absoluteUrl =
       new URL(
@@ -373,11 +394,8 @@ self.addEventListener(
     event.waitUntil(
       self.clients
         .matchAll({
-          type:
-            "window",
-
-          includeUncontrolled:
-            true,
+          type: "window",
+          includeUncontrolled: true,
         })
         .then(function (
           clientList
