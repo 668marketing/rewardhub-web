@@ -14,8 +14,8 @@ export default function manifest(): MetadataRoute.Manifest {
     display: "standalone",
     orientation: "portrait",
 
-    background_color: "#050816",
-    theme_color: "#050816",
+    background_color: "#050505",
+    theme_color: "#050505",
 
     categories: [
       "shopping",
@@ -26,19 +26,19 @@ export default function manifest(): MetadataRoute.Manifest {
 
     icons: [
       {
-        src: "/icons/icon-192.png",
+        src: "/icons/icon-192.png?v=3",
         sizes: "192x192",
         type: "image/png",
         purpose: "any",
       },
       {
-        src: "/icons/icon-512.png",
+        src: "/icons/icon-512.png?v=3",
         sizes: "512x512",
         type: "image/png",
         purpose: "any",
       },
       {
-        src: "/icons/icon-maskable-512.png",
+        src: "/icons/icon-maskable-512.png?v=3",
         sizes: "512x512",
         type: "image/png",
         purpose: "maskable",
