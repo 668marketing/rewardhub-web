@@ -38,21 +38,21 @@ const content = {
     copied: "Copied",
     importantTitle: "Important",
     importantDescription:
-      'Before tapping “Add”, make sure the app name is changed to “RewardHub Business”.',
+      'Before tapping “Add”, make sure the app name is changed to “RH Business”.',
     iosTitle: "Install on iPhone or iPad",
     iosSteps: [
       "Open this page using Safari.",
       "Tap the Share button at the bottom of Safari.",
       'Scroll down and tap “Add to Home Screen”.',
-      'Tap the name field and change it to “RewardHub Business”.',
-      'Confirm that the black RewardHub Business icon is displayed, then tap “Add”.',
+      'Tap the name field and change it to “RH Business”.',
+      'Confirm that the black RH Business icon is displayed, then tap “Add”.',
     ],
     androidTitle: "Install on Android",
     androidSteps: [
       "Open this page using Google Chrome.",
       "Tap the three-dot menu in the top-right corner.",
       'Tap “Install app” or “Add to Home screen”.',
-      'Confirm the name is “RewardHub Business”.',
+      'Confirm the name is “RH Business”.',
       "Tap Install or Add.",
     ],
     desktopTitle: "Open this page on your phone",
@@ -81,21 +81,21 @@ const content = {
     copied: "已复制",
     importantTitle: "重要提醒",
     importantDescription:
-      "点击“添加”之前，请确认 App 名称已经改成“RewardHub Business”。",
+      "点击“添加”之前，请确认 App 名称已经改成“RH Business”。",
     iosTitle: "iPhone 或 iPad 安装步骤",
     iosSteps: [
       "使用 Safari 打开这个页面。",
       "点击 Safari 下方的分享按钮。",
       "往下滑并点击“添加到主屏幕”。",
-      "点击名称栏，把名称改成“RewardHub Business”。",
-      "确认显示的是黑色 RewardHub Business 图标，然后点击“添加”。",
+      "点击名称栏，把名称改成“RH Business”。",
+      "确认显示的是黑色 RH Business 图标，然后点击“添加”。",
     ],
     androidTitle: "Android 安装步骤",
     androidSteps: [
       "使用 Google Chrome 打开这个页面。",
       "点击右上角的三个点菜单。",
       "点击“安装应用”或“添加到主屏幕”。",
-      "确认名称显示为“RewardHub Business”。",
+      "确认名称显示为“RH Business”。",
       "点击“安装”或“添加”。",
     ],
     desktopTitle: "请使用手机打开这个页面",
@@ -125,21 +125,21 @@ const content = {
     copied: "Disalin",
     importantTitle: "Peringatan Penting",
     importantDescription:
-      'Sebelum menekan “Tambah”, pastikan nama aplikasi telah ditukar kepada “RewardHub Business”.',
+      'Sebelum menekan “Tambah”, pastikan nama aplikasi telah ditukar kepada “RH Business”.',
     iosTitle: "Cara memasang pada iPhone atau iPad",
     iosSteps: [
       "Buka halaman ini menggunakan Safari.",
       "Tekan butang Kongsi di bahagian bawah Safari.",
       'Tatal ke bawah dan tekan “Tambah ke Skrin Utama”.',
-      'Tekan ruangan nama dan tukar kepada “RewardHub Business”.',
-      'Pastikan ikon hitam RewardHub Business dipaparkan, kemudian tekan “Tambah”.',
+      'Tekan ruangan nama dan tukar kepada “RH Business”.',
+      'Pastikan ikon hitam RH Business dipaparkan, kemudian tekan “Tambah”.',
     ],
     androidTitle: "Cara memasang pada Android",
     androidSteps: [
       "Buka halaman ini menggunakan Google Chrome.",
       "Tekan menu tiga titik di penjuru kanan atas.",
       'Tekan “Pasang aplikasi” atau “Tambah ke Skrin Utama”.',
-      'Pastikan nama dipaparkan sebagai “RewardHub Business”.',
+      'Pastikan nama dipaparkan sebagai “RH Business”.',
       "Tekan Pasang atau Tambah.",
     ],
     desktopTitle: "Buka halaman ini menggunakan telefon",
@@ -436,10 +436,10 @@ export default function MerchantInstallPage() {
                   <div className="rounded-2xl border border-slate-200 p-5 sm:p-6">
                     <div className="mb-5 flex items-center gap-3">
                       {device === "ios" ? (
-  <Share className="h-6 w-6 text-slate-950" />
-) : (
-  <Globe className="h-6 w-6 text-slate-950" />
-)}
+                        <Share className="h-6 w-6 text-slate-950" />
+                      ) : (
+                        <Globe className="h-6 w-6 text-slate-950" />
+                      )}
 
                       <h2 className="text-xl font-black text-slate-950">
                         {stepsTitle}
