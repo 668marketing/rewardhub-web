@@ -20,14 +20,6 @@ export const metadata: Metadata = {
     "RewardHub member rewards and merchant membership network.",
 
   applicationName: "RewardHub",
-
-  manifest: "/manifest.webmanifest",
-
-  appleWebApp: {
-    capable: true,
-    title: "RewardHub",
-    statusBarStyle: "default",
-  },
 };
 
 export const viewport: Viewport = {

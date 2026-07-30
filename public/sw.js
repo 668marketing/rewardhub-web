@@ -1,8 +1,10 @@
-const CACHE_NAME = "rewardhub-v12";
+const CACHE_NAME = "rewardhub-v13";
 
 const STATIC_ASSETS = [
   "/",
   "/login",
+  "/member/login",
+  "/merchant/login",
   "/offline",
 ];
 
@@ -118,6 +120,9 @@ self.addEventListener(
         "/manifest.webmanifest" ||
       requestUrl.pathname ===
         "/manifest.json" ||
+      requestUrl.pathname.endsWith(
+        "/manifest.webmanifest"
+      ) ||
       requestUrl.pathname.startsWith(
         "/icons/"
       ) ||

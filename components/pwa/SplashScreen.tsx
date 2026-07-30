@@ -2,10 +2,20 @@
 
 import Image from "next/image";
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 
 const SPLASH_SESSION_KEY = "rewardhub_splash_shown";
 
 export default function SplashScreen() {
+  const pathname = usePathname();
+  const isBusinessApp = pathname.startsWith("/merchant");
+  const splashIcon = isBusinessApp
+    ? "/icons/business/icon-512.png"
+    : "/icons/member/icon-512.png";
+  const splashLabel = isBusinessApp
+    ? "RewardHub Business"
+    : "RewardHub";
+
   const [visible, setVisible] = useState(false);
   const [leaving, setLeaving] = useState(false);
 
@@ -114,8 +124,8 @@ export default function SplashScreen() {
 
             <div className="relative rounded-[2rem] border border-white/10 bg-white/[0.04] p-1.5 shadow-[0_30px_90px_rgba(0,0,0,0.65)] backdrop-blur-xl">
               <Image
-                src="/icons/icon-512.png"
-                alt="RewardHub"
+                src={splashIcon}
+                alt={splashLabel}
                 width={144}
                 height={144}
                 priority
