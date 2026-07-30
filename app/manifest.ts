@@ -27,24 +27,24 @@ export default function manifest(): MetadataRoute.Manifest {
     ],
 
     icons: [
-      {
-        src: "/icons/android-pwa-192.png?v=7",
-        sizes: "192x192",
-        type: "image/png",
-        purpose: "any",
-      },
-      {
-        src: "/icons/android-pwa-512.png?v=7",
-        sizes: "512x512",
-        type: "image/png",
-        purpose: "any",
-      },
-      {
-        src: "/icons/android-pwa-maskable-512.png?v=7",
-        sizes: "512x512",
-        type: "image/png",
-        purpose: "maskable",
-      },
-    ],
+  {
+    src: "/icons/android-pwa-192.png?v=8",
+    sizes: "192x192",
+    type: "image/png",
+    purpose: "any",
+  },
+  {
+    src: "/icons/android-pwa-512.png?v=8",
+    sizes: "512x512",
+    type: "image/png",
+    purpose: "any",
+  },
+  {
+    src: "/icons/android-pwa-maskable-512.png?v=8",
+    sizes: "512x512",
+    type: "image/png",
+    purpose: "maskable",
+  },
+],
   };
 }
