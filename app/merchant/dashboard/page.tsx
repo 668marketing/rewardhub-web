@@ -35,6 +35,17 @@ type Translation = {
   payment: string;
   cashback: string;
   noTransactions: string;
+  onlineOrders: string;
+  pendingPayment: string;
+  paymentReview: string;
+  preparing: string;
+  readyDelivery: string;
+  outDelivery: string;
+  readyPickup: string;
+  completedToday: string;
+  attention: string;
+  totalToday: string;
+  autoRefresh: string;
 };
 
 const LANGUAGE_STORAGE_KEY = "rewardhub-language";
@@ -70,6 +81,17 @@ const translations: Record<LanguageCode, Translation> = {
     payment: "Payment",
     cashback: "Cashback",
     noTransactions: "No transactions yet.",
+    onlineOrders:"Today's Orders",
+    pendingPayment:"Pending Payment",
+    paymentReview:"Payment Review",
+    preparing:"Preparing",
+    readyDelivery:"Ready for Delivery",
+    outDelivery:"Out for Delivery",
+    readyPickup:"Ready for Pickup",
+    completedToday:"Completed Today",
+    attention:"Attention Required",
+    totalToday:"Orders Today",
+    autoRefresh:"Auto refresh",
   },
   zh: {
     merchantDashboard: "商家主页",
@@ -100,6 +122,17 @@ const translations: Record<LanguageCode, Translation> = {
     payment: "付款",
     cashback: "返现",
     noTransactions: "目前还没有交易记录。",
+    onlineOrders:"今日订单",
+    pendingPayment:"待付款",
+    paymentReview:"付款审核",
+    preparing:"准备中",
+    readyDelivery:"待配送",
+    outDelivery:"配送中",
+    readyPickup:"待自取",
+    completedToday:"今日完成",
+    attention:"需处理",
+    totalToday:"今日订单数",
+    autoRefresh:"自动刷新",
   },
   ms: {
     merchantDashboard: "Dashboard Pedagang",
@@ -131,6 +164,17 @@ const translations: Record<LanguageCode, Translation> = {
     payment: "Bayaran",
     cashback: "Pulangan Tunai",
     noTransactions: "Belum ada transaksi.",
+    onlineOrders:"Pesanan Hari Ini",
+    pendingPayment:"Belum Bayar",
+    paymentReview:"Semakan Bayaran",
+    preparing:"Sedang Disediakan",
+    readyDelivery:"Sedia Dihantar",
+    outDelivery:"Dalam Penghantaran",
+    readyPickup:"Sedia Diambil",
+    completedToday:"Selesai Hari Ini",
+    attention:"Perlu Tindakan",
+    totalToday:"Pesanan Hari Ini",
+    autoRefresh:"Muat semula automatik",
   },
 };
 
@@ -191,7 +235,10 @@ export default function MerchantDashboardPage() {
   }, []);
 
   useEffect(() => {
-    async function load() {
+    let isMounted = true;
+    let refreshTimer: ReturnType<typeof setInterval> | null = null;
+
+    async function loadDashboard(showLoading = false) {
       let stored: any = {};
 
       try {
@@ -203,21 +250,42 @@ export default function MerchantDashboardPage() {
       const merchantId = stored?.merchantId || stored?.MERCHANT_ID || "";
 
       if (!merchantId) {
-        setLoading(false);
+        if (isMounted) setLoading(false);
         return;
+      }
+
+      if (showLoading && isMounted) {
+        setLoading(true);
       }
 
       try {
         const res = await getMerchantDashboardSummary(merchantId);
-        setData(getApiData(res));
+
+        if (isMounted) {
+          setData(getApiData(res));
+        }
       } catch (err) {
         console.error("Unable to load merchant dashboard:", err);
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     }
 
-    void load();
+    void loadDashboard(true);
+
+    refreshTimer = setInterval(() => {
+      void loadDashboard(false);
+    }, 30000);
+
+    return () => {
+      isMounted = false;
+
+      if (refreshTimer) {
+        clearInterval(refreshTimer);
+      }
+    };
   }, []);
 
   const merchant = data?.merchant || {};
@@ -237,6 +305,9 @@ export default function MerchantDashboardPage() {
     t.merchant;
 
   const merchantId = merchant?.merchantId || "-";
+
+  const onlineOrders = data?.onlineOrders || {};
+
 
   const activeBudget = Number(
     data?.marketing?.currentBudget || merchant?.marketingBudget || 0
@@ -286,6 +357,77 @@ export default function MerchantDashboardPage() {
               <Stat
                 title={t.marketingUsed}
                 value={`RM${money(today.marketingUsed)}`}
+              />
+            </div>
+          </div>
+
+
+          <div className="mt-6 rounded-[1.75rem] bg-white p-5 shadow-sm sm:rounded-[2rem] sm:p-7">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <h2 className="text-2xl font-black text-slate-950">
+                  {t.onlineOrders}
+                </h2>
+              </div>
+
+              <div className="rounded-2xl bg-slate-950 px-5 py-3 text-white">
+                <p className="text-[10px] font-black uppercase tracking-[0.16em] text-slate-400">
+                  {t.totalToday}
+                </p>
+                <p className="mt-1 text-2xl font-black">
+                  {onlineOrders.totalToday || 0}
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
+              <OrderStat
+                href="/merchant/orders?status=PENDING_PAYMENT"
+                title={t.pendingPayment}
+                value={onlineOrders.pendingPayment || 0}
+                tone="rose"
+              />
+              <OrderStat
+                href="/merchant/orders?status=PAYMENT_REVIEW"
+                title={t.paymentReview}
+                value={onlineOrders.paymentReview || 0}
+                tone="amber"
+              />
+              <OrderStat
+                href="/merchant/orders?status=PROCESSING&fulfillment=PREPARING"
+                title={t.preparing}
+                value={onlineOrders.preparing || 0}
+                tone="yellow"
+              />
+              <OrderStat
+                href="/merchant/orders?fulfillment=READY_FOR_DELIVERY"
+                title={t.readyDelivery}
+                value={onlineOrders.readyForDelivery || 0}
+                tone="sky"
+              />
+              <OrderStat
+                href="/merchant/orders?fulfillment=OUT_FOR_DELIVERY"
+                title={t.outDelivery}
+                value={onlineOrders.outForDelivery || 0}
+                tone="blue"
+              />
+              <OrderStat
+                href="/merchant/orders?fulfillment=READY_FOR_PICKUP"
+                title={t.readyPickup}
+                value={onlineOrders.readyForPickup || 0}
+                tone="violet"
+              />
+              <OrderStat
+                href="/merchant/orders?status=COMPLETED"
+                title={t.completedToday}
+                value={onlineOrders.completedToday || 0}
+                tone="emerald"
+              />
+              <OrderStat
+                href="/merchant/orders"
+                title={t.attention}
+                value={onlineOrders.attentionRequired || 0}
+                tone="slate"
               />
             </div>
           </div>
@@ -420,6 +562,47 @@ export default function MerchantDashboardPage() {
         </section>
       </main>
     </>
+  );
+}
+
+function OrderStat({
+  href,
+  title,
+  value,
+  tone,
+}: {
+  href: string;
+  title: string;
+  value: number;
+  tone:
+    | "rose"
+    | "amber"
+    | "yellow"
+    | "sky"
+    | "blue"
+    | "violet"
+    | "emerald"
+    | "slate";
+}) {
+  const toneClass: Record<string, string> = {
+    rose: "border-rose-100 bg-rose-50 text-rose-700",
+    amber: "border-amber-100 bg-amber-50 text-amber-700",
+    yellow: "border-yellow-100 bg-yellow-50 text-yellow-700",
+    sky: "border-sky-100 bg-sky-50 text-sky-700",
+    blue: "border-blue-100 bg-blue-50 text-blue-700",
+    violet: "border-violet-100 bg-violet-50 text-violet-700",
+    emerald: "border-emerald-100 bg-emerald-50 text-emerald-700",
+    slate: "border-slate-200 bg-slate-100 text-slate-800",
+  };
+
+  return (
+    <Link
+      href={href}
+      className={`rounded-2xl border p-4 no-underline transition hover:-translate-y-0.5 hover:shadow-md sm:p-5 ${toneClass[tone]}`}
+    >
+      <p className="text-[10px] font-black sm:text-xs">{title}</p>
+      <p className="mt-2 text-2xl font-black sm:text-3xl">{value}</p>
+    </Link>
   );
 }
 

@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 
 import { useLanguage } from "@/hooks/useLanguage";
+import SafeImage from "@/components/ui/SafeImage";
 
 const mainCategories = [
   "All",
@@ -195,8 +196,6 @@ export default function MarketplaceClient({
       unavailable: "Merchant Unavailable",
       noMerchants: "No merchants found.",
       malaysia: "Malaysia",
-      clientReady: "Client Ready",
-      clientNotReady: "Client Not Ready",
     },
 
     zh: {
@@ -221,8 +220,6 @@ export default function MarketplaceClient({
       unavailable: "商家暂不可用",
       noMerchants: "找不到符合条件的商家。",
       malaysia: "马来西亚",
-      clientReady: "页面已准备",
-      clientNotReady: "页面尚未准备",
     },
 
     ms: {
@@ -247,8 +244,6 @@ export default function MarketplaceClient({
       unavailable: "Peniaga Tidak Tersedia",
       noMerchants: "Tiada peniaga ditemui.",
       malaysia: "Malaysia",
-      clientReady: "Pelanggan Sedia",
-      clientNotReady: "Pelanggan Belum Sedia",
     },
   } as const;
 
@@ -370,15 +365,12 @@ export default function MarketplaceClient({
   const [selectedState, setSelectedState] = useState("");
   const [selectedArea, setSelectedArea] = useState("");
   const [showAllCategories, setShowAllCategories] = useState(false);
-  const [clientReady, setClientReady] = useState(false);
 
   useEffect(() => {
-  setClientReady(true);
-
-  if (refCode) {
-    localStorage.setItem("rewardhub_ref", refCode);
-  }
-}, [refCode]);
+    if (refCode) {
+      localStorage.setItem("rewardhub_ref", refCode);
+    }
+  }, [refCode]);
 
   const safeMerchants = Array.isArray(merchants) ? merchants : [];
 
@@ -445,33 +437,8 @@ export default function MarketplaceClient({
     setSelectedArea("");
   }
 
-  console.log(
-    "PUBLIC MARKETPLACE CLIENT IS RUNNING",
-    {
-      keyword,
-      selectedState,
-      selectedArea,
-      activeCategory,
-      merchantCount:
-        safeMerchants.length,
-    }
-  );
-
   return (
     <>
-      <div
-        className={[
-          "mt-5 rounded-xl px-3 py-2",
-          "text-center text-xs font-black",
-          clientReady
-            ? "bg-emerald-100 text-emerald-700"
-            : "bg-red-100 text-red-700",
-        ].join(" ")}
-      >
-        {clientReady
-          ? copy.clientReady
-          : copy.clientNotReady}
-      </div>
 
       <div className="mt-3 rounded-[1.5rem] bg-white p-3 shadow-xl sm:mt-4 sm:rounded-2xl sm:p-4">
         <input
@@ -649,10 +616,17 @@ export default function MarketplaceClient({
             >
               <div className="flex aspect-square items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-slate-200 to-slate-100 text-xl font-black text-slate-400 sm:rounded-3xl sm:text-3xl">
                 {logoUrl ? (
-                  <img
+                  <SafeImage
                     src={logoUrl}
                     alt={merchantName}
                     className="h-full w-full rounded-2xl object-cover"
+                    fallback={
+                      <span>
+                        {merchantName
+                          .slice(0, 2)
+                          .toUpperCase()}
+                      </span>
+                    }
                   />
                 ) : (
                   merchantName.slice(0, 2).toUpperCase()
@@ -723,36 +697,43 @@ export default function MarketplaceClient({
   );
 }
 
-function getDriveFileId(url: string) {
+function getDriveFileId(value: string) {
+  const url = String(value || "").trim();
+
   if (!url) return "";
 
-  const idFromQuery = url.match(/[?&]id=([^&]+)/);
+  const patterns = [
+    /[?&]id=([a-zA-Z0-9_-]+)/i,
+    /\/file\/d\/([a-zA-Z0-9_-]+)/i,
+    /\/d\/([a-zA-Z0-9_-]+)/i,
+    /googleusercontent\.com\/d\/([a-zA-Z0-9_-]+)/i,
+  ];
 
-  if (idFromQuery?.[1]) {
-    return idFromQuery[1];
-  }
+  for (const pattern of patterns) {
+    const match = url.match(pattern);
 
-  const idFromPath = url.match(/\/d\/([^/]+)/);
-
-  if (idFromPath?.[1]) {
-    return idFromPath[1];
+    if (match?.[1]) {
+      return match[1];
+    }
   }
 
   return "";
 }
 
-function getDisplayImageUrl(url: string) {
+function getDisplayImageUrl(value: string) {
+  const url = String(value || "").trim();
+
   if (!url) return "";
 
-  if (!url.includes("drive.google.com")) {
+  if (url.startsWith("/api/drive-image")) {
     return url;
   }
 
   const fileId = getDriveFileId(url);
 
-  if (!fileId) {
-    return "";
+  if (fileId) {
+    return `/api/drive-image?id=${encodeURIComponent(fileId)}`;
   }
 
-  return `/api/drive-image?id=${encodeURIComponent(fileId)}`;
+  return url;
 }

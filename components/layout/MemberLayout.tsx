@@ -9,6 +9,7 @@ import Link from "next/link";
 import {
   Bell,
   Headset,
+  ShoppingCart,
 } from "lucide-react";
 
 import MemberBottomNav from "@/components/layout/MemberBottomNav";
@@ -24,6 +25,11 @@ import {
   getMemberUnreadNotificationCount,
 } from "@/lib/api";
 
+import {
+  getMemberCartCount,
+  MEMBER_CART_UPDATED_EVENT,
+} from "@/lib/memberCart";
+
 type StoredMember = {
   memberId?: string;
   MEMBER_ID?: string;
@@ -34,33 +40,23 @@ type StoredMember = {
 };
 
 function openCustomerSupport(): void {
-  if (
-    typeof window ===
-    "undefined"
-  ) {
+  if (typeof window === "undefined") {
     return;
   }
 
   window.dispatchEvent(
-    new Event(
-      "rewardhub-open-support"
-    )
+    new Event("rewardhub-open-support")
   );
 }
 
 function getMemberIdFromStorage(): string {
-  if (
-    typeof window ===
-    "undefined"
-  ) {
+  if (typeof window === "undefined") {
     return "";
   }
 
   try {
     const raw =
-      window.localStorage.getItem(
-        "member"
-      );
+      window.localStorage.getItem("member");
 
     if (!raw) {
       return "";
@@ -73,18 +69,12 @@ function getMemberIdFromStorage(): string {
       parsed?.memberId ??
         parsed?.MEMBER_ID ??
         parsed?.id ??
-        parsed?.profile
-          ?.memberId ??
-        parsed?.profile
-          ?.MEMBER_ID ??
-        parsed?.member
-          ?.memberId ??
-        parsed?.member
-          ?.MEMBER_ID ??
-        parsed?.data
-          ?.memberId ??
-        parsed?.data
-          ?.MEMBER_ID ??
+        parsed?.profile?.memberId ??
+        parsed?.profile?.MEMBER_ID ??
+        parsed?.member?.memberId ??
+        parsed?.member?.MEMBER_ID ??
+        parsed?.data?.memberId ??
+        parsed?.data?.MEMBER_ID ??
         ""
     ).trim();
   } catch {
@@ -97,8 +87,7 @@ function unwrapData(
 ): Record<string, unknown> {
   if (
     !result ||
-    typeof result !==
-      "object"
+    typeof result !== "object"
   ) {
     return {};
   }
@@ -111,8 +100,7 @@ function unwrapData(
 
   const first =
     root.data &&
-    typeof root.data ===
-      "object"
+    typeof root.data === "object"
       ? (
           root.data as Record<
             string,
@@ -122,8 +110,7 @@ function unwrapData(
       : root;
 
   return first.data &&
-    typeof first.data ===
-      "object"
+    typeof first.data === "object"
     ? (
         first.data as Record<
           string,
@@ -136,16 +123,18 @@ function unwrapData(
 export default function MemberLayout({
   children,
 }: {
-  children:
-    React.ReactNode;
+  children: React.ReactNode;
 }) {
-  const {
-    t,
-  } = useLanguage();
+  const { t } = useLanguage();
 
   const [
     unreadCount,
     setUnreadCount,
+  ] = useState(0);
+
+  const [
+    cartCount,
+    setCartCount,
   ] = useState(0);
 
   const loadUnreadCount =
@@ -160,11 +149,9 @@ export default function MemberLayout({
 
       try {
         const result =
-          await getMemberUnreadNotificationCount(
-            {
-              memberId,
-            }
-          );
+          await getMemberUnreadNotificationCount({
+            memberId,
+          });
 
         const data =
           unwrapData(result);
@@ -177,16 +164,20 @@ export default function MemberLayout({
           );
 
         setUnreadCount(
-          Number.isFinite(
-            nextCount
-          )
+          Number.isFinite(nextCount)
             ? nextCount
             : 0
         );
       } catch {
-        // Notification refresh failure
-        // should not block the portal.
+        // Notification failure must not block portal.
       }
+    }, []);
+
+  const refreshCartCount =
+    useCallback(() => {
+      setCartCount(
+        getMemberCartCount()
+      );
     }, []);
 
   useEffect(() => {
@@ -230,20 +221,58 @@ export default function MemberLayout({
     };
   }, [loadUnreadCount]);
 
+  useEffect(() => {
+    refreshCartCount();
+
+    window.addEventListener(
+      MEMBER_CART_UPDATED_EVENT,
+      refreshCartCount
+    );
+
+    window.addEventListener(
+      "storage",
+      refreshCartCount
+    );
+
+    window.addEventListener(
+      "focus",
+      refreshCartCount
+    );
+
+    return () => {
+      window.removeEventListener(
+        MEMBER_CART_UPDATED_EVENT,
+        refreshCartCount
+      );
+
+      window.removeEventListener(
+        "storage",
+        refreshCartCount
+      );
+
+      window.removeEventListener(
+        "focus",
+        refreshCartCount
+      );
+    };
+  }, [refreshCartCount]);
+
   const badgeText =
     unreadCount > 99
       ? "99+"
-      : String(
-          unreadCount
-        );
+      : String(unreadCount);
+
+  const cartBadgeText =
+    cartCount > 99
+      ? "99+"
+      : String(cartCount);
 
   const notificationLabel =
     unreadCount > 0
       ? t(
           "memberLayout.unreadNotifications",
           {
-            count:
-              unreadCount,
+            count: unreadCount,
           }
         )
       : t(
@@ -302,20 +331,31 @@ export default function MemberLayout({
                 ].join(" ")}
               />
 
+              <Link
+                href="/member/cart"
+                aria-label="Shopping Cart"
+                title="Shopping Cart"
+                className={headerButtonClass}
+              >
+                <ShoppingCart className="h-5 w-5 sm:h-6 sm:w-6" />
+
+                {cartCount > 0 ? (
+                  <span className="absolute -right-1.5 -top-1.5 inline-flex min-h-5 min-w-5 items-center justify-center rounded-full border-2 border-white bg-amber-500 px-1 text-[9px] font-black leading-none text-slate-950 shadow-sm sm:min-h-6 sm:min-w-6 sm:text-[10px]">
+                    {cartBadgeText}
+                  </span>
+                ) : null}
+              </Link>
+
               <button
                 type="button"
-                onClick={
-                  openCustomerSupport
-                }
+                onClick={openCustomerSupport}
                 aria-label={t(
                   "memberLayout.customerSupport"
                 )}
                 title={t(
                   "memberLayout.customerSupport"
                 )}
-                className={
-                  headerButtonClass
-                }
+                className={headerButtonClass}
               >
                 <Headset className="h-5 w-5 sm:h-6 sm:w-6" />
               </button>
@@ -328,18 +368,13 @@ export default function MemberLayout({
                 title={t(
                   "navigation.notifications"
                 )}
-                className={
-                  headerButtonClass
-                }
+                className={headerButtonClass}
               >
                 <Bell className="h-5 w-5 sm:h-6 sm:w-6" />
 
-                {unreadCount >
-                0 ? (
+                {unreadCount > 0 ? (
                   <span className="absolute -right-1.5 -top-1.5 inline-flex min-h-5 min-w-5 items-center justify-center rounded-full border-2 border-white bg-red-600 px-1 text-[9px] font-black leading-none text-white shadow-sm sm:min-h-6 sm:min-w-6 sm:text-[10px]">
-                    {
-                      badgeText
-                    }
+                    {badgeText}
                   </span>
                 ) : null}
               </Link>

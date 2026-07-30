@@ -1,13 +1,22 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 
 import {
   disablePushSubscription,
   savePushSubscription,
 } from "@/lib/api";
+import { useLanguage } from "@/hooks/useLanguage";
 
-type UserType = "MEMBER" | "MERCHANT" | "ADMIN";
+type UserType =
+  | "MEMBER"
+  | "MERCHANT"
+  | "ADMIN";
 
 type PushNotificationManagerProps = {
   userType: UserType;
@@ -26,31 +35,344 @@ type PushStatus =
   | "disabling"
   | "error";
 
+type LanguageCode =
+  | "en"
+  | "zh"
+  | "ms";
+
+type PushCopy = {
+  title: string;
+  description: string;
+  enabled: string;
+  disabled: string;
+  enabledOnDevice: string;
+  disabledOnDevice: string;
+  enableNotifications: string;
+  disable: string;
+  enabling: string;
+  disabling: string;
+  disableAnytime: string;
+
+  unavailableTitle: string;
+  unavailableDescription: string;
+
+  installTitle: string;
+  installDescription: string;
+
+  blockedTitle: string;
+  blockedDescription: string;
+
+  missingUserId: string;
+  missingConfiguration: string;
+  permissionNotGranted: string;
+  incompleteSubscription: string;
+
+  enabledSuccess: string;
+  disabledSuccess: string;
+  genericError: string;
+};
+
+const COPY: Record<
+  LanguageCode,
+  PushCopy
+> = {
+  en: {
+    title:
+      "Push Notifications",
+
+    description:
+      "Receive Reward Credits, transaction, membership and promotion updates directly on this device.",
+
+    enabled:
+      "Enabled",
+
+    disabled:
+      "Disabled",
+
+    enabledOnDevice:
+      "Enabled on this device",
+
+    disabledOnDevice:
+      "Disabled on this device",
+
+    enableNotifications:
+      "Enable Notifications",
+
+    disable:
+      "Disable",
+
+    enabling:
+      "Enabling...",
+
+    disabling:
+      "Disabling...",
+
+    disableAnytime:
+      "You can disable notifications from this device at any time.",
+
+    unavailableTitle:
+      "Notifications unavailable",
+
+    unavailableDescription:
+      "Push notifications are not supported by this browser or device.",
+
+    installTitle:
+      "Install RewardHub first",
+
+    installDescription:
+      "On iPhone, add RewardHub to your Home Screen and open it from the RewardHub icon before enabling notifications.",
+
+    blockedTitle:
+      "Notifications are blocked",
+
+    blockedDescription:
+      "Open your device or browser settings, allow notifications for RewardHub, then return here.",
+
+    missingUserId:
+      "Missing user ID. Please log in again.",
+
+    missingConfiguration:
+      "Push notification configuration is missing.",
+
+    permissionNotGranted:
+      "Notification permission was not granted.",
+
+    incompleteSubscription:
+      "The browser returned an incomplete push subscription.",
+
+    enabledSuccess:
+      "Notifications have been enabled successfully.",
+
+    disabledSuccess:
+      "Notifications have been disabled.",
+
+    genericError:
+      "Something went wrong. Please try again.",
+  },
+
+  zh: {
+    title:
+      "推送通知",
+
+    description:
+      "在此设备即时接收 Reward Credits、交易记录、会员等级和优惠活动通知。",
+
+    enabled:
+      "已启用",
+
+    disabled:
+      "未启用",
+
+    enabledOnDevice:
+      "此设备已启用",
+
+    disabledOnDevice:
+      "此设备未启用",
+
+    enableNotifications:
+      "启用推送通知",
+
+    disable:
+      "关闭通知",
+
+    enabling:
+      "正在启用...",
+
+    disabling:
+      "正在关闭...",
+
+    disableAnytime:
+      "你可以随时在此设备关闭推送通知。",
+
+    unavailableTitle:
+      "无法使用推送通知",
+
+    unavailableDescription:
+      "此浏览器或设备不支持推送通知。",
+
+    installTitle:
+      "请先安装 RewardHub",
+
+    installDescription:
+      "在 iPhone 上，请先将 RewardHub 添加到主画面，然后从 RewardHub 图标打开应用，再启用推送通知。",
+
+    blockedTitle:
+      "推送通知已被阻止",
+
+    blockedDescription:
+      "请打开设备或浏览器设置，允许 RewardHub 发送通知，然后返回此页面。",
+
+    missingUserId:
+      "找不到会员资料，请重新登录。",
+
+    missingConfiguration:
+      "推送通知设置尚未完成。",
+
+    permissionNotGranted:
+      "尚未取得通知权限。",
+
+    incompleteSubscription:
+      "浏览器返回的推送订阅资料不完整。",
+
+    enabledSuccess:
+      "推送通知已成功启用。",
+
+    disabledSuccess:
+      "推送通知已关闭。",
+
+    genericError:
+      "发生错误，请稍后再试。",
+  },
+
+  ms: {
+    title:
+      "Pemberitahuan Tolakan",
+
+    description:
+      "Terima kemas kini Reward Credits, transaksi, keahlian dan promosi terus pada peranti ini.",
+
+    enabled:
+      "Diaktifkan",
+
+    disabled:
+      "Tidak Diaktifkan",
+
+    enabledOnDevice:
+      "Diaktifkan pada peranti ini",
+
+    disabledOnDevice:
+      "Tidak diaktifkan pada peranti ini",
+
+    enableNotifications:
+      "Aktifkan Pemberitahuan",
+
+    disable:
+      "Nyahaktifkan",
+
+    enabling:
+      "Sedang mengaktifkan...",
+
+    disabling:
+      "Sedang menyahaktifkan...",
+
+    disableAnytime:
+      "Anda boleh menyahaktifkan pemberitahuan pada peranti ini pada bila-bila masa.",
+
+    unavailableTitle:
+      "Pemberitahuan tidak tersedia",
+
+    unavailableDescription:
+      "Pemberitahuan tolakan tidak disokong oleh pelayar atau peranti ini.",
+
+    installTitle:
+      "Pasang RewardHub terlebih dahulu",
+
+    installDescription:
+      "Pada iPhone, tambah RewardHub ke Skrin Utama dan buka melalui ikon RewardHub sebelum mengaktifkan pemberitahuan.",
+
+    blockedTitle:
+      "Pemberitahuan disekat",
+
+    blockedDescription:
+      "Buka tetapan peranti atau pelayar, benarkan pemberitahuan untuk RewardHub, kemudian kembali ke halaman ini.",
+
+    missingUserId:
+      "ID pengguna tidak ditemui. Sila log masuk semula.",
+
+    missingConfiguration:
+      "Konfigurasi pemberitahuan tolakan belum lengkap.",
+
+    permissionNotGranted:
+      "Kebenaran pemberitahuan tidak diberikan.",
+
+    incompleteSubscription:
+      "Pelayar memberikan langganan pemberitahuan yang tidak lengkap.",
+
+    enabledSuccess:
+      "Pemberitahuan berjaya diaktifkan.",
+
+    disabledSuccess:
+      "Pemberitahuan telah dinyahaktifkan.",
+
+    genericError:
+      "Sesuatu telah berlaku. Sila cuba lagi.",
+  },
+};
+
+function normalizeLanguage(
+  value: unknown
+): LanguageCode {
+  const normalized =
+    String(value || "")
+      .trim()
+      .toLowerCase();
+
+  if (
+    normalized === "zh" ||
+    normalized.startsWith("zh-")
+  ) {
+    return "zh";
+  }
+
+  if (
+    normalized === "ms" ||
+    normalized.startsWith("ms-")
+  ) {
+    return "ms";
+  }
+
+  return "en";
+}
+
 function urlBase64ToUint8Array(
   base64String: string
 ): Uint8Array<ArrayBuffer> {
   const padding =
-    "=".repeat((4 - (base64String.length % 4)) % 4);
+    "=".repeat(
+      (
+        4 -
+        (
+          base64String.length %
+          4
+        )
+      ) %
+        4
+    );
 
-  const base64 = (
-    base64String + padding
-  )
-    .replace(/-/g, "+")
-    .replace(/_/g, "/");
+  const base64 =
+    (
+      base64String +
+      padding
+    )
+      .replace(
+        /-/g,
+        "+"
+      )
+      .replace(
+        /_/g,
+        "/"
+      );
 
-  const rawData = window.atob(base64);
+  const rawData =
+    window.atob(
+      base64
+    );
 
-  const outputArray = new Uint8Array(
-    rawData.length
-  );
+  const outputArray =
+    new Uint8Array(
+      rawData.length
+    );
 
   for (
     let index = 0;
-    index < rawData.length;
+    index <
+    rawData.length;
     index += 1
   ) {
     outputArray[index] =
-      rawData.charCodeAt(index);
+      rawData.charCodeAt(
+        index
+      );
   }
 
   return outputArray;
@@ -59,11 +381,16 @@ function urlBase64ToUint8Array(
 function isIOSDevice() {
   return (
     /iPad|iPhone|iPod/.test(
-      window.navigator.userAgent
+      window.navigator
+        .userAgent
     ) ||
     (
-      window.navigator.platform === "MacIntel" &&
-      window.navigator.maxTouchPoints > 1
+      window.navigator
+        .platform ===
+        "MacIntel" &&
+      window.navigator
+        .maxTouchPoints >
+        1
     )
   );
 }
@@ -78,16 +405,23 @@ function isStandaloneMode() {
     window.matchMedia(
       "(display-mode: standalone)"
     ).matches ||
-    navigatorWithStandalone.standalone === true
+    navigatorWithStandalone
+      .standalone === true
   );
 }
 
-function getErrorMessage(error: unknown) {
-  if (error instanceof Error) {
+function getErrorMessage(
+  error: unknown,
+  fallback: string
+) {
+  if (
+    error instanceof Error &&
+    error.message
+  ) {
     return error.message;
   }
 
-  return "Something went wrong. Please try again.";
+  return fallback;
 }
 
 export default function PushNotificationManager({
@@ -95,277 +429,437 @@ export default function PushNotificationManager({
   userId,
   compact = false,
 }: PushNotificationManagerProps) {
-  const [status, setStatus] =
-    useState<PushStatus>("checking");
+  const {
+    language,
+  } = useLanguage();
 
-  const [message, setMessage] =
+  const copy =
+    useMemo(
+      () =>
+        COPY[
+          normalizeLanguage(
+            language
+          )
+        ],
+      [language]
+    );
+
+  const [
+    status,
+    setStatus,
+  ] =
+    useState<PushStatus>(
+      "checking"
+    );
+
+  const [
+    message,
+    setMessage,
+  ] =
     useState("");
 
   const checkSubscription =
-    useCallback(async () => {
-      setMessage("");
-
-      if (
-        !("serviceWorker" in navigator) ||
-        !("PushManager" in window) ||
-        !("Notification" in window)
-      ) {
-        setStatus("unsupported");
-        return;
-      }
-
-      if (
-        isIOSDevice() &&
-        !isStandaloneMode()
-      ) {
-        setStatus("ios-browser");
-        return;
-      }
-
-      if (
-        Notification.permission === "denied"
-      ) {
-        setStatus("denied");
-        return;
-      }
-
-      try {
-        const registration =
-          await navigator.serviceWorker.ready;
-
-        const existingSubscription =
-          await registration.pushManager.getSubscription();
-
-        if (existingSubscription) {
-          setStatus("enabled");
-        } else {
-          setStatus("disabled");
-        }
-      } catch (error) {
-        console.error(
-          "Unable to check push subscription:",
-          error
-        );
-
-        setMessage(getErrorMessage(error));
-        setStatus("error");
-      }
-    }, []);
-
-  useEffect(() => {
-    checkSubscription();
-  }, [checkSubscription]);
-
-  const enableNotifications =
-    async () => {
-      if (!userId.trim()) {
-        setMessage(
-          "Missing user ID. Please log in again."
-        );
-        setStatus("error");
-        return;
-      }
-
-      const publicKey =
-        process.env
-          .NEXT_PUBLIC_VAPID_PUBLIC_KEY;
-
-      if (!publicKey) {
-        setMessage(
-          "Push notification configuration is missing."
-        );
-        setStatus("error");
-        return;
-      }
-
-      if (
-        !("serviceWorker" in navigator) ||
-        !("PushManager" in window) ||
-        !("Notification" in window)
-      ) {
-        setStatus("unsupported");
-        return;
-      }
-
-      if (
-        isIOSDevice() &&
-        !isStandaloneMode()
-      ) {
-        setStatus("ios-browser");
-        return;
-      }
-
-      setStatus("enabling");
-      setMessage("");
-
-      try {
-        const permission =
-          await Notification.requestPermission();
-
-        if (permission === "denied") {
-          setStatus("denied");
-          return;
-        }
-
-        if (permission !== "granted") {
-          setStatus("disabled");
-          setMessage(
-            "Notification permission was not granted."
-          );
-          return;
-        }
-
-        const registration =
-          await navigator.serviceWorker.ready;
-
-        let subscription =
-          await registration.pushManager.getSubscription();
-
-        if (!subscription) {
-          subscription =
-            await registration.pushManager.subscribe(
-              {
-                userVisibleOnly: true,
-                applicationServerKey:
-                  urlBase64ToUint8Array(
-                    publicKey
-                  ),
-              }
-            );
-        }
-
-        const subscriptionJson =
-          subscription.toJSON();
-
-        const endpoint =
-          subscriptionJson.endpoint ||
-          subscription.endpoint;
-
-        const p256dh =
-          subscriptionJson.keys?.p256dh;
-
-        const auth =
-          subscriptionJson.keys?.auth;
+    useCallback(
+      async () => {
+        setMessage("");
 
         if (
-          !endpoint ||
-          !p256dh ||
-          !auth
+          !(
+            "serviceWorker" in
+            navigator
+          ) ||
+          !(
+            "PushManager" in
+            window
+          ) ||
+          !(
+            "Notification" in
+            window
+          )
         ) {
-          throw new Error(
-            "The browser returned an incomplete push subscription."
+          setStatus(
+            "unsupported"
           );
-        }
-
-        await savePushSubscription({
-          userType,
-          userId: userId.trim(),
-          endpoint,
-          p256dh,
-          auth,
-          userAgent:
-            window.navigator.userAgent,
-        });
-
-        setStatus("enabled");
-        setMessage(
-          "Notifications have been enabled successfully."
-        );
-      } catch (error) {
-        console.error(
-          "Enable push notification failed:",
-          error
-        );
-
-        setMessage(getErrorMessage(error));
-        setStatus("error");
-      }
-    };
-
-  const disableNotifications =
-    async () => {
-      setStatus("disabling");
-      setMessage("");
-
-      try {
-        const registration =
-          await navigator.serviceWorker.ready;
-
-        const subscription =
-          await registration.pushManager.getSubscription();
-
-        if (!subscription) {
-          setStatus("disabled");
           return;
         }
 
-        const endpoint =
-          subscription.endpoint;
+        if (
+          isIOSDevice() &&
+          !isStandaloneMode()
+        ) {
+          setStatus(
+            "ios-browser"
+          );
+          return;
+        }
 
-        await disablePushSubscription({
-          endpoint,
-        });
+        if (
+          Notification.permission ===
+          "denied"
+        ) {
+          setStatus(
+            "denied"
+          );
+          return;
+        }
 
-        await subscription.unsubscribe();
+        try {
+          const registration =
+            await navigator
+              .serviceWorker
+              .ready;
 
-        setStatus("disabled");
-        setMessage(
-          "Notifications have been disabled."
-        );
-      } catch (error) {
-        console.error(
-          "Disable push notification failed:",
-          error
-        );
+          const existingSubscription =
+            await registration
+              .pushManager
+              .getSubscription();
 
-        setMessage(getErrorMessage(error));
-        setStatus("error");
-      }
-    };
+          setStatus(
+            existingSubscription
+              ? "enabled"
+              : "disabled"
+          );
+        } catch (error) {
+          console.error(
+            "Unable to check push subscription:",
+            error
+          );
 
-  if (status === "checking") {
-    return compact ? null : (
-      <div className="rounded-[24px] border border-slate-200 bg-white p-5 shadow-sm">
-        <div className="flex items-center gap-3">
-          <div className="h-11 w-11 animate-pulse rounded-2xl bg-slate-100" />
+          setMessage(
+            getErrorMessage(
+              error,
+              copy.genericError
+            )
+          );
 
-          <div className="flex-1">
-            <div className="h-4 w-40 animate-pulse rounded bg-slate-100" />
-            <div className="mt-2 h-3 w-56 max-w-full animate-pulse rounded bg-slate-100" />
-          </div>
-        </div>
-      </div>
+          setStatus(
+            "error"
+          );
+        }
+      },
+      [copy.genericError]
     );
+
+  useEffect(() => {
+    void checkSubscription();
+  }, [checkSubscription]);
+
+  async function enableNotifications() {
+    if (
+      !userId.trim()
+    ) {
+      setMessage(
+        copy.missingUserId
+      );
+
+      setStatus(
+        "error"
+      );
+      return;
+    }
+
+    const publicKey =
+      process.env
+        .NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+
+    if (!publicKey) {
+      setMessage(
+        copy.missingConfiguration
+      );
+
+      setStatus(
+        "error"
+      );
+      return;
+    }
+
+    if (
+      !(
+        "serviceWorker" in
+        navigator
+      ) ||
+      !(
+        "PushManager" in
+        window
+      ) ||
+      !(
+        "Notification" in
+        window
+      )
+    ) {
+      setStatus(
+        "unsupported"
+      );
+      return;
+    }
+
+    if (
+      isIOSDevice() &&
+      !isStandaloneMode()
+    ) {
+      setStatus(
+        "ios-browser"
+      );
+      return;
+    }
+
+    setStatus(
+      "enabling"
+    );
+
+    setMessage("");
+
+    try {
+      const permission =
+        await Notification
+          .requestPermission();
+
+      if (
+        permission ===
+        "denied"
+      ) {
+        setStatus(
+          "denied"
+        );
+        return;
+      }
+
+      if (
+        permission !==
+        "granted"
+      ) {
+        setStatus(
+          "disabled"
+        );
+
+        setMessage(
+          copy.permissionNotGranted
+        );
+        return;
+      }
+
+      const registration =
+        await navigator
+          .serviceWorker
+          .ready;
+
+      let subscription =
+        await registration
+          .pushManager
+          .getSubscription();
+
+      if (
+        !subscription
+      ) {
+        subscription =
+          await registration
+            .pushManager
+            .subscribe({
+              userVisibleOnly:
+                true,
+
+              applicationServerKey:
+                urlBase64ToUint8Array(
+                  publicKey
+                ),
+            });
+      }
+
+      const subscriptionJson =
+        subscription.toJSON();
+
+      const endpoint =
+        subscriptionJson
+          .endpoint ||
+        subscription
+          .endpoint;
+
+      const p256dh =
+        subscriptionJson
+          .keys?.p256dh;
+
+      const auth =
+        subscriptionJson
+          .keys?.auth;
+
+      if (
+        !endpoint ||
+        !p256dh ||
+        !auth
+      ) {
+        throw new Error(
+          copy.incompleteSubscription
+        );
+      }
+
+      await savePushSubscription({
+        userType,
+        userId:
+          userId.trim(),
+        endpoint,
+        p256dh,
+        auth,
+        userAgent:
+          window.navigator
+            .userAgent,
+      });
+
+      setStatus(
+        "enabled"
+      );
+
+      setMessage(
+        copy.enabledSuccess
+      );
+    } catch (error) {
+      console.error(
+        "Enable push notification failed:",
+        error
+      );
+
+      setMessage(
+        getErrorMessage(
+          error,
+          copy.genericError
+        )
+      );
+
+      setStatus(
+        "error"
+      );
+    }
   }
 
-  if (status === "unsupported") {
+  async function disableNotifications() {
+    setStatus(
+      "disabling"
+    );
+
+    setMessage("");
+
+    try {
+      const registration =
+        await navigator
+          .serviceWorker
+          .ready;
+
+      const subscription =
+        await registration
+          .pushManager
+          .getSubscription();
+
+      if (
+        !subscription
+      ) {
+        setStatus(
+          "disabled"
+        );
+        return;
+      }
+
+      const endpoint =
+        subscription
+          .endpoint;
+
+      await disablePushSubscription({
+        endpoint,
+      });
+
+      await subscription
+        .unsubscribe();
+
+      setStatus(
+        "disabled"
+      );
+
+      setMessage(
+        copy.disabledSuccess
+      );
+    } catch (error) {
+      console.error(
+        "Disable push notification failed:",
+        error
+      );
+
+      setMessage(
+        getErrorMessage(
+          error,
+          copy.genericError
+        )
+      );
+
+      setStatus(
+        "error"
+      );
+    }
+  }
+
+  if (
+    status ===
+    "checking"
+  ) {
+    return compact
+      ? null
+      : (
+        <div className="rounded-[24px] border border-slate-200 bg-white p-5 shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="h-11 w-11 animate-pulse rounded-2xl bg-slate-100" />
+
+            <div className="flex-1">
+              <div className="h-4 w-40 animate-pulse rounded bg-slate-100" />
+              <div className="mt-2 h-3 w-56 max-w-full animate-pulse rounded bg-slate-100" />
+            </div>
+          </div>
+        </div>
+      );
+  }
+
+  if (
+    status ===
+    "unsupported"
+  ) {
     return (
       <NotificationCard
-        icon="unsupported"
-        title="Notifications unavailable"
-        description="Push notifications are not supported by this browser or device."
+        title={
+          copy.unavailableTitle
+        }
+        description={
+          copy.unavailableDescription
+        }
         tone="neutral"
       />
     );
   }
 
-  if (status === "ios-browser") {
+  if (
+    status ===
+    "ios-browser"
+  ) {
     return (
       <NotificationCard
-        icon="phone"
-        title="Install RewardHub first"
-        description="On iPhone, add RewardHub to your Home Screen and open it from the RewardHub icon before enabling notifications."
+        title={
+          copy.installTitle
+        }
+        description={
+          copy.installDescription
+        }
         tone="warning"
       />
     );
   }
 
-  if (status === "denied") {
+  if (
+    status ===
+    "denied"
+  ) {
     return (
       <NotificationCard
-        icon="blocked"
-        title="Notifications are blocked"
-        description="Open your device or browser settings, allow notifications for RewardHub, then return here."
+        title={
+          copy.blockedTitle
+        }
+        description={
+          copy.blockedDescription
+        }
         tone="warning"
       />
     );
@@ -376,23 +870,28 @@ export default function PushNotificationManager({
       <div className="rounded-[20px] border border-slate-200 bg-white p-4 shadow-sm">
         <div className="flex items-center gap-3">
           <NotificationIcon
-            enabled={status === "enabled"}
+            enabled={
+              status ===
+              "enabled"
+            }
           />
 
           <div className="min-w-0 flex-1">
             <p className="text-sm font-extrabold text-slate-900">
-              Push Notifications
+              {copy.title}
             </p>
 
             <p className="mt-0.5 text-xs text-slate-500">
-              {status === "enabled"
-                ? "Enabled on this device"
-                : "Disabled on this device"}
+              {status ===
+              "enabled"
+                ? copy.enabledOnDevice
+                : copy.disabledOnDevice}
             </p>
           </div>
 
           <NotificationButton
             status={status}
+            copy={copy}
             onEnable={
               enableNotifications
             }
@@ -421,27 +920,32 @@ export default function PushNotificationManager({
       <div className="relative">
         <div className="flex items-start gap-4">
           <NotificationIcon
-            enabled={status === "enabled"}
+            enabled={
+              status ===
+              "enabled"
+            }
           />
 
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
               <h2 className="text-base font-black text-slate-950">
-                Push Notifications
+                {copy.title}
               </h2>
 
-              {status === "enabled" ? (
+              {status ===
+              "enabled" ? (
                 <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-[0.12em] text-emerald-700">
-                  Enabled
+                  {
+                    copy.enabled
+                  }
                 </span>
               ) : null}
             </div>
 
             <p className="mt-2 text-sm leading-6 text-slate-500">
-              Receive Reward Credits,
-              transaction, membership and
-              promotion updates directly on
-              this device.
+              {
+                copy.description
+              }
             </p>
           </div>
         </div>
@@ -449,6 +953,7 @@ export default function PushNotificationManager({
         <div className="mt-5">
           <NotificationButton
             status={status}
+            copy={copy}
             onEnable={
               enableNotifications
             }
@@ -463,7 +968,8 @@ export default function PushNotificationManager({
           <div
             className={[
               "mt-4 rounded-2xl px-4 py-3 text-sm leading-5",
-              status === "error"
+              status ===
+              "error"
                 ? "bg-red-50 text-red-700"
                 : "bg-slate-50 text-slate-600",
             ].join(" ")}
@@ -473,8 +979,9 @@ export default function PushNotificationManager({
         ) : null}
 
         <p className="mt-4 text-xs leading-5 text-slate-400">
-          You can disable notifications from
-          this device at any time.
+          {
+            copy.disableAnytime
+          }
         </p>
       </div>
     </div>
@@ -483,20 +990,26 @@ export default function PushNotificationManager({
 
 function NotificationButton({
   status,
+  copy,
   onEnable,
   onDisable,
   fullWidth = false,
 }: {
   status: PushStatus;
+  copy: PushCopy;
   onEnable: () => void;
   onDisable: () => void;
   fullWidth?: boolean;
 }) {
   const loading =
-    status === "enabling" ||
-    status === "disabling";
+    status ===
+      "enabling" ||
+    status ===
+      "disabling";
 
-  const enabled = status === "enabled";
+  const enabled =
+    status ===
+    "enabled";
 
   return (
     <button
@@ -510,7 +1023,9 @@ function NotificationButton({
       className={[
         "inline-flex h-11 items-center justify-center gap-2 rounded-2xl px-4 text-sm font-extrabold transition",
         "disabled:cursor-wait disabled:opacity-70",
-        fullWidth ? "w-full" : "",
+        fullWidth
+          ? "w-full"
+          : "",
         enabled
           ? "border border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
           : "bg-slate-950 text-white shadow-lg shadow-slate-950/15 hover:bg-slate-800",
@@ -520,16 +1035,19 @@ function NotificationButton({
         <>
           <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
 
-          {status === "enabling"
-            ? "Enabling..."
-            : "Disabling..."}
+          {status ===
+          "enabling"
+            ? copy.enabling
+            : copy.disabling}
         </>
       ) : enabled ? (
-        "Disable"
+        copy.disable
       ) : (
         <>
           <BellIcon />
-          Enable Notifications
+          {
+            copy.enableNotifications
+          }
         </>
       )}
     </button>
@@ -560,19 +1078,18 @@ function NotificationCard({
   description,
   tone,
 }: {
-  icon:
-    | "unsupported"
-    | "phone"
-    | "blocked";
   title: string;
   description: string;
-  tone: "neutral" | "warning";
+  tone:
+    | "neutral"
+    | "warning";
 }) {
   return (
     <div
       className={[
         "rounded-[24px] border p-5",
-        tone === "warning"
+        tone ===
+        "warning"
           ? "border-amber-200 bg-amber-50"
           : "border-slate-200 bg-slate-50",
       ].join(" ")}
@@ -581,7 +1098,8 @@ function NotificationCard({
         <div
           className={[
             "flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl",
-            tone === "warning"
+            tone ===
+            "warning"
               ? "bg-amber-100 text-amber-700"
               : "bg-white text-slate-500",
           ].join(" ")}

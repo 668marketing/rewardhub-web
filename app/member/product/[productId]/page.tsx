@@ -10,10 +10,20 @@ import {
   useRouter,
 } from "next/navigation";
 import Link from "next/link";
+import {
+  Check,
+  Minus,
+  Plus,
+  ShoppingCart,
+} from "lucide-react";
 
 import MemberLayout from "@/components/layout/MemberLayout";
+import SafeImage from "@/components/ui/SafeImage";
 import { useLanguage } from "@/hooks/useLanguage";
 import { getProductDetail } from "@/lib/api";
+import {
+  addMemberCartItem,
+} from "@/lib/memberCart";
 
 type ProductImageItem = {
   imageUrl?: string;
@@ -284,6 +294,23 @@ export default function ProductDetailPage() {
     setSelectedImageIndex,
   ] = useState(0);
 
+  const [
+    quantity,
+    setQuantity,
+  ] = useState(1);
+
+  const [
+    cartMessage,
+    setCartMessage,
+  ] = useState("");
+
+  const [
+    cartMessageType,
+    setCartMessageType,
+  ] = useState<
+    "success" | "error" | ""
+  >("");
+
   useEffect(() => {
     let cancelled = false;
 
@@ -323,6 +350,9 @@ export default function ProductDetailPage() {
           setSelectedImageIndex(
             0
           );
+          setQuantity(1);
+          setCartMessage("");
+          setCartMessageType("");
         }
       } catch (loadError) {
         console.error(
@@ -497,6 +527,87 @@ export default function ProductDetailPage() {
         )}`
       : "/member/marketplace";
 
+  const rawStock =
+    Number(product.stock);
+
+  const stock =
+    product.stock === undefined ||
+    product.stock === null ||
+    product.stock === ""
+      ? null
+      : Number.isFinite(rawStock)
+        ? Math.max(
+            0,
+            Math.floor(rawStock)
+          )
+        : null;
+
+  /*
+   * Store the already-narrowed product in a stable constant.
+   * This prevents TypeScript from treating product as possibly null
+   * inside nested event handlers.
+   */
+  const currentProduct: ProductDetail =
+    product;
+
+  function addToCart(
+    goToCart: boolean
+  ) {
+    if (
+      !productStatus.available ||
+      !merchantId
+    ) {
+      return;
+    }
+
+    const result =
+      addMemberCartItem({
+        productId,
+        merchantId,
+        merchantName,
+        productName,
+        imageUrl:
+          getDisplayImageUrl(
+            images[0] || ""
+          ),
+        price,
+        originalPrice,
+        quantity,
+        stock,
+        pointsEarned,
+        category:
+          String(
+            currentProduct.category ||
+              ""
+          ),
+      });
+
+    if (!result.ok) {
+      setCartMessageType(
+        "error"
+      );
+
+      setCartMessage(
+        `Your cart already contains products from ${result.existingMerchantName}. Please complete or clear that cart first.`
+      );
+
+      return;
+    }
+
+    setCartMessageType(
+      "success"
+    );
+    setCartMessage(
+      "Added to cart."
+    );
+
+    if (goToCart) {
+      router.push(
+        "/member/cart"
+      );
+    }
+  }
+
   return (
     <MemberLayout>
       <main className="min-h-screen bg-[#f4f6fa] pb-32 text-slate-950 lg:pb-14">
@@ -541,15 +652,20 @@ export default function ProductDetailPage() {
               <div className="border-b border-slate-200 bg-[#0a1220] p-3 sm:p-5 lg:border-b-0 lg:border-r">
                 <div className="relative overflow-hidden rounded-[22px] bg-[#101a2b] sm:rounded-[28px]">
                   <div className="relative aspect-[4/3] w-full">
-                    {activeImage ? (
-                      <img
-  src={getDisplayImageUrl(activeImage)}
-  alt={productName}
-  className="h-full w-full object-contain"
-/>
-                    ) : (
-                      <ProductPlaceholder />
-                    )}
+                    <SafeImage
+                      src={
+                        activeImage
+                          ? getDisplayImageUrl(
+                              activeImage
+                            )
+                          : ""
+                      }
+                      alt={productName}
+                      className="h-full w-full object-contain"
+                      fallback={
+                        <ProductPlaceholder />
+                      }
+                    />
 
                     <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-black/5" />
 
@@ -609,11 +725,13 @@ export default function ProductDetailPage() {
                                   : "border-white/10 opacity-65 hover:opacity-100"
                               }`}
                             >
-                              <img
-  src={getDisplayImageUrl(image)}
-  alt=""
-  className="h-full w-full object-cover"
-/>
+                              <SafeImage
+                                src={getDisplayImageUrl(
+                                  image
+                                )}
+                                alt=""
+                                className="h-full w-full object-cover"
+                              />
                             </button>
                           );
                         }
@@ -721,6 +839,114 @@ export default function ProductDetailPage() {
                   </div>
                 </div>
 
+                {/* Quantity and cart actions */}
+                <div className="mt-7">
+                  <p className="text-xs font-black uppercase tracking-[0.16em] text-slate-400">
+                    Quantity
+                  </p>
+
+                  <div className="mt-3 inline-flex items-center rounded-2xl border border-slate-200 bg-slate-50 p-1.5">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setQuantity(
+                          (current) =>
+                            Math.max(
+                              1,
+                              current - 1
+                            )
+                        )
+                      }
+                      className="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-slate-700 shadow-sm"
+                    >
+                      <Minus className="h-4 w-4" />
+                    </button>
+
+                    <span className="min-w-14 text-center text-base font-black">
+                      {quantity}
+                    </span>
+
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setQuantity(
+                          (current) =>
+                            stock !== null
+                              ? Math.min(
+                                  stock,
+                                  current + 1
+                                )
+                              : current + 1
+                        )
+                      }
+                      disabled={
+                        stock !== null &&
+                        quantity >= stock
+                      }
+                      className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-950 text-white shadow-sm disabled:cursor-not-allowed disabled:bg-slate-300"
+                    >
+                      <Plus className="h-4 w-4" />
+                    </button>
+                  </div>
+
+                  {stock !== null ? (
+                    <p className="mt-2 text-xs font-bold text-slate-500">
+                      Stock: {stock}
+                    </p>
+                  ) : null}
+                </div>
+
+                {cartMessage ? (
+                  <div
+                    className={`mt-5 rounded-2xl p-4 text-sm font-black ${
+                      cartMessageType ===
+                      "success"
+                        ? "bg-emerald-50 text-emerald-700"
+                        : "bg-rose-50 text-rose-700"
+                    }`}
+                  >
+                    <div className="flex items-start gap-2">
+                      {cartMessageType ===
+                      "success" ? (
+                        <Check className="mt-0.5 h-4 w-4 shrink-0" />
+                      ) : null}
+
+                      <span>
+                        {cartMessage}
+                      </span>
+                    </div>
+                  </div>
+                ) : null}
+
+                <div className="mt-7 hidden grid-cols-2 gap-3 lg:grid">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      addToCart(false)
+                    }
+                    disabled={
+                      !productStatus.available
+                    }
+                    className="flex min-h-14 items-center justify-center gap-2 rounded-2xl border border-slate-300 bg-white px-5 text-sm font-black text-slate-950 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400"
+                  >
+                    <ShoppingCart className="h-5 w-5" />
+                    Add to Cart
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      addToCart(true)
+                    }
+                    disabled={
+                      !productStatus.available
+                    }
+                    className="flex min-h-14 items-center justify-center rounded-2xl bg-gradient-to-r from-amber-400 to-yellow-300 px-5 text-sm font-black text-slate-950 shadow-lg disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-400"
+                  >
+                    Buy Now
+                  </button>
+                </div>
+
                 {/* Tier cashback */}
                 <div className="mt-7">
                   <div className="flex items-end justify-between gap-4">
@@ -769,14 +995,7 @@ export default function ProductDetailPage() {
                   </div>
                 </div>
 
-                {/* Desktop CTA */}
-                <div className="mt-auto hidden pt-8 lg:block">
-                  <PayButton
-                    available={
-                      productStatus.available
-                    }
-                  />
-                </div>
+
               </div>
             </div>
           </article>
@@ -916,89 +1135,37 @@ export default function ProductDetailPage() {
 
         {/* Mobile fixed action */}
         <div className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/95 px-4 pb-[calc(12px+env(safe-area-inset-bottom))] pt-3 shadow-[0_-12px_35px_rgba(15,23,42,0.10)] backdrop-blur-xl lg:hidden">
-          <div className="mx-auto flex max-w-3xl items-center gap-3">
-            <div className="min-w-0 flex-1">
-              <p className="text-[10px] font-black uppercase tracking-[0.14em] text-slate-400">
-                {t("memberProductDetail.totalPrice")}
-              </p>
-
-              <p className="mt-0.5 truncate text-xl font-black text-slate-950">
-                RM
-                {money(
-                  price
-                )}
-              </p>
-            </div>
-
-            <Link
-              href={
-                productStatus.available
-                  ? "/member/pay"
-                  : "#"
+          <div className="mx-auto grid max-w-3xl grid-cols-2 gap-3">
+            <button
+              type="button"
+              onClick={() =>
+                addToCart(false)
               }
-              aria-disabled={
+              disabled={
                 !productStatus.available
               }
-              onClick={(
-                event
-              ) => {
-                if (
-                  !productStatus.available
-                ) {
-                  event.preventDefault();
-                }
-              }}
-              className={`inline-flex min-h-13 items-center justify-center rounded-2xl px-6 text-sm font-black no-underline transition ${
-                productStatus.available
-                  ? "bg-slate-950 text-white shadow-lg shadow-slate-950/15 active:scale-[0.98]"
-                  : "cursor-not-allowed bg-slate-200 text-slate-400"
-              }`}
+              className="flex min-h-13 items-center justify-center gap-2 rounded-2xl border border-slate-300 bg-white px-4 text-sm font-black text-slate-950 disabled:bg-slate-100 disabled:text-slate-400"
             >
-              {productStatus.available
-                ? t("memberProductDetail.payNow")
-                : t("memberProductDetail.unavailable")}
-            </Link>
+              <ShoppingCart className="h-5 w-5" />
+              Add to Cart
+            </button>
+
+            <button
+              type="button"
+              onClick={() =>
+                addToCart(true)
+              }
+              disabled={
+                !productStatus.available
+              }
+              className="flex min-h-13 items-center justify-center rounded-2xl bg-slate-950 px-4 text-sm font-black text-white disabled:bg-slate-300"
+            >
+              Buy Now
+            </button>
           </div>
         </div>
       </main>
     </MemberLayout>
-  );
-}
-
-function PayButton({
-  available,
-}: {
-  available: boolean;
-}) {
-  const { t } =
-    useLanguage();
-  if (!available) {
-    return (
-      <div className="flex min-h-16 items-center justify-center rounded-[20px] bg-slate-200 px-6 text-center text-sm font-black text-slate-500">
-        {t("memberProductDetail.currentlyUnavailable")}
-      </div>
-    );
-  }
-
-  return (
-    <Link
-      href="/member/pay"
-      className="group flex min-h-16 items-center justify-between rounded-[20px] bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-400 px-6 text-slate-950 no-underline shadow-[0_18px_35px_rgba(245,158,11,0.22)] transition hover:-translate-y-0.5 hover:shadow-[0_22px_40px_rgba(245,158,11,0.30)]"
-    >
-      <div>
-        <p className="text-xs font-black uppercase tracking-[0.14em] text-amber-900/65">
-          {t("memberProductDetail.rewardHubPayment")}
-        </p>
-
-        <p className="mt-1 text-base font-black">
-          {t("memberProductDetail.payWithMemberQr")}
-        </p>
-      </div>
-
-      <span className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-950 text-white transition-transform group-hover:translate-x-1">
-        →
-      </span>
-    </Link>
   );
 }
 
@@ -1075,11 +1242,20 @@ function MerchantLogo({
 
   if (logoUrl) {
     return (
-      <img
-  src={getDisplayImageUrl(logoUrl)}
-  alt={name}
-  className={`${sizeClass} shrink-0 border border-slate-200 bg-white object-cover`}
-/>  
+      <SafeImage
+        src={getDisplayImageUrl(
+          logoUrl
+        )}
+        alt={name}
+        className={`${sizeClass} shrink-0 border border-slate-200 bg-white object-cover`}
+        fallback={
+          <span>
+            {name
+              .slice(0, 1)
+              .toUpperCase()}
+          </span>
+        }
+      />
     );
   }
 

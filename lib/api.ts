@@ -822,3 +822,191 @@ export async function markAllMemberNotificationsRead(data: {
   });
 }
 
+export type MemberOrderCartInput = {
+  productId: string;
+  quantity: number;
+};
+
+export type MemberOrderDeliveryMethod =
+  | "DELIVERY"
+  | "SELF_PICKUP";
+
+export async function getMemberCheckoutPreview(data: {
+  memberId: string;
+  items: MemberOrderCartInput[];
+  rewardCreditsUsed?: number;
+  deliveryMethod?: MemberOrderDeliveryMethod;
+}) {
+  return apiPost(
+    "getMemberCheckoutPreview",
+    data
+  );
+}
+
+export async function createMemberOrder(data: {
+  memberId: string;
+  items: MemberOrderCartInput[];
+  rewardCreditsUsed?: number;
+  paymentMethod?: string;
+  deliveryMethod?: MemberOrderDeliveryMethod;
+  memberNote?: string;
+}) {
+  return apiPost(
+    "createMemberOrder",
+    data
+  );
+}
+
+export async function getMemberOrders(data: {
+  memberId: string;
+  status?: string;
+  limit?: number;
+}) {
+  return apiPost(
+    "getMemberOrders",
+    data
+  );
+}
+
+export async function getMemberOrderDetail(data: {
+  memberId: string;
+  orderId: string;
+}) {
+  return apiPost(
+    "getMemberOrderDetail",
+    data
+  );
+}
+
+export async function uploadMemberOrderReceipt(data: {
+  memberId: string;
+  orderId: string;
+  fileName: string;
+  mimeType: string;
+  base64: string;
+}) {
+  return apiPost(
+    "uploadMemberOrderReceipt",
+    data
+  );
+}
+
+export async function cancelMemberOrder(data: {
+  memberId: string;
+  orderId: string;
+}) {
+  return apiPost(
+    "cancelMemberOrder",
+    data
+  );
+}
+
+export async function getMerchantOrders(data: {
+  merchantId: string;
+  status?: string;
+  limit?: number;
+}) {
+  return apiPost(
+    "getMerchantOrders",
+    data
+  );
+}
+
+export async function getMerchantOrderDetail(data: {
+  merchantId: string;
+  orderId: string;
+}) {
+  return apiPost(
+    "getMerchantOrderDetail",
+    data
+  );
+}
+
+export async function confirmMerchantOrderPayment(data: {
+  merchantId: string;
+  orderId: string;
+  merchantNote?: string;
+}) {
+  return apiPost(
+    "confirmMerchantOrderPayment",
+    data
+  );
+}
+
+export async function rejectMerchantOrderPayment(data: {
+  merchantId: string;
+  orderId: string;
+  merchantNote: string;
+}) {
+  return apiPost(
+    "rejectMerchantOrderPayment",
+    data
+  );
+}
+
+export async function completeMerchantOrder(data: {
+  merchantId: string;
+  orderId: string;
+  merchantNote?: string;
+}) {
+  return apiPost(
+    "completeMerchantOrder",
+    data
+  );
+}
+
+export type MerchantOrderDeliveryFulfillmentStatus =
+  | "PENDING"
+  | "PREPARING"
+  | "READY_FOR_DELIVERY"
+  | "OUT_FOR_DELIVERY"
+  | "DELIVERED";
+
+export type MerchantOrderPickupFulfillmentStatus =
+  | "PENDING"
+  | "PREPARING"
+  | "READY_FOR_PICKUP"
+  | "PICKED_UP";
+
+export type MerchantOrderFulfillmentStatus =
+  | MerchantOrderDeliveryFulfillmentStatus
+  | MerchantOrderPickupFulfillmentStatus;
+
+export async function updateMerchantOrderFulfillmentStatus(data: {
+  merchantId: string;
+  orderId: string;
+  fulfillmentStatus:
+    MerchantOrderFulfillmentStatus;
+  merchantNote?: string;
+}) {
+  return apiPost(
+    "updateMerchantOrderFulfillmentStatus",
+    data
+  );
+}
+
+export async function updateMemberProfile(data: {
+  memberId: string;
+  fullName?: string;
+  displayName?: string;
+  email?: string;
+  phone?: string;
+  birthday?: string;
+  gender?: string;
+  recipientName?: string;
+  recipientPhone?: string;
+  addressLine1?: string;
+  addressLine2?: string;
+  area?: string;
+  state?: string;
+  postcode?: string;
+  country?: string;
+  defaultDeliveryMethod?:
+    | "Delivery"
+    | "Self Pickup";
+}) {
+  return apiPost(
+    "updateMemberProfile",
+    data
+  );
+}

@@ -75,6 +75,11 @@ const primaryItems: NavItem[] = [
     icon: "🏠",
   },
   {
+    label: "Orders",
+    href: "/merchant/orders",
+    icon: "🛍️",
+  },
+  {
     label: "Transactions",
     href: "/merchant/transactions",
     icon: "📄",
@@ -94,6 +99,11 @@ const primaryItems: NavItem[] = [
 ];
 
 const moreItems: NavItem[] = [
+  {
+    label: "Orders",
+    href: "/merchant/orders",
+    icon: "🛍️",
+  },
   {
     label: "Products",
     href: "/merchant/products",
