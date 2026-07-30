@@ -3,8 +3,10 @@ import type { MetadataRoute } from "next";
 export default function manifest(): MetadataRoute.Manifest {
   return {
     id: "/",
+
     name: "RewardHub",
     short_name: "RewardHub",
+
     description:
       "Earn rewards, enjoy member benefits and discover participating merchants with RewardHub.",
 
@@ -26,19 +28,19 @@ export default function manifest(): MetadataRoute.Manifest {
 
     icons: [
       {
-        src: "/icons/icon-192.png?v=3",
+        src: "/icons/icon-192.png?v=6",
         sizes: "192x192",
         type: "image/png",
         purpose: "any",
       },
       {
-        src: "/icons/icon-512.png?v=3",
+        src: "/icons/icon-512.png?v=6",
         sizes: "512x512",
         type: "image/png",
         purpose: "any",
       },
       {
-        src: "/icons/icon-maskable-512.png?v=3",
+        src: "/icons/icon-maskable-512.png?v=6",
         sizes: "512x512",
         type: "image/png",
         purpose: "maskable",
