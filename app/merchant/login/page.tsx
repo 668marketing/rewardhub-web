@@ -6,6 +6,9 @@ import {
   useState,
 } from "react";
 import Link from "next/link";
+import {
+  useRouter,
+} from "next/navigation";
 
 import Header from "@/components/layout/Header";
 import LanguageSwitcher from "@/components/i18n/LanguageSwitcher";
@@ -13,6 +16,11 @@ import { useLanguage } from "@/hooks/useLanguage";
 import {
   merchantLogin,
 } from "@/lib/api";
+import {
+  getSafeInternalRedirect,
+  hasValidMerchantLogin,
+  saveMerchantLogin,
+} from "@/lib/auth";
 
 /* ============================================================
  * Merchant Login Error Message
@@ -180,6 +188,9 @@ function getMerchantLoginErrorMessage(
  */
 
 function MerchantLoginContent() {
+  const router =
+    useRouter();
+
   const {
     language,
   } = useLanguage();
@@ -251,6 +262,7 @@ function MerchantLoginContent() {
 
   const copy =
     pageText[language];
+
   const [
     loading,
     setLoading,
@@ -288,28 +300,27 @@ function MerchantLoginContent() {
     useState("");
 
   useEffect(() => {
-    try {
-      const storedMerchant =
-        JSON.parse(
-          localStorage.getItem(
-            "merchant"
-          ) || "{}"
-        );
-
-      if (
-        storedMerchant?.merchantId ||
-        storedMerchant?.MERCHANT_ID
-      ) {
-        window.location.replace(
-          "/merchant/dashboard"
-        );
-
-        return;
-      }
-    } catch {
-      localStorage.removeItem(
-        "merchant"
+    const params =
+      new URLSearchParams(
+        window.location.search
       );
+
+    const redirectPath =
+      getSafeInternalRedirect(
+        params.get(
+          "redirect"
+        ),
+        "/merchant/dashboard"
+      );
+
+    if (
+      hasValidMerchantLogin()
+    ) {
+      router.replace(
+        redirectPath
+      );
+
+      return;
     }
 
     const savedRef =
@@ -320,7 +331,7 @@ function MerchantLoginContent() {
     setReferralId(
       savedRef
     );
-  }, []);
+  }, [router]);
 
   async function handleLogin(
     event: React.FormEvent<HTMLFormElement>
@@ -401,15 +412,25 @@ function MerchantLoginContent() {
         return;
       }
 
-      localStorage.setItem(
-        "merchant",
-        JSON.stringify(
-          merchantData
-        )
+      saveMerchantLogin(
+        merchantData
       );
 
-      window.location.replace(
-        "/merchant/dashboard"
+      const params =
+        new URLSearchParams(
+          window.location.search
+        );
+
+      const redirectPath =
+        getSafeInternalRedirect(
+          params.get(
+            "redirect"
+          ),
+          "/merchant/dashboard"
+        );
+
+      router.replace(
+        redirectPath
       );
     } catch (error: unknown) {
       setErrorMessage(
@@ -437,6 +458,7 @@ function MerchantLoginContent() {
         <div className="absolute right-4 top-4 z-40 sm:right-6 sm:top-6">
           <LanguageSwitcher compact />
         </div>
+
         <section className="mx-auto flex min-h-[calc(100vh-120px)] max-w-md items-center">
           <div className="w-full rounded-[1.75rem] bg-white p-5 text-center shadow-2xl sm:rounded-[2.5rem] sm:p-8">
             <img

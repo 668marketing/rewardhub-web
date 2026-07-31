@@ -16,6 +16,11 @@ import { useLanguage } from "@/hooks/useLanguage";
 import {
   memberLogin,
 } from "@/lib/api";
+import {
+  getSafeInternalRedirect,
+  hasValidMemberLogin,
+  saveMemberLogin,
+} from "@/lib/auth";
 
 /* ============================================================
  * Member Login Error Message
@@ -298,6 +303,24 @@ function LoginContent() {
         window.location.search
       );
 
+    const redirectPath =
+      getSafeInternalRedirect(
+        params.get(
+          "redirect"
+        ),
+        "/member/dashboard"
+      );
+
+    if (
+      hasValidMemberLogin()
+    ) {
+      router.replace(
+        redirectPath
+      );
+
+      return;
+    }
+
     const queryRef =
       params.get("ref") || "";
 
@@ -322,7 +345,7 @@ function LoginContent() {
     setReferralId(
       savedRef
     );
-  }, []);
+  }, [router]);
 
   const registerHref =
     referralId
@@ -398,15 +421,25 @@ function LoginContent() {
         return;
       }
 
-      localStorage.setItem(
-        "member",
-        JSON.stringify(
-          memberData
-        )
+      saveMemberLogin(
+        memberData
       );
 
-      router.push(
-        "/member/dashboard"
+      const params =
+        new URLSearchParams(
+          window.location.search
+        );
+
+      const redirectPath =
+        getSafeInternalRedirect(
+          params.get(
+            "redirect"
+          ),
+          "/member/dashboard"
+        );
+
+      router.replace(
+        redirectPath
       );
     } catch (error: unknown) {
       setErrorMessage(
@@ -427,6 +460,7 @@ function LoginContent() {
         <div className="absolute right-4 top-4 z-40 sm:right-6 sm:top-6">
           <LanguageSwitcher compact />
         </div>
+
         <section className="mx-auto flex min-h-[calc(100vh-80px)] max-w-7xl items-center px-4 py-8 sm:px-6 sm:py-12">
           <div className="mx-auto w-full max-w-md rounded-[1.75rem] bg-white p-5 shadow-2xl sm:rounded-[2rem] sm:p-8">
             <div className="text-center">
