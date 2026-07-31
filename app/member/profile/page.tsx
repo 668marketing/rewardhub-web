@@ -260,6 +260,8 @@ type ProfileCopy = {
   noAddress: string;
   deliveryPreference: string;
   defaultMethod: string;
+  securityCenter: string;
+  securityCenterDescription: string;
   changePassword: string;
   changePasswordDescription: string;
   devices: string;
@@ -328,10 +330,13 @@ const PROFILE_COPY: Record<"en" | "zh" | "ms", ProfileCopy> = {
     noAddress: "No shipping address saved yet.",
     deliveryPreference: "Delivery Preference",
     defaultMethod: "Default Method",
+    securityCenter: "Security Center",
+    securityCenterDescription:
+      "Manage App Lock, Face ID / Touch ID and trusted devices.",
     changePassword: "Change Password",
     changePasswordDescription: "Update your account password.",
-    devices: "Devices",
-    devicesDescription: "Review devices connected to your account.",
+    devices: "Manage Devices",
+    devicesDescription: "Review all registered devices.",
     dangerZone: "Danger Zone",
     logout: "Logout",
     edit: "Edit",
@@ -394,10 +399,13 @@ const PROFILE_COPY: Record<"en" | "zh" | "ms", ProfileCopy> = {
     noAddress: "还没有保存收货地址。",
     deliveryPreference: "默认配送方式",
     defaultMethod: "默认方式",
+    securityCenter: "安全中心",
+    securityCenterDescription:
+      "管理应用锁、生物识别及受信任设备。",
     changePassword: "更改密码",
     changePasswordDescription: "更新会员账户密码。",
     devices: "设备管理",
-    devicesDescription: "查看连接到会员账户的设备。",
+    devicesDescription: "查看所有已注册设备。",
     dangerZone: "危险区域",
     logout: "退出登录",
     edit: "编辑",
@@ -460,10 +468,13 @@ const PROFILE_COPY: Record<"en" | "zh" | "ms", ProfileCopy> = {
     noAddress: "Belum ada alamat penghantaran disimpan.",
     deliveryPreference: "Kaedah Penghantaran Utama",
     defaultMethod: "Kaedah Utama",
+    securityCenter: "Pusat Keselamatan",
+    securityCenterDescription:
+      "Urus App Lock, Face ID / Touch ID dan peranti dipercayai.",
     changePassword: "Tukar Kata Laluan",
     changePasswordDescription: "Kemas kini kata laluan akaun.",
-    devices: "Peranti",
-    devicesDescription: "Semak peranti yang disambungkan ke akaun.",
+    devices: "Urus Peranti",
+    devicesDescription: "Lihat semua peranti yang didaftarkan.",
     dangerZone: "Zon Bahaya",
     logout: "Log Keluar",
     edit: "Edit",
@@ -1146,7 +1157,14 @@ export default function ProfilePage() {
               {ui.security}
             </h2>
 
-            <div className="mt-6 grid grid-cols-2 gap-3 sm:gap-4">
+            <div className="mt-6 grid gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
+              <ActionCard
+                title={ui.securityCenter}
+                subtitle={ui.securityCenterDescription}
+                href="/member/security"
+                openLabel={ui.open}
+              />
+
               <ActionCard
                 title={ui.changePassword}
                 subtitle={ui.changePasswordDescription}

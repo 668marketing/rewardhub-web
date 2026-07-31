@@ -86,9 +86,17 @@ const translations = {
     enabledWithLimit: "Enabled ({{limit}}%)",
     disabled: "Disabled",
     security: "Security",
-    securityDescription: "Manage your merchant account password.",
+    securityDescription:
+      "Manage App Lock, biometric access, password and trusted devices.",
+    securityCenter: "Security Center",
+    securityCenterDescription:
+      "Manage App Lock, Face ID / Touch ID and trusted devices.",
     changePassword: "Change Password",
-    changePasswordDescription: "Update your merchant account password securely",
+    changePasswordDescription:
+      "Update your merchant account password securely.",
+    manageDevices: "Manage Devices",
+    manageDevicesDescription:
+      "Review all registered merchant devices.",
     open: "Open →",
     account: "Account",
     accountDescription: "Sign out from this merchant portal on the current device.",
@@ -162,9 +170,16 @@ const translations = {
     enabledWithLimit: "已开启（{{limit}}%）",
     disabled: "已关闭",
     security: "安全设置",
-    securityDescription: "管理商家账户密码。",
+    securityDescription:
+      "管理应用锁、生物识别、账户密码及受信任设备。",
+    securityCenter: "安全中心",
+    securityCenterDescription:
+      "管理应用锁、生物识别及受信任设备。",
     changePassword: "更改密码",
-    changePasswordDescription: "安全更新你的商家账户密码",
+    changePasswordDescription: "安全更新你的商家账户密码。",
+    manageDevices: "设备管理",
+    manageDevicesDescription:
+      "查看所有已注册的商家设备。",
     open: "打开 →",
     account: "账户",
     accountDescription: "在当前设备退出商家后台。",
@@ -238,9 +253,17 @@ const translations = {
     enabledWithLimit: "Diaktifkan ({{limit}}%)",
     disabled: "Dilumpuhkan",
     security: "Keselamatan",
-    securityDescription: "Urus kata laluan akaun pedagang anda.",
+    securityDescription:
+      "Urus App Lock, akses biometrik, kata laluan dan peranti dipercayai.",
+    securityCenter: "Pusat Keselamatan",
+    securityCenterDescription:
+      "Urus App Lock, Face ID / Touch ID dan peranti dipercayai.",
     changePassword: "Tukar Kata Laluan",
-    changePasswordDescription: "Kemas kini kata laluan akaun pedagang dengan selamat",
+    changePasswordDescription:
+      "Kemas kini kata laluan akaun pedagang dengan selamat.",
+    manageDevices: "Urus Peranti",
+    manageDevicesDescription:
+      "Lihat semua peranti pedagang yang didaftarkan.",
     open: "Buka →",
     account: "Akaun",
     accountDescription: "Log keluar daripada portal pedagang pada peranti ini.",
@@ -1098,25 +1121,34 @@ export default function MerchantProfilePage() {
             title={t.security}
             description={t.securityDescription}
           >
-            <button
-              type="button"
-              onClick={() =>
-                router.push("/merchant/profile/change-password")
-              }
-              className="w-full rounded-2xl border border-slate-200 bg-slate-50 p-4 text-left transition hover:border-slate-300 hover:bg-white sm:p-5"
-            >
-              <p className="text-sm font-black text-slate-950 sm:text-lg">
-                {t.changePassword}
-              </p>
+            <div className="grid gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
+              <SecurityActionCard
+                title={t.securityCenter}
+                description={t.securityCenterDescription}
+                openLabel={t.open}
+                onClick={() =>
+                  router.push("/merchant/security")
+                }
+              />
 
-              <p className="mt-1 text-[10px] font-bold text-slate-500 sm:text-sm">
-                {t.changePasswordDescription}
-              </p>
+              <SecurityActionCard
+                title={t.changePassword}
+                description={t.changePasswordDescription}
+                openLabel={t.open}
+                onClick={() =>
+                  router.push("/merchant/profile/change-password")
+                }
+              />
 
-              <p className="mt-3 text-xs font-black text-slate-950 sm:text-sm">
-                {t.open}
-              </p>
-            </button>
+              <SecurityActionCard
+                title={t.manageDevices}
+                description={t.manageDevicesDescription}
+                openLabel={t.open}
+                onClick={() =>
+                  router.push("/merchant/devices")
+                }
+              />
+            </div>
           </SectionCard>
 
           <div className="mt-5 rounded-[1.75rem] border border-red-100 bg-white p-4 shadow-sm sm:mt-6 sm:rounded-[2rem] sm:p-6 lg:rounded-[2.5rem] lg:p-7">
@@ -1225,5 +1257,37 @@ function InfoFieldCard({
         {value || "-"}
       </p>
     </div>
+  );
+}
+
+function SecurityActionCard({
+  title,
+  description,
+  openLabel,
+  onClick,
+}: {
+  title: string;
+  description: string;
+  openLabel: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="w-full rounded-2xl border border-slate-200 bg-slate-50 p-4 text-left transition hover:border-slate-300 hover:bg-white sm:p-5"
+    >
+      <p className="text-sm font-black text-slate-950 sm:text-lg">
+        {title}
+      </p>
+
+      <p className="mt-1 text-[10px] font-bold leading-4 text-slate-500 sm:text-sm sm:leading-6">
+        {description}
+      </p>
+
+      <p className="mt-3 text-xs font-black text-slate-950 sm:text-sm">
+        {openLabel}
+      </p>
+    </button>
   );
 }

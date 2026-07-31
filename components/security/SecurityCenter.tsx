@@ -396,19 +396,31 @@ export default function SecurityCenter({
   const router =
     useRouter();
 
-    function openDevices() {
-  if (portal === "MERCHANT") {
-    router.push("/merchant/devices");
-    return;
-  }
+  function openDevices() {
+    if (
+      portal ===
+      "MERCHANT"
+    ) {
+      router.push(
+        "/merchant/devices"
+      );
+      return;
+    }
 
-  if (portal === "ADMIN") {
-    router.push("/admin/devices");
-    return;
-  }
+    if (
+      portal ===
+      "ADMIN"
+    ) {
+      router.push(
+        "/admin/devices"
+      );
+      return;
+    }
 
-  router.push("/member/devices");
-}
+    router.push(
+      "/member/devices"
+    );
+  }
 
   const {
     language,
@@ -550,8 +562,12 @@ biometricFailure:
         "Admin account",
       currentDevice:
         "Current device",
+      manageDevicesTitle:
+        "Manage Devices",
+      manageDevicesDescription:
+        "View signed-in devices, rename devices and manage trusted devices.",
       biometricNote:
-  "Your biometric data stays on your device. RewardHub only stores the secure credential.",
+        "Your biometric data stays on your device. RewardHub only stores the secure credential.",
     },
 
     zh: {
@@ -613,8 +629,12 @@ biometricFailure:
         "管理员账户",
       currentDevice:
         "当前设备",
+      manageDevicesTitle:
+        "设备管理",
+      manageDevicesDescription:
+        "查看已登录设备、修改设备名称并管理受信任设备。",
       biometricNote:
-  "您的生物识别资料只保留在设备中，RewardHub 只保存安全凭证。",
+        "您的生物识别资料只保留在设备中，RewardHub 只保存安全凭证。",
     },
 
     ms: {
@@ -675,9 +695,13 @@ biometricFailure:
       adminAccount:
         "Akaun pentadbir",
       currentDevice:
-  "Peranti semasa",
-biometricNote:
-  "Data biometrik kekal pada peranti anda. RewardHub hanya menyimpan kelayakan keselamatan.",
+        "Peranti semasa",
+      manageDevicesTitle:
+        "Urus Peranti",
+      manageDevicesDescription:
+        "Lihat peranti yang telah log masuk, tukar nama peranti dan urus peranti dipercayai.",
+      biometricNote:
+        "Data biometrik kekal pada peranti anda. RewardHub hanya menyimpan kelayakan keselamatan.",
     },
   } as const;
 
@@ -707,6 +731,13 @@ biometricNote:
       portal,
       text,
     ]);
+
+  const currentDeviceInfo =
+    useMemo(
+      () =>
+        detectDeviceInformation(),
+      []
+    );
 
   useEffect(() => {
     const session =
@@ -1113,7 +1144,9 @@ biometricNote:
               </p>
 
               <p className="truncate text-sm font-black text-white">
-                {userId}
+                {currentDeviceInfo.deviceName}
+                {" • "}
+                {currentDeviceInfo.browser}
               </p>
             </div>
           </div>
@@ -1317,34 +1350,31 @@ biometricNote:
           </SettingCard>
 
           <SettingCard
-  icon={
-    <MonitorSmartphone className="h-6 w-6" />
-  }
-  title={
-    language === "zh"
-      ? "设备管理"
-      : language === "ms"
-      ? "Pengurusan Peranti"
-      : "Manage Devices"
-  }
-  description={
-    language === "zh"
-      ? "查看所有已登录设备、修改设备名称以及管理信任设备。"
-      : language === "ms"
-      ? "Lihat semua peranti, tukar nama peranti dan urus peranti dipercayai."
-      : "View signed-in devices, rename this device and manage trusted devices."
-  }
->
-  <Button
-    type="button"
-    variant="outline"
-    size="lg"
-    onClick={openDevices}
-    className="rounded-2xl"
-  >
-    <ChevronRight className="h-4 w-4" />
-  </Button>
-</SettingCard>
+            icon={
+              <MonitorSmartphone className="h-6 w-6" />
+            }
+            title={
+              text.manageDevicesTitle
+            }
+            description={
+              text.manageDevicesDescription
+            }
+          >
+            <Button
+              type="button"
+              variant="outline"
+              size="lg"
+              onClick={
+                openDevices
+              }
+              aria-label={
+                text.manageDevicesTitle
+              }
+              className="rounded-2xl"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </SettingCard>
 
           <section className="rounded-[1.75rem] border border-rose-200 bg-white p-5 shadow-sm sm:p-6">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
