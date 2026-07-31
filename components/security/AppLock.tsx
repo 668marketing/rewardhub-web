@@ -742,8 +742,9 @@ export default function AppLock({
     }
 
     unlockRewardHub();
-    setIsLocked(false);
     setUnlockError("");
+    setIsUnlocking(false);
+    setIsLocked(false);
   } catch (error) {
     console.error(
       "Biometric unlock error:",
@@ -757,7 +758,9 @@ export default function AppLock({
         : text.failed
     );
   } finally {
-    setIsUnlocking(false);
+    setIsUnlocking(
+      false
+    );
   }
 }
 

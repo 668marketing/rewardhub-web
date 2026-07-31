@@ -614,22 +614,37 @@ export async function POST(
     const config =
       getWebAuthnConfig();
 
-    const challengeResult =
-      await rewardHubBackend(
-        "getWebAuthnChallenge",
-        {
-          challengeId,
+    const [
+      challengeResult,
+      devicesResult,
+    ] =
+      await Promise.all([
+        rewardHubBackend(
+          "getWebAuthnChallenge",
+          {
+            challengeId,
 
-          purpose:
-            "AUTHENTICATION",
+            purpose:
+              "AUTHENTICATION",
 
-          userType,
+            userType,
 
-          userId,
+            userId,
 
-          deviceId,
-        }
-      );
+            deviceId,
+          }
+        ),
+
+        rewardHubBackend(
+          "getRegisteredDevices",
+          {
+            userType,
+            userId,
+            currentDeviceId:
+              deviceId,
+          }
+        ),
+      ]);
 
     const challengeRecord =
       extractChallengeRecord(
@@ -721,17 +736,6 @@ export async function POST(
         }
       );
     }
-
-    const devicesResult =
-      await rewardHubBackend(
-        "getRegisteredDevices",
-        {
-          userType,
-          userId,
-          currentDeviceId:
-            deviceId,
-        }
-      );
 
     const devices =
       extractDevices(
