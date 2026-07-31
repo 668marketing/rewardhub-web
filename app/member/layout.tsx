@@ -1,4 +1,9 @@
-import type { Metadata, Viewport } from "next";
+import type {
+  Metadata,
+  Viewport,
+} from "next";
+
+import MemberGuard from "@/components/auth/MemberGuard";
 
 export const metadata: Metadata = {
   title: {
@@ -8,40 +13,56 @@ export const metadata: Metadata = {
   description:
     "Access your RewardHub membership, rewards, points, orders and participating merchants.",
   applicationName: "RewardHub",
-  manifest: "/member/manifest.webmanifest",
+  manifest:
+    "/member/manifest.webmanifest",
   icons: {
     icon: [
       {
-        url: "/icons/member/icon-192.png",
-        sizes: "192x192",
-        type: "image/png",
+        url:
+          "/icons/member/icon-192.png",
+        sizes:
+          "192x192",
+        type:
+          "image/png",
       },
       {
-        url: "/icons/member/icon-512.png",
-        sizes: "512x512",
-        type: "image/png",
+        url:
+          "/icons/member/icon-512.png",
+        sizes:
+          "512x512",
+        type:
+          "image/png",
       },
     ],
     apple: [
       {
-        url: "/icons/member/apple-touch-icon.png",
-        type: "image/png",
+        url:
+          "/icons/member/apple-touch-icon.png",
+        type:
+          "image/png",
       },
     ],
   },
   appleWebApp: {
     capable: true,
-    title: "RewardHub",
-    statusBarStyle: "default",
+    title:
+      "RewardHub",
+    statusBarStyle:
+      "default",
   },
 };
 
 export const viewport: Viewport = {
-  width: "device-width",
-  initialScale: 1,
-  maximumScale: 1,
-  viewportFit: "cover",
-  themeColor: "#ffffff",
+  width:
+    "device-width",
+  initialScale:
+    1,
+  maximumScale:
+    1,
+  viewportFit:
+    "cover",
+  themeColor:
+    "#ffffff",
 };
 
 export default function MemberLayout({
@@ -49,5 +70,9 @@ export default function MemberLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  return children;
+  return (
+    <MemberGuard>
+      {children}
+    </MemberGuard>
+  );
 }

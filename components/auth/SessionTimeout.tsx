@@ -1,48 +1,23 @@
 "use client";
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
-
-const TIMEOUT_MS = 10 * 60 * 1000;
-
 export default function SessionTimeout({
-  storageKey,
-  loginPath,
+  storageKey: _storageKey,
+  loginPath: _loginPath,
 }: {
   storageKey: string;
   loginPath: string;
 }) {
-  const router = useRouter();
-
-  useEffect(() => {
-    let timer: any;
-
-    function logout() {
-      localStorage.removeItem(storageKey);
-      alert("Session expired. Please login again.");
-      router.push(loginPath);
-    }
-
-    function resetTimer() {
-      clearTimeout(timer);
-      timer = setTimeout(logout, TIMEOUT_MS);
-    }
-
-    const events = ["mousemove", "keydown", "click", "scroll", "touchstart"];
-
-    events.forEach((event) => {
-      window.addEventListener(event, resetTimer);
-    });
-
-    resetTimer();
-
-    return () => {
-      clearTimeout(timer);
-      events.forEach((event) => {
-        window.removeEventListener(event, resetTimer);
-      });
-    };
-  }, [router, storageKey, loginPath]);
-
+  /*
+   * RewardHub no longer logs users out
+   * automatically after inactivity.
+   *
+   * This component is intentionally kept
+   * as a no-op so existing pages that still
+   * render <SessionTimeout /> do not break.
+   *
+   * App locking and biometric verification
+   * will be handled separately in the next
+   * phase without deleting the login session.
+   */
   return null;
 }

@@ -16,22 +16,22 @@ import {
   touchRewardHubSession,
 } from "@/lib/session";
 
-type MemberGuardProps = {
+type MerchantGuardProps = {
   children: ReactNode;
 };
 
-type StoredMember = {
-  memberId?: string;
-  MEMBER_ID?: string;
+type StoredMerchant = {
+  merchantId?: string;
+  MERCHANT_ID?: string;
 };
 
-function readStoredMember():
-  | StoredMember
+function readStoredMerchant():
+  | StoredMerchant
   | null {
   try {
     const raw =
       localStorage.getItem(
-        "member"
+        "merchant"
       );
 
     if (!raw) {
@@ -41,18 +41,18 @@ function readStoredMember():
     const parsed =
       JSON.parse(
         raw
-      ) as StoredMember;
+      ) as StoredMerchant;
 
-    const memberId =
+    const merchantId =
       String(
-        parsed?.memberId ||
-        parsed?.MEMBER_ID ||
+        parsed?.merchantId ||
+        parsed?.MERCHANT_ID ||
         ""
       ).trim();
 
-    if (!memberId) {
+    if (!merchantId) {
       localStorage.removeItem(
-        "member"
+        "merchant"
       );
 
       return null;
@@ -61,16 +61,16 @@ function readStoredMember():
     return parsed;
   } catch {
     localStorage.removeItem(
-      "member"
+      "merchant"
     );
 
     return null;
   }
 }
 
-export default function MemberGuard({
+export default function MerchantGuard({
   children,
-}: MemberGuardProps) {
+}: MerchantGuardProps) {
   const router =
     useRouter();
 
@@ -84,24 +84,24 @@ export default function MemberGuard({
     useState(true);
 
   useEffect(() => {
-    const storedMember =
-      readStoredMember();
+    const storedMerchant =
+      readStoredMerchant();
 
-    if (!storedMember) {
+    if (!storedMerchant) {
       router.replace(
-        `/login?redirect=${encodeURIComponent(
+        `/merchant/login?redirect=${encodeURIComponent(
           pathname ||
-          "/member/dashboard"
+          "/merchant/dashboard"
         )}`
       );
 
       return;
     }
 
-    const memberId =
+    const merchantId =
       String(
-        storedMember.memberId ||
-        storedMember.MEMBER_ID ||
+        storedMerchant.merchantId ||
+        storedMerchant.MERCHANT_ID ||
         ""
       ).trim();
 
@@ -109,21 +109,17 @@ export default function MemberGuard({
       getRewardHubSession();
 
     /*
-     * Compatibility migration:
-     *
-     * Existing RewardHub users may already
-     * have "member" in localStorage but no
-     * rewardhub_session because they logged
-     * in before the new session framework
+     * Compatibility migration for merchants
+     * who logged in before rewardhub_session
      * was introduced.
      */
     if (!session) {
       saveRewardHubSession({
         userType:
-          "MEMBER",
+          "MERCHANT",
 
         userId:
-          memberId,
+          merchantId,
       });
 
       setIsChecking(false);
@@ -133,15 +129,15 @@ export default function MemberGuard({
 
     const isCorrectSession =
       session.userType ===
-        "MEMBER" &&
+        "MERCHANT" &&
       session.userId ===
-        memberId;
+        merchantId;
 
     if (!isCorrectSession) {
       router.replace(
-        `/login?redirect=${encodeURIComponent(
+        `/merchant/login?redirect=${encodeURIComponent(
           pathname ||
-          "/member/dashboard"
+          "/merchant/dashboard"
         )}`
       );
 
@@ -157,12 +153,12 @@ export default function MemberGuard({
 
   if (isChecking) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-[#f6f7fb] px-4">
+      <main className="flex min-h-screen items-center justify-center bg-[#f8fafc] px-4">
         <div className="text-center">
-          <div className="mx-auto h-9 w-9 animate-spin rounded-full border-4 border-slate-200 border-t-slate-950" />
+          <div className="mx-auto h-9 w-9 animate-spin rounded-full border-4 border-slate-200 border-t-amber-600" />
 
           <p className="mt-4 text-sm font-bold text-slate-500">
-            Loading RewardHub...
+            Loading RewardHub Business...
           </p>
         </div>
       </main>
