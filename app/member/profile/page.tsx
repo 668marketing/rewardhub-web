@@ -1171,13 +1171,6 @@ export default function ProfilePage() {
                 href="/member/change-password"
                 openLabel={ui.open}
               />
-
-              <ActionCard
-                title={ui.devices}
-                subtitle={ui.devicesDescription}
-                href="/member/devices"
-                openLabel={ui.open}
-              />
             </div>
           </section>
 
