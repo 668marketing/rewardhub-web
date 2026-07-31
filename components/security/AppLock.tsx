@@ -691,102 +691,75 @@ export default function AppLock({
       currentLanguage
     ];
 
-  async function handleUnlock() {
+    async function handleUnlock() {
+
+  if (isUnlocking) {
+    return;
+  }
+
+  setUnlockError("");
+
+  if (
+    !securitySettings?.biometricEnabled
+  ) {
+    unlockRewardHub();
+    setIsLocked(false);
+    return;
+  }
+
+  if (!session) {
+    setUnlockError(text.failed);
+    return;
+  }
+
+  setIsUnlocking(true);
+
+  try {
+    const device =
+      detectDeviceInformation();
+
+    const result =
+      await authenticateRewardHubBiometric({
+        userType: portal,
+        userId: session.userId,
+        deviceId: session.deviceId,
+        deviceName:
+          device.deviceName,
+        browser:
+          device.browser,
+        language:
+          currentLanguage,
+      });
+
     if (
-      isUnlocking
+      !result.success ||
+      !result.verified ||
+      !result.authenticated
     ) {
-      return;
-    }
-
-    setUnlockError(
-      ""
-    );
-
-    if (
-      !securitySettings?.biometricEnabled
-    ) {
-      unlockRewardHub();
-
-      setIsLocked(
-        false
-      );
-
-      return;
-    }
-
-    if (
-      !session
-    ) {
-      setUnlockError(
+      throw new Error(
         text.failed
       );
-
-      return;
     }
 
-    setIsUnlocking(
-      true
+    unlockRewardHub();
+    setIsLocked(false);
+    setUnlockError("");
+  } catch (error) {
+    console.error(
+      "Biometric unlock error:",
+      error
     );
 
-    try {
-      const device =
-        detectDeviceInformation();
-
-      const result =
-        await authenticateRewardHubBiometric({
-          userType:
-            portal,
-
-          userId:
-            session.userId,
-
-          deviceId:
-            session.deviceId,
-
-          deviceName:
-            device.deviceName,
-
-          browser:
-            device.browser,
-
-          language:
-            currentLanguage,
-        });
-
-      if (
-        !result.success ||
-        !result.verified ||
-        !result.authenticated
-      ) {
-        throw new Error(
-          text.failed
-        );
-      }
-
-      unlockRewardHub();
-
-      setIsLocked(
-        false
-      );
-
-      setUnlockError(
-        ""
-      );
-    } catch (
-      error
-    ) {
-      setUnlockError(
-        error instanceof Error &&
-        error.message
-          ? error.message
-          : text.failed
-      );
-    } finally {
-      setIsUnlocking(
-        false
-      );
-    }
+    setUnlockError(
+      error instanceof Error &&
+      error.message
+        ? error.message
+        : text.failed
+    );
+  } finally {
+    setIsUnlocking(false);
   }
+}
 
   if (
     !isReady

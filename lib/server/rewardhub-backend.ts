@@ -9,6 +9,13 @@ const BACKEND_URL =
     .REWARDHUB_API_URL ||
   "";
 
+const SECURITY_API_SECRET =
+  String(
+    process.env
+      .SECURITY_API_SECRET ||
+      ""
+  ).trim();
+
 export async function rewardHubBackend(
   action: string,
   data: Record<string, unknown> = {}
@@ -16,6 +23,12 @@ export async function rewardHubBackend(
   if (!BACKEND_URL) {
     throw new Error(
       "RewardHub backend URL is missing."
+    );
+  }
+
+  if (!SECURITY_API_SECRET) {
+    throw new Error(
+      "SECURITY_API_SECRET is missing."
     );
   }
 
@@ -31,21 +44,51 @@ export async function rewardHubBackend(
         cache: "no-store",
         body: JSON.stringify({
           action,
+          serverSecret:
+            SECURITY_API_SECRET,
           ...data,
         }),
       }
     );
 
-  const json =
-    await response.json();
+ const text =
+  await response.text();
+
+console.log("======== BACKEND RESPONSE ========");
+console.log(text);
+console.log("==================================");
+
+  let json:
+    Record<string, unknown>;
+
+  try {
+    json =
+      JSON.parse(
+        text
+      ) as Record<
+        string,
+        unknown
+      >;
+  } catch {
+    throw new Error(
+      `RewardHub backend returned non-JSON: ${text.slice(
+        0,
+        300
+      )}`
+    );
+  }
 
   if (
     !response.ok ||
-    json?.success === false
+    json.success === false ||
+    json.error
   ) {
     throw new Error(
-      json?.message ||
+      String(
+        json.message ||
+        json.error ||
         "RewardHub backend request failed."
+      )
     );
   }
 
