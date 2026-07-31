@@ -4,6 +4,7 @@ import type {
 } from "next";
 
 import MerchantGuard from "@/components/auth/MerchantGuard";
+import AppLock from "@/components/security/AppLock";
 
 export const metadata: Metadata = {
   title: {
@@ -75,7 +76,18 @@ export default function MerchantLayout({
 }>) {
   return (
     <MerchantGuard>
-      {children}
+      <AppLock
+        portal="MERCHANT"
+        publicPaths={[
+          "/merchant/login",
+          "/merchant/register",
+          "/merchant/forgot-password",
+          "/merchant/reset-password",
+        ]}
+        lockAfterMs={20_000}
+      >
+        {children}
+      </AppLock>
     </MerchantGuard>
   );
 }
