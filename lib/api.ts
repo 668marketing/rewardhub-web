@@ -1,3 +1,11 @@
+import type {
+  AuthenticationCredentialJSON,
+  RegistrationCredentialJSON,
+  RewardHubPortal,
+  WebAuthnCreationOptionsJSON,
+  WebAuthnRequestOptionsJSON,
+} from "@/lib/webauthn";
+
 const API_URL =
   "https://script.google.com/macros/s/AKfycbwZukKlv976yMLEA3Ap-_h6z4pyD8fTHzgpwHZlxAPGjfAjFYxRB6VdJXDK_zTJZmLs/exec";
 
@@ -1007,6 +1015,133 @@ export async function updateMemberProfile(data: {
 }) {
   return apiPost(
     "updateMemberProfile",
+    data
+  );
+}
+
+/* ============================================================
+ * WebAuthn / Biometric Security
+ * ============================================================
+ */
+
+export type BeginWebAuthnRegistrationPayload = {
+  userType: RewardHubPortal;
+  userId: string;
+  deviceId: string;
+  deviceName?: string;
+};
+
+export type BeginWebAuthnRegistrationResult = {
+  success?: boolean;
+  challengeId?: string;
+  options?: WebAuthnCreationOptionsJSON;
+  data?: {
+    challengeId?: string;
+    options?: WebAuthnCreationOptionsJSON;
+  };
+  [key: string]: unknown;
+};
+
+export async function beginWebAuthnRegistration(
+  data: BeginWebAuthnRegistrationPayload
+): Promise<BeginWebAuthnRegistrationResult> {
+  return apiPost(
+    "beginWebAuthnRegistration",
+    data
+  );
+}
+
+export type FinishWebAuthnRegistrationPayload = {
+  userType: RewardHubPortal;
+  userId: string;
+  deviceId: string;
+  challengeId: string;
+  deviceName?: string;
+  credential: RegistrationCredentialJSON;
+};
+
+export async function finishWebAuthnRegistration(
+  data: FinishWebAuthnRegistrationPayload
+) {
+  return apiPost(
+    "finishWebAuthnRegistration",
+    data
+  );
+}
+
+export type BeginWebAuthnAuthenticationPayload = {
+  userType: RewardHubPortal;
+  userId: string;
+  deviceId: string;
+};
+
+export type BeginWebAuthnAuthenticationResult = {
+  success?: boolean;
+  challengeId?: string;
+  options?: WebAuthnRequestOptionsJSON;
+  data?: {
+    challengeId?: string;
+    options?: WebAuthnRequestOptionsJSON;
+  };
+  [key: string]: unknown;
+};
+
+export async function beginWebAuthnAuthentication(
+  data: BeginWebAuthnAuthenticationPayload
+): Promise<BeginWebAuthnAuthenticationResult> {
+  return apiPost(
+    "beginWebAuthnAuthentication",
+    data
+  );
+}
+
+export type FinishWebAuthnAuthenticationPayload = {
+  userType: RewardHubPortal;
+  userId: string;
+  deviceId: string;
+  challengeId: string;
+  credential: AuthenticationCredentialJSON;
+};
+
+export async function finishWebAuthnAuthentication(
+  data: FinishWebAuthnAuthenticationPayload
+) {
+  return apiPost(
+    "finishWebAuthnAuthentication",
+    data
+  );
+}
+
+export async function getRegisteredDevices(data: {
+  userType: RewardHubPortal;
+  userId: string;
+  currentDeviceId?: string;
+}) {
+  return apiPost(
+    "getRegisteredDevices",
+    data
+  );
+}
+
+export async function renameRegisteredDevice(data: {
+  userType: RewardHubPortal;
+  userId: string;
+  deviceId: string;
+  deviceName: string;
+}) {
+  return apiPost(
+    "renameRegisteredDevice",
+    data
+  );
+}
+
+export async function removeRegisteredDevice(data: {
+  userType: RewardHubPortal;
+  userId: string;
+  deviceId: string;
+}) {
+  return apiPost(
+    "removeRegisteredDevice",
     data
   );
 }
