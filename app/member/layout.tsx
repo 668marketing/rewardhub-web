@@ -4,7 +4,7 @@ import type {
 } from "next";
 
 import MemberGuard from "@/components/auth/MemberGuard";
-import AppLock from "@/components/security/AppLock";
+import MemberHeader from "@/components/layout/MemberHeader";
 
 export const metadata: Metadata = {
   title: {
@@ -73,12 +73,11 @@ export default function MemberLayout({
 }>) {
   return (
     <MemberGuard>
-      <AppLock
-        portal="MEMBER"
-        lockAfterMs={20_000}
-      >
+      <div className="min-h-screen bg-slate-50">
+        <MemberHeader />
+
         {children}
-      </AppLock>
+      </div>
     </MemberGuard>
   );
 }

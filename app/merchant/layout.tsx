@@ -4,7 +4,7 @@ import type {
 } from "next";
 
 import MerchantGuard from "@/components/auth/MerchantGuard";
-import AppLock from "@/components/security/AppLock";
+import MerchantHeader from "@/components/layout/MerchantHeader";
 
 export const metadata: Metadata = {
   title: {
@@ -52,7 +52,7 @@ export const metadata: Metadata = {
     title:
       "RewardHub Business",
     statusBarStyle:
-      "black-translucent",
+      "default",
   },
 };
 
@@ -66,7 +66,7 @@ export const viewport: Viewport = {
   viewportFit:
     "cover",
   themeColor:
-    "#050505",
+    "#ffffff",
 };
 
 export default function MerchantLayout({
@@ -76,18 +76,11 @@ export default function MerchantLayout({
 }>) {
   return (
     <MerchantGuard>
-      <AppLock
-        portal="MERCHANT"
-        publicPaths={[
-          "/merchant/login",
-          "/merchant/register",
-          "/merchant/forgot-password",
-          "/merchant/reset-password",
-        ]}
-        lockAfterMs={20_000}
-      >
+      <div className="min-h-screen bg-slate-50">
+        <MerchantHeader />
+
         {children}
-      </AppLock>
+      </div>
     </MerchantGuard>
   );
 }
