@@ -1,16 +1,23 @@
 import "server-only";
 
 const BACKEND_URL =
-  process.env.REWARDHUB_APPS_SCRIPT_URL ||
-  process.env.NEXT_PUBLIC_REWARDHUB_API ||
-  process.env.REWARDHUB_API_URL ||
+  process.env
+    .REWARDHUB_APPS_SCRIPT_URL ||
+  process.env
+    .NEXT_PUBLIC_REWARDHUB_API ||
+  process.env
+    .REWARDHUB_API_URL ||
   "";
 
-const SECURITY_API_SECRET = String(
-  process.env.SECURITY_API_SECRET || ""
-).trim();
+const SECURITY_API_SECRET =
+  String(
+    process.env
+      .SECURITY_API_SECRET ||
+      ""
+  ).trim();
 
-const DEFAULT_TIMEOUT_MS = 20_000;
+const DEFAULT_TIMEOUT_MS =
+  20_000;
 
 type RewardHubBackendOptions = {
   timeoutMs?: number;
@@ -19,19 +26,23 @@ type RewardHubBackendOptions = {
 function getErrorMessage(
   value: unknown
 ) {
-  if (value instanceof Error) {
-    return value.message || "Unknown error";
-  }
-
-  return String(
-    value || "Unknown error"
-  );
+  return value instanceof
+    Error
+    ? value.message
+    : String(
+        value ||
+        "Unknown error"
+      );
 }
 
 export async function rewardHubBackend(
   action: string,
-  data: Record<string, unknown> = {},
-  options: RewardHubBackendOptions = {}
+  data: Record<
+    string,
+    unknown
+  > = {},
+  options:
+    RewardHubBackendOptions = {}
 ) {
   if (!BACKEND_URL) {
     throw new Error(
@@ -46,7 +57,9 @@ export async function rewardHubBackend(
   }
 
   const normalizedAction =
-    String(action || "").trim();
+    String(
+      action || ""
+    ).trim();
 
   if (!normalizedAction) {
     throw new Error(
@@ -54,21 +67,29 @@ export async function rewardHubBackend(
     );
   }
 
+  const requestedTimeout =
+    Number(
+      options.timeoutMs
+    );
+
   const timeoutMs =
     Number.isFinite(
-      options.timeoutMs
+      requestedTimeout
     ) &&
-    Number(options.timeoutMs) > 0
-      ? Number(options.timeoutMs)
+    requestedTimeout > 0
+      ? requestedTimeout
       : DEFAULT_TIMEOUT_MS;
 
   const controller =
     new AbortController();
 
-  const timeout =
-    setTimeout(() => {
-      controller.abort();
-    }, timeoutMs);
+  const timeoutId =
+    setTimeout(
+      () => {
+        controller.abort();
+      },
+      timeoutMs
+    );
 
   const startedAt =
     Date.now();
@@ -78,7 +99,8 @@ export async function rewardHubBackend(
       await fetch(
         BACKEND_URL,
         {
-          method: "POST",
+          method:
+            "POST",
 
           headers: {
             "Content-Type":
@@ -88,33 +110,38 @@ export async function rewardHubBackend(
               "application/json",
           },
 
-          cache: "no-store",
+          cache:
+            "no-store",
 
           signal:
             controller.signal,
 
-          body: JSON.stringify({
-            action:
-              normalizedAction,
+          body:
+            JSON.stringify({
+              action:
+                normalizedAction,
 
-            serverSecret:
-              SECURITY_API_SECRET,
+              serverSecret:
+                SECURITY_API_SECRET,
 
-            ...data,
-          }),
+              ...data,
+            }),
         }
       );
 
-    const responseText =
+    const text =
       await response.text();
 
     let json:
-      Record<string, unknown>;
+      Record<
+        string,
+        unknown
+      >;
 
     try {
       json =
         JSON.parse(
-          responseText
+          text
         ) as Record<
           string,
           unknown
@@ -127,7 +154,8 @@ export async function rewardHubBackend(
 
     if (
       !response.ok ||
-      json.success === false ||
+      json.success ===
+        false ||
       json.error
     ) {
       throw new Error(
@@ -143,12 +171,10 @@ export async function rewardHubBackend(
       Date.now() -
       startedAt;
 
-    /*
-     * Only record unusually slow calls.
-     * Do not print the entire backend response because
-     * WebAuthn responses may contain sensitive details.
-     */
-    if (elapsedMs >= 5_000) {
+    if (
+      elapsedMs >=
+      5_000
+    ) {
       console.warn(
         "[RewardHub Backend] Slow request",
         {
@@ -161,9 +187,12 @@ export async function rewardHubBackend(
     }
 
     return json;
-  } catch (error) {
+  } catch (
+    error
+  ) {
     if (
-      error instanceof Error &&
+      error instanceof
+        Error &&
       error.name ===
         "AbortError"
     ) {
@@ -192,7 +221,7 @@ export async function rewardHubBackend(
     throw error;
   } finally {
     clearTimeout(
-      timeout
+      timeoutId
     );
   }
 }

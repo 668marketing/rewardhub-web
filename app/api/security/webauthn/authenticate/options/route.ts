@@ -12,6 +12,10 @@ import {
 import {
   getWebAuthnConfig,
 } from "@/lib/server/webauthn-config";
+import {
+  createWebAuthnAuthenticationStateToken,
+  type WebAuthnStateCredential,
+} from "@/lib/server/webauthn-state";
 
 export const runtime =
   "nodejs";
@@ -38,13 +42,19 @@ type AuthenticationOptionsRequest = {
 };
 
 type RegisteredDevice = {
-  userType?: string;
-  userId?: string;
-  deviceId?: string;
-  deviceName?: string;
-
   credentialId?: string;
   CREDENTIAL_ID?: string;
+
+  publicKey?: string;
+  PUBLIC_KEY?: string;
+
+  signCount?:
+    | number
+    | string;
+
+  SIGN_COUNT?:
+    | number
+    | string;
 
   transports?:
     | string[]
@@ -64,6 +74,12 @@ type RegisteredDevice = {
   BIOMETRIC_ENABLED?:
     | boolean
     | string;
+
+  browser?: string;
+  BROWSER?: string;
+
+  deviceName?: string;
+  DEVICE_NAME?: string;
 };
 
 function clean(
@@ -129,25 +145,20 @@ function extractPayload(
       unknown
     >
   | null {
-  const resultRecord =
+  const record =
     asRecord(
       result
     );
 
-  if (
-    !resultRecord
-  ) {
+  if (!record) {
     return null;
   }
 
-  const dataRecord =
-    asRecord(
-      resultRecord.data
-    );
-
   return (
-    dataRecord ||
-    resultRecord
+    asRecord(
+      record.data
+    ) ||
+    record
   );
 }
 
@@ -159,9 +170,7 @@ function extractDevices(
       result
     );
 
-  if (
-    !payload
-  ) {
+  if (!payload) {
     return [];
   }
 
@@ -183,7 +192,8 @@ function extractDevices(
       return candidate.filter(
         (
           item
-        ): item is RegisteredDevice =>
+        ): item is
+          RegisteredDevice =>
           Boolean(
             item &&
             typeof item ===
@@ -224,25 +234,40 @@ function normalizeBoolean(
   );
 }
 
+function normalizeNumber(
+  value: unknown
+) {
+  const numberValue =
+    Number(
+      value
+    );
+
+  return Number.isFinite(
+    numberValue
+  )
+    ? numberValue
+    : 0;
+}
+
 function normalizeTransports(
   value:
     | string[]
     | string
     | undefined
 ): AuthenticatorTransportFuture[] {
-  const rawValues =
+  const values =
     Array.isArray(
       value
     )
       ? value
-      : clean(value)
-        ? clean(value)
-            .split(",")
-            .map(
-              (
-                item
-              ) =>
-                item.trim()
+      : clean(
+          value
+        )
+        ? clean(
+            value
+          )
+            .split(
+              ","
             )
         : [];
 
@@ -257,69 +282,63 @@ function normalizeTransports(
       "usb",
     ]);
 
-  return rawValues.filter(
-    (
-      item
-    ): item is
-      AuthenticatorTransportFuture =>
-      allowed.has(
+  return values
+    .map(
+      (
         item
-      )
-  );
-}
-
-function getErrorMessage(
-  error: unknown
-) {
-  if (
-    error instanceof
-    Error
-  ) {
-    return (
-      error.message ||
-      "Unknown error"
+      ) =>
+        clean(
+          item
+        )
+    )
+    .filter(
+      (
+        item
+      ): item is
+        AuthenticatorTransportFuture =>
+        allowed.has(
+          item
+        )
     );
-  }
-
-  return String(
-    error ||
-      "Unknown error"
-  );
 }
 
-/*
- * SimpleWebAuthn treats a custom string challenge as UTF-8
- * bytes and returns its base64url representation in
- * options.challenge. We precompute that value so Apps Script
- * can store the exact challenge before options are returned.
- */
 function createChallengePair() {
   const source =
     [
       crypto.randomUUID(),
       crypto.randomUUID(),
-    ].join(":");
-
-  const encoded =
-    Buffer.from(
-      source,
-      "utf8"
-    ).toString(
-      "base64url"
+    ].join(
+      ":"
     );
 
   return {
     source,
-    encoded,
+
+    encoded:
+      Buffer.from(
+        source,
+        "utf8"
+      ).toString(
+        "base64url"
+      ),
   };
+}
+
+function getErrorMessage(
+  error: unknown
+) {
+  return error instanceof
+    Error
+    ? error.message
+    : String(
+        error ||
+        "Unknown error"
+      );
 }
 
 export async function POST(
   request: Request
 ) {
-  const startedAt =
-    Date.now();
-
   try {
     const body =
       (
@@ -398,7 +417,7 @@ export async function POST(
     const config =
       getWebAuthnConfig();
 
-    const challengeId =
+    const actualChallengeId =
       crypto.randomUUID();
 
     const challengePair =
@@ -415,16 +434,12 @@ export async function POST(
             1000
       );
 
-    /*
-     * One Apps Script request now performs both operations:
-     * 1. Read registered credentials.
-     * 2. Store the authentication challenge.
-     */
     const preparationResult =
       await rewardHubBackend(
         "prepareWebAuthnAuthentication",
         {
-          challengeId,
+          challengeId:
+            actualChallengeId,
 
           userType,
 
@@ -482,28 +497,31 @@ export async function POST(
         (
           device
         ) => {
-          const status =
-            clean(
-              device.status ||
-                device.STATUS
-            ).toUpperCase();
-
-          const biometricEnabled =
-            normalizeBoolean(
-              device.biometricEnabled ??
-                device
-                  .BIOMETRIC_ENABLED
-            );
-
           const credentialId =
             clean(
               device.credentialId ||
                 device.CREDENTIAL_ID
             );
 
+          const publicKey =
+            clean(
+              device.publicKey ||
+                device.PUBLIC_KEY
+            );
+
+          const status =
+            clean(
+              device.status ||
+                device.STATUS
+            ).toUpperCase();
+
           return (
             credentialId &&
-            biometricEnabled &&
+            publicKey &&
+            normalizeBoolean(
+              device.biometricEnabled ??
+                device.BIOMETRIC_ENABLED
+            ) &&
             (
               !status ||
               status ===
@@ -535,34 +553,49 @@ export async function POST(
       );
     }
 
-    const allowCredentials =
-      activeDevices.map(
-        (
-          device
-        ) => {
-          const credentialId =
-            clean(
-              device.credentialId ||
-                device.CREDENTIAL_ID
-            );
-
-          const transports =
-            normalizeTransports(
-              device.transports ||
-                device.TRANSPORTS
-            );
-
-          return {
+    const credentials:
+      WebAuthnStateCredential[] =
+        activeDevices.map(
+          (
+            device
+          ) => ({
             id:
-              credentialId,
+              clean(
+                device.credentialId ||
+                  device.CREDENTIAL_ID
+              ),
+
+            publicKey:
+              clean(
+                device.publicKey ||
+                  device.PUBLIC_KEY
+              ),
+
+            counter:
+              normalizeNumber(
+                device.signCount ??
+                  device.SIGN_COUNT
+              ),
 
             transports:
-              transports.length
-                ? transports
-                : undefined,
-          };
-        }
-      );
+              normalizeTransports(
+                device.transports ||
+                  device.TRANSPORTS
+              ),
+
+            browser:
+              clean(
+                device.browser ||
+                  device.BROWSER
+              ),
+
+            deviceName:
+              clean(
+                device.deviceName ||
+                  device.DEVICE_NAME
+              ),
+          })
+        );
 
     const options =
       await generateAuthenticationOptions({
@@ -575,48 +608,79 @@ export async function POST(
         timeout:
           60_000,
 
-        allowCredentials,
+        allowCredentials:
+          credentials.map(
+            (
+              credential
+            ) => ({
+              id:
+                credential.id,
+
+              transports:
+                credential.transports
+                  .length
+                  ? credential.transports as
+                      AuthenticatorTransportFuture[]
+                  : undefined,
+            })
+          ),
 
         userVerification:
           "required",
       });
 
-    /*
-     * Fail safely if a future SimpleWebAuthn version changes
-     * custom-challenge encoding behaviour.
-     */
     if (
       options.challenge !==
-      challengePair.encoded
+        challengePair.encoded
     ) {
       throw new Error(
         "Generated WebAuthn challenge does not match the stored challenge."
       );
     }
 
-    const elapsedMs =
-      Date.now() -
-      startedAt;
+    /*
+     * The browser continues to return this value as challengeId.
+     * It is now a signed, short-lived state token containing the
+     * exact credential data already read during the options call.
+     *
+     * This removes the extra Apps Script read before verification.
+     */
+    const stateToken =
+      createWebAuthnAuthenticationStateToken({
+        version:
+          1,
 
-    if (
-      elapsedMs >=
-      5_000
-    ) {
-      console.warn(
-        "[WebAuthn] Slow authentication options request",
-        {
-          elapsedMs,
-          userType,
-        }
-      );
-    }
+        challengeId:
+          actualChallengeId,
+
+        challenge:
+          options.challenge,
+
+        userType,
+
+        userId,
+
+        deviceId,
+
+        rpId:
+          config.rpId,
+
+        origin:
+          config.origin,
+
+        expiresAt:
+          expiresAt.getTime(),
+
+        credentials,
+      });
 
     return NextResponse.json(
       {
         success:
           true,
 
-        challengeId,
+        challengeId:
+          stateToken,
 
         options,
       },
@@ -627,9 +691,6 @@ export async function POST(
         headers: {
           "Cache-Control":
             "no-store, max-age=0",
-
-          "Server-Timing":
-            `webauthn-options;dur=${elapsedMs}`,
         },
       }
     );
@@ -638,16 +699,7 @@ export async function POST(
   ) {
     console.error(
       "WebAuthn authentication options error:",
-      {
-        elapsedMs:
-          Date.now() -
-          startedAt,
-
-        message:
-          getErrorMessage(
-            error
-          ),
-      }
+      error
     );
 
     return NextResponse.json(

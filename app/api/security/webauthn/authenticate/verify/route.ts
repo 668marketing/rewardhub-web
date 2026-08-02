@@ -14,6 +14,9 @@ import {
 import {
   getWebAuthnConfig,
 } from "@/lib/server/webauthn-config";
+import {
+  verifyWebAuthnAuthenticationStateToken,
+} from "@/lib/server/webauthn-state";
 
 export const runtime =
   "nodejs";
@@ -42,72 +45,6 @@ type AuthenticationVerifyRequest = {
 
   credential?:
     AuthenticationResponseJSON;
-};
-
-type ChallengeRecord = {
-  challengeId: string;
-  userType:
-    RewardHubUserType;
-  userId: string;
-  deviceId: string;
-  purpose: string;
-  challenge: string;
-  rpId: string;
-  origin: string;
-  expiresAt: string;
-  status: string;
-};
-
-type RegisteredDevice = {
-  securityId?: string;
-
-  userType?: string;
-  USER_TYPE?: string;
-
-  userId?: string;
-  USER_ID?: string;
-
-  deviceId?: string;
-  DEVICE_ID?: string;
-
-  deviceName?: string;
-  DEVICE_NAME?: string;
-
-  browser?: string;
-  BROWSER?: string;
-
-  credentialId?: string;
-  CREDENTIAL_ID?: string;
-
-  publicKey?: string;
-  PUBLIC_KEY?: string;
-
-  signCount?:
-    | number
-    | string;
-
-  SIGN_COUNT?:
-    | number
-    | string;
-
-  transports?:
-    | string[]
-    | string;
-
-  TRANSPORTS?:
-    | string[]
-    | string;
-
-  status?: string;
-  STATUS?: string;
-
-  biometricEnabled?:
-    | boolean
-    | string;
-
-  BIOMETRIC_ENABLED?:
-    | boolean
-    | string;
 };
 
 function clean(
@@ -142,299 +79,20 @@ function normalizeUserType(
   return null;
 }
 
-function normalizeBoolean(
-  value: unknown
-) {
-  if (
-    value === true ||
-    value === 1
-  ) {
-    return true;
-  }
-
-  const normalized =
-    clean(
-      value
-    ).toUpperCase();
-
-  return (
-    normalized === "TRUE" ||
-    normalized === "YES" ||
-    normalized === "1"
-  );
-}
-
-function normalizeNumber(
-  value: unknown,
-  fallback = 0
-) {
-  const result =
-    Number(value);
-
-  return Number.isFinite(
-    result
-  )
-    ? result
-    : fallback;
-}
-
-function asRecord(
-  value: unknown
-):
-  | Record<
-      string,
-      unknown
-    >
-  | null {
-  if (
-    !value ||
-    typeof value !==
-      "object" ||
-    Array.isArray(value)
-  ) {
-    return null;
-  }
-
-  return value as Record<
-    string,
-    unknown
-  >;
-}
-
-function extractPayload(
-  result: unknown
-):
-  | Record<
-      string,
-      unknown
-    >
-  | null {
-  const resultRecord =
-    asRecord(
-      result
-    );
-
-  if (
-    !resultRecord
-  ) {
-    return null;
-  }
-
-  return (
-    asRecord(
-      resultRecord.data
-    ) ||
-    resultRecord
-  );
-}
-
-function extractChallengeRecord(
-  result: unknown
-):
-  | ChallengeRecord
-  | null {
-  const payload =
-    extractPayload(
-      result
-    );
-
-  if (
-    !payload
-  ) {
-    return null;
-  }
-
-  const userType =
-    normalizeUserType(
-      payload.userType ??
-        payload.USER_TYPE
-    );
-
-  const challengeId =
-    clean(
-      payload.challengeId ??
-        payload.CHALLENGE_ID
-    );
-
-  const userId =
-    clean(
-      payload.userId ??
-        payload.USER_ID
-    );
-
-  const deviceId =
-    clean(
-      payload.deviceId ??
-        payload.DEVICE_ID
-    );
-
-  const purpose =
-    clean(
-      payload.purpose ??
-        payload.PURPOSE
-    ).toUpperCase();
-
-  const challenge =
-    clean(
-      payload.challenge ??
-        payload.CHALLENGE
-    );
-
-  const rpId =
-    clean(
-      payload.rpId ??
-        payload.RP_ID
-    );
-
-  const origin =
-    clean(
-      payload.origin ??
-        payload.ORIGIN
-    );
-
-  const expiresAt =
-    clean(
-      payload.expiresAt ??
-        payload.EXPIRES_AT
-    );
-
-  const status =
-    clean(
-      payload.status ??
-        payload.STATUS
-    ).toUpperCase();
-
-  if (
-    !userType ||
-    !challengeId ||
-    !userId ||
-    !deviceId ||
-    !challenge ||
-    !rpId ||
-    !origin
-  ) {
-    return null;
-  }
-
-  return {
-    challengeId,
-    userType,
-    userId,
-    deviceId,
-    purpose,
-    challenge,
-    rpId,
-    origin,
-    expiresAt,
-    status,
-  };
-}
-
-function extractDevices(
-  result: unknown
-): RegisteredDevice[] {
-  const payload =
-    extractPayload(
-      result
-    );
-
-  if (
-    !payload
-  ) {
-    return [];
-  }
-
-  const candidates = [
-    payload.devices,
-    payload.items,
-    payload.records,
-  ];
-
-  for (
-    const candidate of
-    candidates
-  ) {
-    if (
-      Array.isArray(
-        candidate
-      )
-    ) {
-      return candidate.filter(
-        (
-          item
-        ): item is RegisteredDevice =>
-          Boolean(
-            item &&
-            typeof item ===
-              "object" &&
-            !Array.isArray(
-              item
-            )
-          )
-      );
-    }
-  }
-
-  return [];
-}
-
 function base64UrlToUint8Array(
   value: string
 ) {
-  const normalized =
-    value
-      .replace(
-        /-/g,
-        "+"
-      )
-      .replace(
-        /_/g,
-        "/"
-      );
-
-  const padded =
-    normalized +
-    "=".repeat(
-      (
-        4 -
-        (
-          normalized.length %
-          4
-        )
-      ) %
-        4
-    );
-
   return new Uint8Array(
     Buffer.from(
-      padded,
-      "base64"
+      value,
+      "base64url"
     )
   );
 }
 
 function normalizeTransports(
-  value:
-    | string[]
-    | string
-    | undefined
+  value: string[]
 ): AuthenticatorTransportFuture[] {
-  const rawValues =
-    Array.isArray(
-      value
-    )
-      ? value
-      : clean(value)
-        ? clean(value)
-            .split(",")
-            .map(
-              (
-                item
-              ) =>
-                item.trim()
-            )
-        : [];
-
   const allowed =
     new Set([
       "ble",
@@ -446,7 +104,7 @@ function normalizeTransports(
       "usb",
     ]);
 
-  return rawValues.filter(
+  return value.filter(
     (
       item
     ): item is
@@ -494,20 +152,13 @@ function getRequestIp(
 function getErrorMessage(
   error: unknown
 ) {
-  if (
-    error instanceof
+  return error instanceof
     Error
-  ) {
-    return (
-      error.message ||
-      "Unknown error"
-    );
-  }
-
-  return String(
-    error ||
-      "Unknown error"
-  );
+    ? error.message
+    : String(
+        error ||
+        "Unknown error"
+      );
 }
 
 export async function POST(
@@ -519,7 +170,7 @@ export async function POST(
         await request.json()
       ) as AuthenticationVerifyRequest;
 
-    const challengeId =
+    const stateToken =
       clean(
         body.challengeId
       );
@@ -542,13 +193,12 @@ export async function POST(
     const responseCredential =
       body.credential;
 
-    if (
-      !challengeId
-    ) {
+    if (!stateToken) {
       return NextResponse.json(
         {
           success:
             false,
+
           message:
             "Missing challenge ID.",
         },
@@ -566,6 +216,7 @@ export async function POST(
         {
           success:
             false,
+
           message:
             "Invalid user type.",
         },
@@ -584,6 +235,7 @@ export async function POST(
         {
           success:
             false,
+
           message:
             "Missing user or device ID.",
         },
@@ -601,6 +253,7 @@ export async function POST(
         {
           success:
             false,
+
           message:
             "Missing authentication credential.",
         },
@@ -611,109 +264,29 @@ export async function POST(
       );
     }
 
+    const state =
+      verifyWebAuthnAuthenticationStateToken(
+        stateToken
+      );
+
     const config =
       getWebAuthnConfig();
 
-      console.log("WebAuthn configuration", {
-  requestUrl: request.url,
-  rpName: config.rpName,
-  rpId: config.rpId,
-  origin: config.origin,
-});
-
-    const [
-      challengeResult,
-      devicesResult,
-    ] =
-      await Promise.all([
-        rewardHubBackend(
-          "getWebAuthnChallenge",
-          {
-            challengeId,
-
-            purpose:
-              "AUTHENTICATION",
-
-            userType,
-
-            userId,
-
-            deviceId,
-          }
-        ),
-
-        rewardHubBackend(
-          "getRegisteredDevices",
-          {
-            userType,
-            userId,
-            currentDeviceId:
-              deviceId,
-          }
-        ),
-      ]);
-
-    const challengeRecord =
-      extractChallengeRecord(
-        challengeResult
-      );
-
     if (
-      !challengeRecord
-    ) {
-      return NextResponse.json(
-        {
-          success:
-            false,
-          message:
-            "Authentication challenge was not found.",
-        },
-        {
-          status:
-            400,
-        }
-      );
-    }
-
-    if (
-      challengeRecord
-        .purpose !==
-        "AUTHENTICATION" ||
-      challengeRecord
-        .status !==
-        "PENDING"
-    ) {
-      return NextResponse.json(
-        {
-          success:
-            false,
-          message:
-            "Authentication challenge is no longer active.",
-        },
-        {
-          status:
-            400,
-        }
-      );
-    }
-
-    if (
-      challengeRecord
-        .userType !==
+      state.userType !==
         userType ||
-      challengeRecord
-        .userId !==
+      state.userId !==
         userId ||
-      challengeRecord
-        .deviceId !==
+      state.deviceId !==
         deviceId
     ) {
       return NextResponse.json(
         {
           success:
             false,
+
           message:
-            "Authentication challenge identity does not match.",
+            "Authentication state identity does not match.",
         },
         {
           status:
@@ -723,17 +296,16 @@ export async function POST(
     }
 
     if (
-      challengeRecord
-        .rpId !==
+      state.rpId !==
         config.rpId ||
-      challengeRecord
-        .origin !==
+      state.origin !==
         config.origin
     ) {
       return NextResponse.json(
         {
           success:
             false,
+
           message:
             "Authentication domain configuration does not match.",
         },
@@ -744,60 +316,28 @@ export async function POST(
       );
     }
 
-    const devices =
-      extractDevices(
-        devicesResult
-      );
-
     const returnedCredentialId =
       clean(
         responseCredential.id
       );
 
-    const device =
-      devices.find(
+    const credentialRecord =
+      state.credentials.find(
         (
-          item
-        ) => {
-          const credentialId =
-            clean(
-              item.credentialId ||
-                item.CREDENTIAL_ID
-            );
-
-          const status =
-            clean(
-              item.status ||
-                item.STATUS
-            ).toUpperCase();
-
-          const biometricEnabled =
-            normalizeBoolean(
-              item.biometricEnabled ??
-                item
-                  .BIOMETRIC_ENABLED
-            );
-
-          return (
-            credentialId ===
-              returnedCredentialId &&
-            (
-              !status ||
-              status ===
-                "ACTIVE"
-            ) &&
-            biometricEnabled
-          );
-        }
+          credential
+        ) =>
+          credential.id ===
+            returnedCredentialId
       );
 
     if (
-      !device
+      !credentialRecord
     ) {
       return NextResponse.json(
         {
           success:
             false,
+
           message:
             "Registered biometric credential was not found.",
         },
@@ -808,60 +348,22 @@ export async function POST(
       );
     }
 
-    const storedCredentialId =
-      clean(
-        device.credentialId ||
-          device.CREDENTIAL_ID
-      );
-
-    const storedPublicKey =
-      clean(
-        device.publicKey ||
-          device.PUBLIC_KEY
-      );
-
-    const storedCounter =
-      normalizeNumber(
-        device.signCount ??
-          device.SIGN_COUNT,
-        0
-      );
-
-    if (
-      !storedCredentialId ||
-      !storedPublicKey
-    ) {
-      return NextResponse.json(
-        {
-          success:
-            false,
-          message:
-            "Stored biometric credential is incomplete.",
-        },
-        {
-          status:
-            500,
-        }
-      );
-    }
-
     const storedCredential:
       WebAuthnCredential = {
         id:
-          storedCredentialId,
+          credentialRecord.id,
 
         publicKey:
           base64UrlToUint8Array(
-            storedPublicKey
+            credentialRecord.publicKey
           ),
 
         counter:
-          storedCounter,
+          credentialRecord.counter,
 
         transports:
           normalizeTransports(
-            device.transports ||
-              device.TRANSPORTS
+            credentialRecord.transports
           ),
       };
 
@@ -871,16 +373,13 @@ export async function POST(
           responseCredential,
 
         expectedChallenge:
-          challengeRecord
-            .challenge,
+          state.challenge,
 
         expectedOrigin:
-          challengeRecord
-            .origin,
+          state.origin,
 
         expectedRPID:
-          challengeRecord
-            .rpId,
+          state.rpId,
 
         credential:
           storedCredential,
@@ -898,6 +397,7 @@ export async function POST(
         {
           success:
             false,
+
           message:
             "Biometric authentication verification failed.",
         },
@@ -913,6 +413,12 @@ export async function POST(
         .authenticationInfo
         .newCounter;
 
+    /*
+     * Only one Apps Script call remains after Face ID.
+     * Apps Script still re-checks the pending challenge and
+     * registered credential, updates the counter, marks the
+     * challenge USED and writes the login audit record.
+     */
     const finishResult =
       await rewardHubBackend(
         "finishWebAuthnAuthentication",
@@ -920,7 +426,8 @@ export async function POST(
           verified:
             true,
 
-          challengeId,
+          challengeId:
+            state.challengeId,
 
           userType,
 
@@ -929,7 +436,7 @@ export async function POST(
           deviceId,
 
           credentialId:
-            storedCredentialId,
+            credentialRecord.id,
 
           newSignCount,
 
@@ -937,24 +444,22 @@ export async function POST(
             clean(
               body.browser
             ) ||
-            clean(
-              device.browser ||
-                device.BROWSER
-            ),
+            credentialRecord.browser,
 
           deviceName:
             clean(
               body.deviceName
             ) ||
-            clean(
-              device.deviceName ||
-                device.DEVICE_NAME
-            ),
+            credentialRecord.deviceName,
 
           ip:
             getRequestIp(
               request
             ),
+        },
+        {
+          timeoutMs:
+            20_000,
         }
       );
 
@@ -976,15 +481,13 @@ export async function POST(
         deviceId,
 
         credentialId:
-          storedCredentialId,
+          credentialRecord.id,
 
         signCount:
           newSignCount,
 
         result:
-          extractPayload(
-            finishResult
-          ),
+          finishResult,
       },
       {
         status:
@@ -1010,7 +513,7 @@ export async function POST(
       );
 
     const isValidationError =
-      /challenge|credential|authentication|signature|origin|rp id|counter|verification|user verification/i.test(
+      /challenge|credential|authentication|signature|origin|rp id|counter|verification|user verification|state/i.test(
         message
       );
 
