@@ -4,7 +4,6 @@ import type {
 } from "next";
 
 import MerchantGuard from "@/components/auth/MerchantGuard";
-import MerchantHeader from "@/components/layout/MerchantHeader";
 
 export const metadata: Metadata = {
   title: {
@@ -76,11 +75,7 @@ export default function MerchantLayout({
 }>) {
   return (
     <MerchantGuard>
-      <div className="min-h-screen bg-slate-50">
-        <MerchantHeader />
-
-        {children}
-      </div>
+      {children}
     </MerchantGuard>
   );
 }

@@ -4,7 +4,6 @@ import type {
 } from "next";
 
 import MemberGuard from "@/components/auth/MemberGuard";
-import MemberHeader from "@/components/layout/MemberHeader";
 
 export const metadata: Metadata = {
   title: {
@@ -73,11 +72,7 @@ export default function MemberLayout({
 }>) {
   return (
     <MemberGuard>
-      <div className="min-h-screen bg-slate-50">
-        <MemberHeader />
-
-        {children}
-      </div>
+      {children}
     </MemberGuard>
   );
 }
