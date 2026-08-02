@@ -6,6 +6,7 @@ import {
   useState,
 } from "react";
 import Link from "next/link";
+import Header from "@/components/layout/Header";
 import {
   useRouter,
 } from "next/navigation";
@@ -450,7 +451,7 @@ function MerchantLoginContent() {
 
   return (
     <>
-
+<Header />
       <main className="relative min-h-screen bg-[radial-gradient(circle_at_top_left,#fef3c7,transparent_35%),#f8fafc] px-4 py-8 sm:px-6 sm:py-12 lg:py-16">
         <div className="absolute right-4 top-4 z-40 sm:right-6 sm:top-6">
           <LanguageSwitcher compact />
