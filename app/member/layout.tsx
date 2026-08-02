@@ -4,6 +4,7 @@ import type {
 } from "next";
 
 import MemberGuard from "@/components/auth/MemberGuard";
+import AppLock from "@/components/security/AppLock";
 
 export const metadata: Metadata = {
   title: {
@@ -65,14 +66,28 @@ export const viewport: Viewport = {
     "#ffffff",
 };
 
-export default function MemberLayout({
+const MEMBER_PUBLIC_PATHS = [
+  "/member/login",
+  "/member/register",
+  "/member/forgot-password",
+  "/member/reset-password",
+];
+
+export default function MemberRootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
     <MemberGuard>
-      {children}
+      <AppLock
+        portal="MEMBER"
+        publicPaths={
+          MEMBER_PUBLIC_PATHS
+        }
+      >
+        {children}
+      </AppLock>
     </MemberGuard>
   );
 }

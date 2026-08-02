@@ -13,8 +13,6 @@ import {
 } from "lucide-react";
 
 import MemberBottomNav from "@/components/layout/MemberBottomNav";
-import MemberGuard from "@/components/auth/MemberGuard";
-import SessionTimeout from "@/components/auth/SessionTimeout";
 import LanguageSwitcher from "@/components/i18n/LanguageSwitcher";
 
 import {
@@ -40,30 +38,42 @@ type StoredMember = {
 };
 
 function openCustomerSupport(): void {
-  if (typeof window === "undefined") {
+  if (
+    typeof window ===
+    "undefined"
+  ) {
     return;
   }
 
   window.dispatchEvent(
-    new Event("rewardhub-open-support")
+    new Event(
+      "rewardhub-open-support"
+    )
   );
 }
 
-function getMemberIdFromStorage(): string {
-  if (typeof window === "undefined") {
+function getMemberIdFromStorage():
+  string {
+  if (
+    typeof window ===
+    "undefined"
+  ) {
     return "";
   }
 
   try {
     const raw =
-      window.localStorage.getItem("member");
+      window.localStorage.getItem(
+        "member"
+      );
 
     if (!raw) {
       return "";
     }
 
-    const parsed: StoredMember =
-      JSON.parse(raw);
+    const parsed:
+      StoredMember =
+        JSON.parse(raw);
 
     return String(
       parsed?.memberId ??
@@ -84,10 +94,14 @@ function getMemberIdFromStorage(): string {
 
 function unwrapData(
   result: unknown
-): Record<string, unknown> {
+): Record<
+  string,
+  unknown
+> {
   if (
     !result ||
-    typeof result !== "object"
+    typeof result !==
+      "object"
   ) {
     return {};
   }
@@ -100,7 +114,8 @@ function unwrapData(
 
   const first =
     root.data &&
-    typeof root.data === "object"
+    typeof root.data ===
+      "object"
       ? (
           root.data as Record<
             string,
@@ -110,7 +125,8 @@ function unwrapData(
       : root;
 
   return first.data &&
-    typeof first.data === "object"
+    typeof first.data ===
+      "object"
     ? (
         first.data as Record<
           string,
@@ -123,62 +139,80 @@ function unwrapData(
 export default function MemberLayout({
   children,
 }: {
-  children: React.ReactNode;
+  children:
+    React.ReactNode;
 }) {
-  const { t } = useLanguage();
+  const {
+    t,
+  } =
+    useLanguage();
 
   const [
     unreadCount,
     setUnreadCount,
-  ] = useState(0);
+  ] =
+    useState(0);
 
   const [
     cartCount,
     setCartCount,
-  ] = useState(0);
+  ] =
+    useState(0);
 
   const loadUnreadCount =
-    useCallback(async () => {
-      const memberId =
-        getMemberIdFromStorage();
+    useCallback(
+      async () => {
+        const memberId =
+          getMemberIdFromStorage();
 
-      if (!memberId) {
-        setUnreadCount(0);
-        return;
-      }
+        if (!memberId) {
+          setUnreadCount(0);
+          return;
+        }
 
-      try {
-        const result =
-          await getMemberUnreadNotificationCount({
-            memberId,
-          });
+        try {
+          const result =
+            await getMemberUnreadNotificationCount(
+              {
+                memberId,
+              }
+            );
 
-        const data =
-          unwrapData(result);
+          const data =
+            unwrapData(
+              result
+            );
 
-        const nextCount =
-          Number(
-            data.unreadCount ??
-              data.count ??
-              0
+          const nextCount =
+            Number(
+              data.unreadCount ??
+                data.count ??
+                0
+            );
+
+          setUnreadCount(
+            Number.isFinite(
+              nextCount
+            )
+              ? nextCount
+              : 0
           );
-
-        setUnreadCount(
-          Number.isFinite(nextCount)
-            ? nextCount
-            : 0
-        );
-      } catch {
-        // Notification failure must not block portal.
-      }
-    }, []);
+        } catch {
+          // Notifications must not block the portal.
+        }
+      },
+      []
+    );
 
   const refreshCartCount =
-    useCallback(() => {
-      setCartCount(
-        getMemberCartCount()
-      );
-    }, []);
+    useCallback(
+      () => {
+        setCartCount(
+          getMemberCartCount()
+        );
+      },
+      []
+    );
 
   useEffect(() => {
     void loadUnreadCount();
@@ -219,7 +253,9 @@ export default function MemberLayout({
         interval
       );
     };
-  }, [loadUnreadCount]);
+  }, [
+    loadUnreadCount,
+  ]);
 
   useEffect(() => {
     refreshCartCount();
@@ -255,24 +291,31 @@ export default function MemberLayout({
         refreshCartCount
       );
     };
-  }, [refreshCartCount]);
+  }, [
+    refreshCartCount,
+  ]);
 
   const badgeText =
     unreadCount > 99
       ? "99+"
-      : String(unreadCount);
+      : String(
+          unreadCount
+        );
 
   const cartBadgeText =
     cartCount > 99
       ? "99+"
-      : String(cartCount);
+      : String(
+          cartCount
+        );
 
   const notificationLabel =
     unreadCount > 0
       ? t(
           "memberLayout.unreadNotifications",
           {
-            count: unreadCount,
+            count:
+              unreadCount,
           }
         )
       : t(
@@ -299,95 +342,100 @@ export default function MemberLayout({
   ].join(" ");
 
   return (
-    <MemberGuard>
-      <SessionTimeout
-        storageKey="member"
-        loginPath="/login"
-      />
+    <div className="min-h-screen bg-slate-50">
+      <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur-xl">
+        <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between gap-3 px-3 sm:h-20 sm:px-6 lg:h-24 lg:px-8 xl:px-12">
+          <Link
+            href="/member/dashboard"
+            aria-label="RewardHub Member"
+            className="flex min-w-0 shrink items-center no-underline"
+          >
+            <img
+              src="/logo/rewardhub-member.png"
+              alt="RewardHub Member"
+              className="block h-9 w-auto max-w-[145px] object-contain sm:h-12 sm:max-w-[210px] lg:h-16 lg:max-w-[280px]"
+            />
+          </Link>
 
-      <div className="min-h-screen bg-slate-50">
-        <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur-xl">
-          <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between gap-3 px-3 sm:h-20 sm:px-6 lg:h-24 lg:px-8 xl:px-12">
+          <div className="flex shrink-0 items-center gap-1.5 sm:gap-3">
+            <LanguageSwitcher
+              compact
+              className={[
+                "max-w-[118px]",
+                "px-2 py-2",
+                "sm:max-w-none",
+                "sm:px-3",
+              ].join(" ")}
+            />
+
             <Link
-              href="/member/dashboard"
-              aria-label="RewardHub Member"
-              className="flex min-w-0 shrink items-center no-underline"
+              href="/member/cart"
+              aria-label="Shopping Cart"
+              title="Shopping Cart"
+              className={
+                headerButtonClass
+              }
             >
-              <img
-                src="/logo/rewardhub-member.png"
-                alt="RewardHub Member"
-                className="block h-9 w-auto max-w-[145px] object-contain sm:h-12 sm:max-w-[210px] lg:h-16 lg:max-w-[280px]"
-              />
+              <ShoppingCart className="h-5 w-5 sm:h-6 sm:w-6" />
+
+              {cartCount > 0 ? (
+                <span className="absolute -right-1.5 -top-1.5 inline-flex min-h-5 min-w-5 items-center justify-center rounded-full border-2 border-white bg-amber-500 px-1 text-[9px] font-black leading-none text-slate-950 shadow-sm sm:min-h-6 sm:min-w-6 sm:text-[10px]">
+                  {
+                    cartBadgeText
+                  }
+                </span>
+              ) : null}
             </Link>
 
-            <div className="flex shrink-0 items-center gap-1.5 sm:gap-3">
-              <LanguageSwitcher
-                compact
-                className={[
-                  "max-w-[118px]",
-                  "px-2 py-2",
-                  "sm:max-w-none",
-                  "sm:px-3",
-                ].join(" ")}
-              />
+            <button
+              type="button"
+              onClick={
+                openCustomerSupport
+              }
+              aria-label={t(
+                "memberLayout.customerSupport"
+              )}
+              title={t(
+                "memberLayout.customerSupport"
+              )}
+              className={
+                headerButtonClass
+              }
+            >
+              <Headset className="h-5 w-5 sm:h-6 sm:w-6" />
+            </button>
 
-              <Link
-                href="/member/cart"
-                aria-label="Shopping Cart"
-                title="Shopping Cart"
-                className={headerButtonClass}
-              >
-                <ShoppingCart className="h-5 w-5 sm:h-6 sm:w-6" />
+            <Link
+              href="/member/notifications"
+              aria-label={
+                notificationLabel
+              }
+              title={t(
+                "navigation.notifications"
+              )}
+              className={
+                headerButtonClass
+              }
+            >
+              <Bell className="h-5 w-5 sm:h-6 sm:w-6" />
 
-                {cartCount > 0 ? (
-                  <span className="absolute -right-1.5 -top-1.5 inline-flex min-h-5 min-w-5 items-center justify-center rounded-full border-2 border-white bg-amber-500 px-1 text-[9px] font-black leading-none text-slate-950 shadow-sm sm:min-h-6 sm:min-w-6 sm:text-[10px]">
-                    {cartBadgeText}
-                  </span>
-                ) : null}
-              </Link>
-
-              <button
-                type="button"
-                onClick={openCustomerSupport}
-                aria-label={t(
-                  "memberLayout.customerSupport"
-                )}
-                title={t(
-                  "memberLayout.customerSupport"
-                )}
-                className={headerButtonClass}
-              >
-                <Headset className="h-5 w-5 sm:h-6 sm:w-6" />
-              </button>
-
-              <Link
-                href="/member/notifications"
-                aria-label={
-                  notificationLabel
-                }
-                title={t(
-                  "navigation.notifications"
-                )}
-                className={headerButtonClass}
-              >
-                <Bell className="h-5 w-5 sm:h-6 sm:w-6" />
-
-                {unreadCount > 0 ? (
-                  <span className="absolute -right-1.5 -top-1.5 inline-flex min-h-5 min-w-5 items-center justify-center rounded-full border-2 border-white bg-red-600 px-1 text-[9px] font-black leading-none text-white shadow-sm sm:min-h-6 sm:min-w-6 sm:text-[10px]">
-                    {badgeText}
-                  </span>
-                ) : null}
-              </Link>
-            </div>
+              {unreadCount > 0 ? (
+                <span className="absolute -right-1.5 -top-1.5 inline-flex min-h-5 min-w-5 items-center justify-center rounded-full border-2 border-white bg-red-600 px-1 text-[9px] font-black leading-none text-white shadow-sm sm:min-h-6 sm:min-w-6 sm:text-[10px]">
+                  {
+                    badgeText
+                  }
+                </span>
+              ) : null}
+            </Link>
           </div>
-        </header>
-
-        <div className="min-h-[calc(100vh-64px)] pb-28 sm:min-h-[calc(100vh-80px)] sm:pb-32 lg:min-h-[calc(100vh-96px)] lg:pb-36">
-          {children}
         </div>
+      </header>
 
-        <MemberBottomNav />
+      <div className="min-h-[calc(100vh-64px)] pb-28 sm:min-h-[calc(100vh-80px)] sm:pb-32 lg:min-h-[calc(100vh-96px)] lg:pb-36">
+        {children}
       </div>
-    </MemberGuard>
+
+      <MemberBottomNav />
+    </div>
   );
 }

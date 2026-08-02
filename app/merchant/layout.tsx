@@ -4,6 +4,7 @@ import type {
 } from "next";
 
 import MerchantGuard from "@/components/auth/MerchantGuard";
+import AppLock from "@/components/security/AppLock";
 
 export const metadata: Metadata = {
   title: {
@@ -68,14 +69,28 @@ export const viewport: Viewport = {
     "#ffffff",
 };
 
-export default function MerchantLayout({
+const MERCHANT_PUBLIC_PATHS = [
+  "/merchant/login",
+  "/merchant/register",
+  "/merchant/forgot-password",
+  "/merchant/reset-password",
+];
+
+export default function MerchantRootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
     <MerchantGuard>
-      {children}
+      <AppLock
+        portal="MERCHANT"
+        publicPaths={
+          MERCHANT_PUBLIC_PATHS
+        }
+      >
+        {children}
+      </AppLock>
     </MerchantGuard>
   );
 }

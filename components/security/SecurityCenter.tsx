@@ -931,17 +931,55 @@ biometricFailure:
   } catch (
     error
   ) {
-    setBiometricMessage({
-      type:
-        "error",
+    const errorMessage =
+      error instanceof
+        Error &&
+      error.message
+        ? error.message
+        : text.biometricFailure;
 
-      text:
-        error instanceof
-          Error &&
-        error.message
-          ? error.message
-          : text.biometricFailure,
-    });
+    const normalizedError =
+      errorMessage
+        .toLowerCase()
+        .trim();
+
+    const alreadyRegistered =
+      normalizedError.includes(
+        "already registered"
+      ) ||
+      normalizedError.includes(
+        "credential is already registered"
+      );
+
+    if (
+      alreadyRegistered
+    ) {
+      persistSettings({
+        ...settings,
+
+        appLockEnabled:
+          true,
+
+        biometricEnabled:
+          true,
+      });
+
+      setBiometricMessage({
+        type:
+          "success",
+
+        text:
+          text.biometricSuccess,
+      });
+    } else {
+      setBiometricMessage({
+        type:
+          "error",
+
+        text:
+          errorMessage,
+      });
+    }
   } finally {
     setBiometricBusy(
       false
