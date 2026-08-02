@@ -135,11 +135,11 @@ export default function PWAInstallGuide({
       installTitle:
         "Install the app",
       installDescription:
-        "Install RewardHub on your home screen for faster and safer access.",
+        "Install RewardHub on your home screen for faster and easier access.",
       memberBenefit1:
         "Open RewardHub directly from your home screen",
       memberBenefit2:
-        "Unlock with Face ID, Touch ID or device biometrics",
+        "Stay signed in until you log out or leave the app for 10 minutes",
       memberBenefit3:
         "Receive account and campaign notifications",
       memberBenefit4:
@@ -147,7 +147,7 @@ export default function PWAInstallGuide({
       businessBenefit1:
         "Open your merchant portal directly from your home screen",
       businessBenefit2:
-        "Unlock with Face ID, Touch ID or device biometrics",
+        "Stay signed in until you log out or leave the app for 10 minutes",
       businessBenefit3:
         "Receive order, transaction and settlement notifications",
       businessBenefit4:
@@ -218,11 +218,11 @@ export default function PWAInstallGuide({
       installTitle:
         "安装 RewardHub App",
       installDescription:
-        "把 RewardHub 安装到主屏幕，日后可以更快、更安全地进入账户。",
+        "把 RewardHub 安装到主屏幕，日后可以更快、更方便地进入账户。",
       memberBenefit1:
         "从手机主屏幕直接打开 RewardHub",
       memberBenefit2:
-        "使用 Face ID、Touch ID 或设备生物识别解锁",
+        "保持登录，主动退出或离开 App 超过 10 分钟才会登出",
       memberBenefit3:
         "接收账户与活动推送通知",
       memberBenefit4:
@@ -230,7 +230,7 @@ export default function PWAInstallGuide({
       businessBenefit1:
         "从手机主屏幕直接打开商家后台",
       businessBenefit2:
-        "使用 Face ID、Touch ID 或设备生物识别解锁",
+        "保持登录，主动退出或离开 App 超过 10 分钟才会登出",
       businessBenefit3:
         "接收订单、交易与结算通知",
       businessBenefit4:
@@ -301,11 +301,11 @@ export default function PWAInstallGuide({
       installTitle:
         "Pasang aplikasi",
       installDescription:
-        "Pasang RewardHub pada skrin utama untuk akses yang lebih pantas dan selamat.",
+        "Pasang RewardHub pada skrin utama untuk akses yang lebih pantas dan mudah.",
       memberBenefit1:
         "Buka RewardHub terus daripada skrin utama",
       memberBenefit2:
-        "Buka kunci dengan Face ID, Touch ID atau biometrik peranti",
+        "Kekal log masuk sehingga anda log keluar atau meninggalkan aplikasi selama 10 minit",
       memberBenefit3:
         "Terima notifikasi akaun dan kempen",
       memberBenefit4:
@@ -313,7 +313,7 @@ export default function PWAInstallGuide({
       businessBenefit1:
         "Buka portal peniaga terus daripada skrin utama",
       businessBenefit2:
-        "Buka kunci dengan Face ID, Touch ID atau biometrik peranti",
+        "Kekal log masuk sehingga anda log keluar atau meninggalkan aplikasi selama 10 minit",
       businessBenefit3:
         "Terima notifikasi pesanan, transaksi dan penyelesaian",
       businessBenefit4:
@@ -757,9 +757,11 @@ export default function PWAInstallGuide({
         <span>
           {text.success}
         </span>
+
         <span>
           {accountId}
         </span>
+
         <span>
           {statusLabel}:{" "}
           {statusValue}
