@@ -1,283 +1,852 @@
 "use client";
 
-import { Headphones } from "lucide-react";
-import { useEffect, useState } from "react";
+import {
+  Bell,
+  Headphones,
+  Menu,
+  ShieldCheck,
+  UserRound,
+  X,
+} from "lucide-react";
 import Link from "next/link";
+import {
+  usePathname,
+} from "next/navigation";
+import {
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 
-import { useLanguage } from "@/hooks/useLanguage";
+import {
+  useLanguage,
+} from "@/hooks/useLanguage";
+
+type PortalType =
+  | "member"
+  | "business";
+
+type NavItem = {
+  href: string;
+  label: string;
+};
+
+const APP_VARIANT: PortalType =
+  process.env
+    .NEXT_PUBLIC_APP_VARIANT ===
+  "business"
+    ? "business"
+    : "member";
 
 export default function Header() {
-  const { language } = useLanguage();
+  const pathname =
+    usePathname();
+
+  const {
+    language,
+  } = useLanguage();
+
+  const [
+    menuOpen,
+    setMenuOpen,
+  ] =
+    useState(false);
+
+  const isBusiness =
+    APP_VARIANT ===
+    "business";
+
+  const isAuthPage =
+    pathname ===
+      "/member/login" ||
+    pathname ===
+      "/merchant/login" ||
+    pathname.includes(
+      "/forgot-password"
+    ) ||
+    pathname.includes(
+      "/reset-password"
+    );
 
   const pageText = {
     en: {
-      home: "Home",
-      marketplace: "Marketplace",
-      howItWorks: "How It Works",
-      about: "About",
-      faq: "FAQ",
-      contact: "Contact",
-      memberLogin: "Member Login",
-      memberRegister: "Join as Member",
-      merchantLogin: "Merchant Login",
-      merchantRegister: "Join as Merchant",
-      referralId: "Referral ID",
-      openMenu: "Open navigation menu",
-      closeMenu: "Close navigation menu",
-      openSupport: "Open RewardHub Support",
+      memberBrand:
+        "RewardHub Member",
+
+      businessBrand:
+        "RewardHub Business",
+
+      dashboard:
+        "Dashboard",
+
+      pay:
+        "Pay",
+
+      points:
+        "Points",
+
+      referral:
+        "Referral",
+
+      profile:
+        "Profile",
+
+      scan:
+        "Scan",
+
+      transactions:
+        "Transactions",
+
+      orders:
+        "Orders",
+
+      products:
+        "Products",
+
+      marketing:
+        "Marketing",
+
+      settlement:
+        "Settlement",
+
+      notifications:
+        "Notifications",
+
+      security:
+        "Security",
+
+      openMenu:
+        "Open navigation menu",
+
+      closeMenu:
+        "Close navigation menu",
+
+      openSupport:
+        "Open RewardHub Support",
     },
+
     zh: {
-      home: "首页",
-      marketplace: "商家广场",
-      howItWorks: "如何运作",
-      about: "关于我们",
-      faq: "常见问题",
-      contact: "联系我们",
-      memberLogin: "会员登录",
-      memberRegister: "成为会员",
-      merchantLogin: "商家登录",
-      merchantRegister: "成为商家",
-      referralId: "推荐编号",
-      openMenu: "打开导航菜单",
-      closeMenu: "关闭导航菜单",
-      openSupport: "打开 RewardHub 客服",
+      memberBrand:
+        "RewardHub 会员版",
+
+      businessBrand:
+        "RewardHub 商家版",
+
+      dashboard:
+        "主页",
+
+      pay:
+        "付款",
+
+      points:
+        "积分",
+
+      referral:
+        "推荐",
+
+      profile:
+        "个人资料",
+
+      scan:
+        "扫码",
+
+      transactions:
+        "交易记录",
+
+      orders:
+        "订单",
+
+      products:
+        "商品",
+
+      marketing:
+        "营销预算",
+
+      settlement:
+        "结算",
+
+      notifications:
+        "通知",
+
+      security:
+        "安全中心",
+
+      openMenu:
+        "打开导航菜单",
+
+      closeMenu:
+        "关闭导航菜单",
+
+      openSupport:
+        "打开 RewardHub 客服",
     },
+
     ms: {
-      home: "Utama",
-      marketplace: "Marketplace",
-      howItWorks: "Cara Berfungsi",
-      about: "Tentang Kami",
-      faq: "Soalan Lazim",
-      contact: "Hubungi Kami",
-      memberLogin: "Log Masuk Ahli",
-      memberRegister: "Sertai Sebagai Ahli",
-      merchantLogin: "Log Masuk Peniaga",
-      merchantRegister: "Sertai Sebagai Peniaga",
-      referralId: "ID Rujukan",
-      openMenu: "Buka menu navigasi",
-      closeMenu: "Tutup menu navigasi",
-      openSupport: "Buka Sokongan RewardHub",
+      memberBrand:
+        "RewardHub Ahli",
+
+      businessBrand:
+        "RewardHub Perniagaan",
+
+      dashboard:
+        "Papan Pemuka",
+
+      pay:
+        "Bayar",
+
+      points:
+        "Mata",
+
+      referral:
+        "Rujukan",
+
+      profile:
+        "Profil",
+
+      scan:
+        "Imbas",
+
+      transactions:
+        "Transaksi",
+
+      orders:
+        "Pesanan",
+
+      products:
+        "Produk",
+
+      marketing:
+        "Pemasaran",
+
+      settlement:
+        "Penyelesaian",
+
+      notifications:
+        "Notifikasi",
+
+      security:
+        "Pusat Keselamatan",
+
+      openMenu:
+        "Buka menu navigasi",
+
+      closeMenu:
+        "Tutup menu navigasi",
+
+      openSupport:
+        "Buka Sokongan RewardHub",
     },
   } as const;
 
   const copy =
     pageText[
-      language === "zh" || language === "ms"
+      language === "zh" ||
+      language === "ms"
         ? language
         : "en"
     ];
 
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [memberRef, setMemberRef] = useState("");
+  const navItems =
+    useMemo<
+      NavItem[]
+    >(
+      () =>
+        isBusiness
+          ? [
+              {
+                href:
+                  "/merchant/dashboard",
+
+                label:
+                  copy.dashboard,
+              },
+
+              {
+                href:
+                  "/merchant/scan",
+
+                label:
+                  copy.scan,
+              },
+
+              {
+                href:
+                  "/merchant/transactions",
+
+                label:
+                  copy.transactions,
+              },
+
+              {
+                href:
+                  "/merchant/orders",
+
+                label:
+                  copy.orders,
+              },
+
+              {
+                href:
+                  "/merchant/products",
+
+                label:
+                  copy.products,
+              },
+
+              {
+                href:
+                  "/merchant/marketing",
+
+                label:
+                  copy.marketing,
+              },
+
+              {
+                href:
+                  "/merchant/settlement",
+
+                label:
+                  copy.settlement,
+              },
+            ]
+          : [
+              {
+                href:
+                  "/member/dashboard",
+
+                label:
+                  copy.dashboard,
+              },
+
+              {
+                href:
+                  "/member/pay",
+
+                label:
+                  copy.pay,
+              },
+
+              {
+                href:
+                  "/member/points",
+
+                label:
+                  copy.points,
+              },
+
+              {
+                href:
+                  "/member/referral",
+
+                label:
+                  copy.referral,
+              },
+
+              {
+                href:
+                  "/member/profile",
+
+                label:
+                  copy.profile,
+              },
+            ],
+      [
+        copy,
+        isBusiness,
+      ]
+    );
+
+  const homeHref =
+    isBusiness
+      ? "/merchant/dashboard"
+      : "/member/dashboard";
+
+  const profileHref =
+    isBusiness
+      ? "/merchant/profile"
+      : "/member/profile";
+
+  const securityHref =
+    isBusiness
+      ? "/merchant/security"
+      : "/member/security";
+
+  const notificationsHref =
+    isBusiness
+      ? "/merchant/notifications"
+      : "/member/notifications";
+
+  const brandLabel =
+    isBusiness
+      ? copy.businessBrand
+      : copy.memberBrand;
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const queryRef =
-      params.get("ref") ||
-      params.get("refMember") ||
-      "";
+    setMenuOpen(false);
+  }, [pathname]);
 
-    if (queryRef) {
-      localStorage.setItem("rewardhub_ref", queryRef);
-      setMemberRef(queryRef);
-      return;
+  useEffect(() => {
+    function handleResize() {
+      if (
+        window.innerWidth >=
+        1280
+      ) {
+        setMenuOpen(false);
+      }
     }
 
-    setMemberRef(localStorage.getItem("rewardhub_ref") || "");
+    window.addEventListener(
+      "resize",
+      handleResize
+    );
+
+    return () => {
+      window.removeEventListener(
+        "resize",
+        handleResize
+      );
+    };
   }, []);
-
-  const withRef = (path: string, key = "ref") =>
-    memberRef
-      ? `${path}?${key}=${encodeURIComponent(memberRef)}`
-      : path;
-
-  function closeMenu() {
-    setMenuOpen(false);
-  }
 
   function openSupport() {
     setMenuOpen(false);
-    window.dispatchEvent(new CustomEvent("rewardhub-open-support"));
+
+    window.dispatchEvent(
+      new CustomEvent(
+        "rewardhub-open-support"
+      )
+    );
   }
 
-  const navItems = [
-    { href: withRef("/"), label: copy.home },
-    { href: withRef("/marketplace"), label: copy.marketplace },
-    { href: "/#how-it-works", label: copy.howItWorks },
-    { href: "/#about", label: copy.about },
-    { href: "/#faq", label: copy.faq },
-    { href: "/#contact", label: copy.contact },
-  ];
-
   return (
-    <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/95 backdrop-blur-xl">
-      <div className="mx-auto flex min-h-20 w-full max-w-7xl items-center justify-between px-4 py-3 sm:px-6 md:px-8 lg:min-h-24 xl:px-12">
+    <header
+      className={[
+        "sticky top-0 z-50 border-b backdrop-blur-xl",
+        isBusiness
+          ? "border-white/10 bg-slate-950/95 text-white"
+          : "border-slate-200 bg-white/95 text-slate-950",
+      ].join(" ")}
+    >
+      <div className="mx-auto flex min-h-[72px] w-full max-w-[1440px] items-center justify-between gap-4 px-4 py-2 sm:px-6 md:px-8 xl:px-10 2xl:px-12">
         <Link
-          href={withRef("/")}
-          onClick={closeMenu}
-          className="flex shrink-0 items-center no-underline"
+          href={
+            homeHref
+          }
+          className="flex min-w-0 shrink-0 items-center gap-3 no-underline"
+          aria-label={
+            brandLabel
+          }
         >
-          <img
-            src="/logo/rewardhub-logo.png"
-            alt="RewardHub"
-            className="h-11 w-auto object-contain sm:h-14 lg:h-16"
-          />
+          <span
+            className={[
+              "flex h-11 items-center rounded-xl p-2",
+              isBusiness
+                ? "bg-white"
+                : "bg-slate-950",
+            ].join(" ")}
+          >
+            <img
+              src="/logo/rewardhub-logo.png"
+              alt="RewardHub"
+              className="h-7 w-auto object-contain"
+            />
+          </span>
+
+          <span className="hidden min-w-0 sm:block">
+            <span
+              className={[
+                "block truncate text-sm font-black",
+                isBusiness
+                  ? "text-white"
+                  : "text-slate-950",
+              ].join(" ")}
+            >
+              {
+                brandLabel
+              }
+            </span>
+
+            <span
+              className={[
+                "block text-[10px] font-bold uppercase tracking-[0.16em]",
+                isBusiness
+                  ? "text-slate-400"
+                  : "text-slate-500",
+              ].join(" ")}
+            >
+              {
+                isBusiness
+                  ? "Merchant Portal"
+                  : "Member Portal"
+              }
+            </span>
+          </span>
         </Link>
 
-        <nav className="hidden items-center gap-2 xl:flex">
-          {navItems.map((item) => (
-            <DesktopLink key={item.href} href={item.href}>
-              {item.label}
-            </DesktopLink>
-          ))}
+        {!isAuthPage && (
+          <nav className="hidden min-w-0 flex-1 items-center justify-center gap-1 xl:flex">
+            {navItems.map(
+              (
+                item
+              ) => (
+                <DesktopLink
+                  key={
+                    item.href
+                  }
+                  href={
+                    item.href
+                  }
+                  active={
+                    isActivePath(
+                      pathname,
+                      item.href
+                    )
+                  }
+                  business={
+                    isBusiness
+                  }
+                >
+                  {
+                    item.label
+                  }
+                </DesktopLink>
+              )
+            )}
+          </nav>
+        )}
 
-          <DesktopLink href={withRef("/login")}>
-            {copy.memberLogin}
-          </DesktopLink>
+        <div className="flex shrink-0 items-center gap-2">
+          {!isAuthPage && (
+            <>
+              <IconLink
+                href={
+                  notificationsHref
+                }
+                label={
+                  copy.notifications
+                }
+                business={
+                  isBusiness
+                }
+              >
+                <Bell className="h-[18px] w-[18px]" />
+              </IconLink>
 
-          <DesktopLink href={withRef("/register")} dark>
-            {copy.memberRegister}
-          </DesktopLink>
+              <IconLink
+                href={
+                  securityHref
+                }
+                label={
+                  copy.security
+                }
+                business={
+                  isBusiness
+                }
+                desktopOnly
+              >
+                <ShieldCheck className="h-[18px] w-[18px]" />
+              </IconLink>
 
-          <DesktopLink href="/merchant/login">
-            {copy.merchantLogin}
-          </DesktopLink>
-
-          <DesktopLink
-            href={withRef("/merchantregister", "refMember")}
-            amber
-          >
-            {copy.merchantRegister}
-          </DesktopLink>
+              <IconLink
+                href={
+                  profileHref
+                }
+                label={
+                  copy.profile
+                }
+                business={
+                  isBusiness
+                }
+                desktopOnly
+              >
+                <UserRound className="h-[18px] w-[18px]" />
+              </IconLink>
+            </>
+          )}
 
           <SupportIconButton
-            label={copy.openSupport}
-            onClick={openSupport}
+            label={
+              copy.openSupport
+            }
+            onClick={
+              openSupport
+            }
+            business={
+              isBusiness
+            }
           />
-        </nav>
 
-        <div className="flex items-center gap-2 xl:hidden">
-          <SupportIconButton
-            label={copy.openSupport}
-            onClick={openSupport}
-            mobile
-          />
-
-          <button
-            type="button"
-            onClick={() => setMenuOpen((current) => !current)}
-            aria-label={menuOpen ? copy.closeMenu : copy.openMenu}
-            aria-expanded={menuOpen}
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-white text-xl font-black text-slate-950 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 active:scale-95"
-          >
-            {menuOpen ? "✕" : "☰"}
-          </button>
+          {!isAuthPage && (
+            <button
+              type="button"
+              onClick={() =>
+                setMenuOpen(
+                  (
+                    current
+                  ) =>
+                    !current
+                )
+              }
+              aria-label={
+                menuOpen
+                  ? copy.closeMenu
+                  : copy.openMenu
+              }
+              aria-expanded={
+                menuOpen
+              }
+              aria-controls="portal-mobile-menu"
+              className={[
+                "flex h-11 w-11 items-center justify-center rounded-2xl border shadow-sm transition active:scale-95 xl:hidden",
+                isBusiness
+                  ? "border-white/15 bg-white/10 text-white hover:bg-white/15"
+                  : "border-slate-200 bg-white text-slate-950 hover:bg-slate-50",
+              ].join(" ")}
+            >
+              {menuOpen ? (
+                <X className="h-5 w-5" />
+              ) : (
+                <Menu className="h-5 w-5" />
+              )}
+            </button>
+          )}
         </div>
       </div>
 
-      {menuOpen && (
-        <nav className="border-t border-slate-200 bg-white px-4 py-4 shadow-lg sm:px-6 xl:hidden">
-          <div className="mx-auto grid w-full max-w-7xl gap-3">
-            {navItems.map((item) => (
+      {menuOpen &&
+        !isAuthPage && (
+          <nav
+            id="portal-mobile-menu"
+            className={[
+              "max-h-[calc(100vh-72px)] overflow-y-auto border-t px-4 py-4 shadow-xl sm:px-6 xl:hidden",
+              isBusiness
+                ? "border-white/10 bg-slate-950"
+                : "border-slate-200 bg-white",
+            ].join(" ")}
+          >
+            <div className="mx-auto grid w-full max-w-3xl gap-2">
+              {navItems.map(
+                (
+                  item
+                ) => (
+                  <MobileLink
+                    key={
+                      item.href
+                    }
+                    href={
+                      item.href
+                    }
+                    active={
+                      isActivePath(
+                        pathname,
+                        item.href
+                      )
+                    }
+                    business={
+                      isBusiness
+                    }
+                  >
+                    {
+                      item.label
+                    }
+                  </MobileLink>
+                )
+              )}
+
+              <div
+                className={[
+                  "my-2 h-px",
+                  isBusiness
+                    ? "bg-white/10"
+                    : "bg-slate-200",
+                ].join(" ")}
+              />
+
               <MobileLink
-                key={item.href}
-                href={item.href}
-                onClick={closeMenu}
+                href={
+                  notificationsHref
+                }
+                active={
+                  isActivePath(
+                    pathname,
+                    notificationsHref
+                  )
+                }
+                business={
+                  isBusiness
+                }
               >
-                {item.label}
+                {
+                  copy.notifications
+                }
               </MobileLink>
-            ))}
 
-            <MobileLink href={withRef("/login")} onClick={closeMenu}>
-              {copy.memberLogin}
-            </MobileLink>
+              <MobileLink
+                href={
+                  securityHref
+                }
+                active={
+                  isActivePath(
+                    pathname,
+                    securityHref
+                  )
+                }
+                business={
+                  isBusiness
+                }
+              >
+                {
+                  copy.security
+                }
+              </MobileLink>
 
-            <MobileLink
-              href={withRef("/register")}
-              onClick={closeMenu}
-              dark
-            >
-              {copy.memberRegister}
-            </MobileLink>
-
-            <MobileLink href="/merchant/login" onClick={closeMenu}>
-              {copy.merchantLogin}
-            </MobileLink>
-
-            <MobileLink
-              href={withRef("/merchantregister", "refMember")}
-              onClick={closeMenu}
-              amber
-            >
-              {copy.merchantRegister}
-            </MobileLink>
-
-            {memberRef && (
-              <div className="rounded-2xl bg-emerald-50 px-4 py-3 text-center text-xs font-black text-emerald-700">
-                {copy.referralId}: {memberRef}
-              </div>
-            )}
-          </div>
-        </nav>
-      )}
+              <MobileLink
+                href={
+                  profileHref
+                }
+                active={
+                  isActivePath(
+                    pathname,
+                    profileHref
+                  )
+                }
+                business={
+                  isBusiness
+                }
+              >
+                {
+                  copy.profile
+                }
+              </MobileLink>
+            </div>
+          </nav>
+        )}
     </header>
+  );
+}
+
+function isActivePath(
+  pathname: string,
+  href: string
+) {
+  return (
+    pathname ===
+      href ||
+    pathname.startsWith(
+      `${href}/`
+    )
   );
 }
 
 function SupportIconButton({
   label,
   onClick,
-  mobile = false,
+  business,
 }: {
   label: string;
   onClick: () => void;
-  mobile?: boolean;
+  business: boolean;
 }) {
   return (
     <button
       type="button"
-      onClick={onClick}
-      aria-label={label}
-      title={label}
+      onClick={
+        onClick
+      }
+      aria-label={
+        label
+      }
+      title={
+        label
+      }
       className={[
-        "group flex shrink-0 items-center justify-center",
-        "border border-slate-200 bg-white text-slate-800",
-        "shadow-sm transition",
-        "hover:border-amber-300 hover:bg-amber-50 hover:text-amber-700",
-        "active:scale-95",
-        mobile
-          ? "h-11 w-11 rounded-2xl"
-          : "h-[46px] w-[46px] rounded-2xl",
+        "group flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border shadow-sm transition active:scale-95",
+        business
+          ? "border-white/15 bg-white/10 text-white hover:border-amber-400/50 hover:bg-amber-400/10 hover:text-amber-300"
+          : "border-slate-200 bg-white text-slate-800 hover:border-amber-300 hover:bg-amber-50 hover:text-amber-700",
       ].join(" ")}
     >
-      <Headphones className="h-5 w-5 transition-transform group-hover:scale-110" />
+      <Headphones className="h-[18px] w-[18px] transition-transform group-hover:scale-110" />
     </button>
+  );
+}
+
+function IconLink({
+  href,
+  label,
+  children,
+  business,
+  desktopOnly = false,
+}: {
+  href: string;
+  label: string;
+  children:
+    React.ReactNode;
+  business: boolean;
+  desktopOnly?: boolean;
+}) {
+  return (
+    <Link
+      href={
+        href
+      }
+      aria-label={
+        label
+      }
+      title={
+        label
+      }
+      className={[
+        "h-11 w-11 shrink-0 items-center justify-center rounded-2xl border shadow-sm transition active:scale-95",
+        desktopOnly
+          ? "hidden sm:flex"
+          : "flex",
+        business
+          ? "border-white/15 bg-white/10 text-white hover:bg-white/15"
+          : "border-slate-200 bg-white text-slate-800 hover:bg-slate-50",
+      ].join(" ")}
+    >
+      {
+        children
+      }
+    </Link>
   );
 }
 
 function DesktopLink({
   href,
   children,
-  dark = false,
-  amber = false,
+  active,
+  business,
 }: {
   href: string;
-  children: React.ReactNode;
-  dark?: boolean;
-  amber?: boolean;
+  children:
+    React.ReactNode;
+  active: boolean;
+  business: boolean;
 }) {
-  const style = amber
-    ? "border-amber-500 bg-amber-500 text-white hover:bg-amber-600"
-    : dark
-      ? "border-slate-950 bg-slate-950 text-white hover:bg-slate-800"
-      : "border-transparent bg-white text-slate-700 hover:bg-slate-100";
+  const style =
+    business
+      ? active
+        ? "bg-white text-slate-950"
+        : "text-slate-300 hover:bg-white/10 hover:text-white"
+      : active
+        ? "bg-slate-950 text-white"
+        : "text-slate-600 hover:bg-slate-100 hover:text-slate-950";
 
   return (
     <Link
-      href={href}
-      className={`whitespace-nowrap rounded-2xl border px-3 py-3 text-xs font-black no-underline transition 2xl:px-4 2xl:text-sm ${style}`}
+      href={
+        href
+      }
+      className={[
+        "inline-flex h-10 items-center justify-center whitespace-nowrap rounded-xl px-3 text-xs font-black no-underline transition 2xl:px-4 2xl:text-sm",
+        style,
+      ].join(" ")}
     >
-      {children}
+      {
+        children
+      }
     </Link>
   );
 }
@@ -285,29 +854,37 @@ function DesktopLink({
 function MobileLink({
   href,
   children,
-  onClick,
-  dark = false,
-  amber = false,
+  active,
+  business,
 }: {
   href: string;
-  children: React.ReactNode;
-  onClick: () => void;
-  dark?: boolean;
-  amber?: boolean;
+  children:
+    React.ReactNode;
+  active: boolean;
+  business: boolean;
 }) {
-  const style = amber
-    ? "bg-amber-500 text-white"
-    : dark
-      ? "bg-slate-950 text-white"
-      : "bg-slate-100 text-slate-950";
+  const style =
+    business
+      ? active
+        ? "bg-white text-slate-950"
+        : "bg-white/10 text-white"
+      : active
+        ? "bg-slate-950 text-white"
+        : "bg-slate-100 text-slate-950";
 
   return (
     <Link
-      href={href}
-      onClick={onClick}
-      className={`block w-full rounded-2xl px-5 py-4 text-center text-sm font-black no-underline transition active:scale-[0.98] ${style}`}
+      href={
+        href
+      }
+      className={[
+        "flex min-h-12 w-full items-center justify-center rounded-2xl px-5 py-3.5 text-center text-sm font-black no-underline transition active:scale-[0.98]",
+        style,
+      ].join(" ")}
     >
-      {children}
+      {
+        children
+      }
     </Link>
   );
 }
