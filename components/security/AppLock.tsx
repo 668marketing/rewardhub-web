@@ -2,22 +2,20 @@
 
 import {
   type ReactNode,
+  useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
-import {
-  usePathname,
-} from "next/navigation";
+import { usePathname } from "next/navigation";
 import {
   Fingerprint,
   LoaderCircle,
   LockKeyhole,
 } from "lucide-react";
 
-import {
-  useLanguage,
-} from "@/hooks/useLanguage";
+import { useLanguage } from "@/hooks/useLanguage";
 import {
   getRewardHubLockState,
   lockRewardHub,
@@ -32,19 +30,12 @@ import {
   getRewardHubSession,
   type RewardHubSession,
 } from "@/lib/session";
-import {
-  authenticateRewardHubBiometric,
-} from "@/lib/webauthn-client";
+import { authenticateRewardHubBiometric } from "@/lib/webauthn-client";
 
 type AppLockProps = {
   children: ReactNode;
-
-  portal:
-    | "MEMBER"
-    | "MERCHANT";
-
+  portal: "MEMBER" | "MERCHANT";
   publicPaths?: string[];
-
   lockAfterMs?: number;
 };
 
@@ -53,134 +44,62 @@ type DeviceInformation = {
   browser: string;
 };
 
-const DEFAULT_LOCK_AFTER_MS =
-  20_000;
+const DEFAULT_LOCK_AFTER_MS = 20_000;
+const VISIBLE_CHECK_INTERVAL_MS = 1_000;
 
-function isPublicPath(
-  pathname: string,
-  publicPaths: string[]
-) {
+function isPublicPath(pathname: string, publicPaths: string[]) {
   return publicPaths.some(
-    (path) =>
-      pathname === path ||
-      pathname.startsWith(
-        `${path}/`
-      )
+    (path) => pathname === path || pathname.startsWith(`${path}/`)
   );
 }
 
-function detectDeviceInformation():
-  DeviceInformation {
-  if (
-    typeof navigator ===
-    "undefined"
-  ) {
+function getTimeoutMs(
+  settings: RewardHubSecuritySettings,
+  fallbackMs: number
+) {
+  if (settings.lockTimeout != null) {
+    return Math.max(0, settings.lockTimeout * 1000);
+  }
+
+  return Math.max(0, fallbackMs);
+}
+
+function detectDeviceInformation(): DeviceInformation {
+  if (typeof navigator === "undefined") {
     return {
-      deviceName:
-        "Current Device",
-      browser:
-        "Web Browser",
+      deviceName: "Current Device",
+      browser: "Web Browser",
     };
   }
 
-  const lowered =
-    navigator.userAgent.toLowerCase();
+  const userAgent = navigator.userAgent.toLowerCase();
+  let deviceName = "Computer";
+  let browser = "Web Browser";
 
-  let deviceName =
-    "Computer";
-
-  if (
-    /ipad|tablet|playbook|silk/.test(
-      lowered
-    )
-  ) {
-    deviceName =
-      /ipad/.test(
-        lowered
-      )
-        ? "iPad"
-        : "Tablet";
-  } else if (
-    /iphone|ipod/.test(
-      lowered
-    )
-  ) {
-    deviceName =
-      "iPhone";
-  } else if (
-    /android/.test(
-      lowered
-    )
-  ) {
-    deviceName =
-      "Android Phone";
-  } else if (
-    /macintosh|mac os x/.test(
-      lowered
-    )
-  ) {
-    deviceName =
-      "Mac";
-  } else if (
-    /windows/.test(
-      lowered
-    )
-  ) {
-    deviceName =
-      "Windows PC";
-  } else if (
-    /linux/.test(
-      lowered
-    )
-  ) {
-    deviceName =
-      "Linux Computer";
+  if (/ipad|tablet|playbook|silk/.test(userAgent)) {
+    deviceName = /ipad/.test(userAgent) ? "iPad" : "Tablet";
+  } else if (/iphone|ipod/.test(userAgent)) {
+    deviceName = "iPhone";
+  } else if (/android/.test(userAgent)) {
+    deviceName = "Android Phone";
+  } else if (/macintosh|mac os x/.test(userAgent)) {
+    deviceName = "Mac";
+  } else if (/windows/.test(userAgent)) {
+    deviceName = "Windows PC";
+  } else if (/linux/.test(userAgent)) {
+    deviceName = "Linux Computer";
   }
 
-  let browser =
-    "Web Browser";
-
-  if (
-    /edg\//.test(
-      lowered
-    )
-  ) {
-    browser =
-      "Microsoft Edge";
-  } else if (
-    /opr\//.test(
-      lowered
-    )
-  ) {
-    browser =
-      "Opera";
-  } else if (
-    /firefox\//.test(
-      lowered
-    )
-  ) {
-    browser =
-      "Firefox";
-  } else if (
-    /chrome\//.test(
-      lowered
-    ) &&
-    !/edg\//.test(
-      lowered
-    )
-  ) {
-    browser =
-      "Google Chrome";
-  } else if (
-    /safari\//.test(
-      lowered
-    ) &&
-    !/chrome\//.test(
-      lowered
-    )
-  ) {
-    browser =
-      "Safari";
+  if (/edg\//.test(userAgent)) {
+    browser = "Microsoft Edge";
+  } else if (/opr\//.test(userAgent)) {
+    browser = "Opera";
+  } else if (/firefox\//.test(userAgent)) {
+    browser = "Firefox";
+  } else if (/chrome\//.test(userAgent) && !/edg\//.test(userAgent)) {
+    browser = "Google Chrome";
+  } else if (/safari\//.test(userAgent) && !/chrome\//.test(userAgent)) {
+    browser = "Safari";
   }
 
   return {
@@ -193,393 +112,303 @@ export default function AppLock({
   children,
   portal,
   publicPaths = [],
-  lockAfterMs =
-    DEFAULT_LOCK_AFTER_MS,
+  lockAfterMs = DEFAULT_LOCK_AFTER_MS,
 }: AppLockProps) {
-  const pathname =
-    usePathname();
-
-  const {
-    language,
-  } =
-    useLanguage();
+  const pathname = usePathname();
+  const { language } = useLanguage();
 
   const currentLanguage =
-    language === "zh" ||
-    language === "ms"
-      ? language
-      : "en";
+    language === "zh" || language === "ms" ? language : "en";
 
-  const [
-    session,
-    setSession,
-  ] =
-    useState<RewardHubSession | null>(
-      null
+  const [session, setSession] = useState<RewardHubSession | null>(null);
+  const [securitySettings, setSecuritySettings] =
+    useState<RewardHubSecuritySettings | null>(null);
+  const [isLocked, setIsLocked] = useState(false);
+  const [isReady, setIsReady] = useState(false);
+  const [isUnlocking, setIsUnlocking] = useState(false);
+  const [unlockError, setUnlockError] = useState("");
+
+  const activeSessionRef = useRef<RewardHubSession | null>(null);
+  const backgroundTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null
+  );
+
+  const currentPath = pathname || "/";
+
+  const shouldBypassLock = useMemo(
+    () => isPublicPath(currentPath, publicPaths),
+    [currentPath, publicPaths]
+  );
+
+  const clearBackgroundTimer = useCallback(() => {
+    if (backgroundTimerRef.current) {
+      clearTimeout(backgroundTimerRef.current);
+      backgroundTimerRef.current = null;
+    }
+  }, []);
+
+  const unlockAndReset = useCallback(() => {
+    clearBackgroundTimer();
+    unlockRewardHub();
+    setIsLocked(false);
+    setUnlockError("");
+  }, [clearBackgroundTimer]);
+
+  const readLatestSettings = useCallback(() => {
+    const activeSession = activeSessionRef.current;
+
+    if (!activeSession) {
+      return null;
+    }
+
+    return getSecuritySettings(portal, activeSession.userId);
+  }, [portal]);
+
+  const checkLockStatus = useCallback(() => {
+    const activeSession = activeSessionRef.current;
+
+    if (!activeSession) {
+      return false;
+    }
+
+    const latestSettings = getSecuritySettings(
+      portal,
+      activeSession.userId
     );
 
-  const [
-    securitySettings,
-    setSecuritySettings,
-  ] =
-    useState<RewardHubSecuritySettings | null>(
-      null
-    );
+    setSecuritySettings(latestSettings);
 
-  const [
-    isLocked,
-    setIsLocked,
-  ] =
-    useState(false);
+    if (!latestSettings.appLockEnabled) {
+      unlockAndReset();
+      return false;
+    }
 
-  const [
-    isReady,
-    setIsReady,
-  ] =
-    useState(false);
+    const lockState = getRewardHubLockState();
 
-  const [
-    isUnlocking,
-    setIsUnlocking,
-  ] =
-    useState(false);
+    if (lockState.locked) {
+      clearBackgroundTimer();
+      setIsLocked(true);
+      return true;
+    }
 
-  const [
-    unlockError,
-    setUnlockError,
-  ] =
-    useState("");
+    if (lockState.backgroundAt === null) {
+      setIsLocked(false);
+      return false;
+    }
 
-  const currentPath =
-    pathname || "/";
+    const timeoutMs = getTimeoutMs(latestSettings, lockAfterMs);
+    const elapsedMs = Date.now() - lockState.backgroundAt;
 
-  const shouldBypassLock =
-    useMemo(
-      () =>
-        isPublicPath(
-          currentPath,
-          publicPaths
-        ),
-      [
-        currentPath,
-        publicPaths,
-      ]
-    );
+    if (elapsedMs >= timeoutMs) {
+      clearBackgroundTimer();
+      lockRewardHub();
+      setIsLocked(true);
+      return true;
+    }
+
+    setIsLocked(false);
+    return false;
+  }, [clearBackgroundTimer, lockAfterMs, portal, unlockAndReset]);
+
+  const markBackgroundAndScheduleLock = useCallback(() => {
+    clearBackgroundTimer();
+
+    const latestSettings = readLatestSettings();
+
+    if (!latestSettings?.appLockEnabled) {
+      return;
+    }
+
+    markRewardHubBackgrounded();
+
+    const timeoutMs = getTimeoutMs(latestSettings, lockAfterMs);
+
+    if (timeoutMs <= 0) {
+      lockRewardHub();
+      setIsLocked(true);
+      return;
+    }
+
+    backgroundTimerRef.current = setTimeout(() => {
+      lockRewardHub();
+      setIsLocked(true);
+    }, timeoutMs);
+  }, [clearBackgroundTimer, lockAfterMs, readLatestSettings]);
 
   useEffect(() => {
-    if (
-      shouldBypassLock
-    ) {
-      setSession(
-        null
-      );
+    setIsReady(false);
 
-      setSecuritySettings(
-        null
-      );
-
-      setIsLocked(
-        false
-      );
-
-      setIsReady(
-        true
-      );
-
+    if (shouldBypassLock) {
+      activeSessionRef.current = null;
+      setSession(null);
+      setSecuritySettings(null);
+      setIsLocked(false);
+      setUnlockError("");
+      clearBackgroundTimer();
+      setIsReady(true);
       return;
     }
 
-    const currentSession =
-      getRewardHubSession();
+    const currentSession = getRewardHubSession();
 
-    if (
-      !currentSession ||
-      currentSession.userType !==
-        portal
-    ) {
-      setSession(
-        null
-      );
-
-      setSecuritySettings(
-        null
-      );
-
-      setIsLocked(
-        false
-      );
-
-      setIsReady(
-        true
-      );
-
+    if (!currentSession || currentSession.userType !== portal) {
+      activeSessionRef.current = null;
+      setSession(null);
+      setSecuritySettings(null);
+      setIsLocked(false);
+      setUnlockError("");
+      clearBackgroundTimer();
+      setIsReady(true);
       return;
     }
 
-    const activeSession =
-      currentSession;
+    activeSessionRef.current = currentSession;
+    setSession(currentSession);
 
-    const loadedSettings =
-      getSecuritySettings(
-        portal,
-        activeSession.userId
-      );
-
-    setSession(
-      activeSession
+    const loadedSettings = getSecuritySettings(
+      portal,
+      currentSession.userId
     );
 
-    setSecuritySettings(
-      loadedSettings
-    );
+    setSecuritySettings(loadedSettings);
 
-    if (
-      !loadedSettings.appLockEnabled
-    ) {
-      unlockRewardHub();
-
-      setIsLocked(
-        false
-      );
-
-      setIsReady(
-        true
-      );
-
+    if (!loadedSettings.appLockEnabled) {
+      unlockAndReset();
+      setIsReady(true);
       return;
     }
 
-    const effectiveTimeout =
-      loadedSettings.lockTimeout != null
-        ? loadedSettings.lockTimeout *
-          1000
-        : lockAfterMs;
+    checkLockStatus();
+    setIsReady(true);
+  }, [
+    checkLockStatus,
+    clearBackgroundTimer,
+    portal,
+    shouldBypassLock,
+    unlockAndReset,
+  ]);
 
-    const lockState =
-      getRewardHubLockState();
-
-    const shouldLockFromBackground =
-      Boolean(
-        lockState.backgroundAt !==
-          null &&
-        Date.now() -
-          lockState.backgroundAt >=
-          effectiveTimeout
-      );
-
-    if (
-      shouldLockFromBackground &&
-      !lockState.locked
-    ) {
-      lockRewardHub();
-    }
-
-    setIsLocked(
-      lockState.locked ||
-      shouldLockFromBackground
-    );
-
-    setIsReady(
-      true
-    );
-
-    function checkLockStatus() {
-      const latestSettings =
-        getSecuritySettings(
-          portal,
-          activeSession.userId
-        );
-
-      setSecuritySettings(
-        latestSettings
-      );
-
-      if (
-        !latestSettings.appLockEnabled
-      ) {
-        unlockRewardHub();
-
-        setIsLocked(
-          false
-        );
-
-        return;
-      }
-
-      const current =
-        getRewardHubLockState();
-
-      if (
-        current.locked
-      ) {
-        setIsLocked(
-          true
-        );
-
-        return;
-      }
-
-      const currentTimeout =
-        latestSettings.lockTimeout != null
-          ? latestSettings.lockTimeout *
-            1000
-          : lockAfterMs;
-
-      if (
-        current.backgroundAt !==
-          null &&
-        Date.now() -
-          current.backgroundAt >=
-          currentTimeout
-      ) {
-        lockRewardHub();
-
-        setIsLocked(
-          true
-        );
-      }
+  useEffect(() => {
+    if (shouldBypassLock || !activeSessionRef.current) {
+      return;
     }
 
     function handleVisibilityChange() {
-      if (
-        document.visibilityState ===
-        "hidden"
-      ) {
-        const latestSettings =
-          getSecuritySettings(
-            portal,
-            activeSession.userId
-          );
-
-        if (
-          latestSettings.appLockEnabled
-        ) {
-          markRewardHubBackgrounded();
-        }
-
+      if (document.visibilityState === "hidden") {
+        markBackgroundAndScheduleLock();
         return;
       }
 
+      clearBackgroundTimer();
       checkLockStatus();
     }
 
     function handlePageHide() {
-      const latestSettings =
-        getSecuritySettings(
-          portal,
-          activeSession.userId
-        );
-
-      if (
-        latestSettings.appLockEnabled
-      ) {
-        markRewardHubBackgrounded();
-      }
+      markBackgroundAndScheduleLock();
     }
 
-    function handleFocus() {
+    function handlePageShow() {
+      clearBackgroundTimer();
       checkLockStatus();
     }
 
-    document.addEventListener(
-      "visibilitychange",
-      handleVisibilityChange
-    );
+    function handleBlur() {
+      /* Fallback for iOS Safari/PWA when visibilitychange is skipped. */
+      markBackgroundAndScheduleLock();
+    }
 
-    window.addEventListener(
-      "pagehide",
-      handlePageHide
-    );
+    function handleFocus() {
+      clearBackgroundTimer();
+      checkLockStatus();
+    }
 
-    window.addEventListener(
-      "focus",
-      handleFocus
-    );
+    function handleFreeze() {
+      markBackgroundAndScheduleLock();
+    }
+
+    function handleResume() {
+      clearBackgroundTimer();
+      checkLockStatus();
+    }
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    window.addEventListener("pagehide", handlePageHide);
+    window.addEventListener("pageshow", handlePageShow);
+    window.addEventListener("blur", handleBlur);
+    window.addEventListener("focus", handleFocus);
+    document.addEventListener("freeze", handleFreeze);
+    document.addEventListener("resume", handleResume);
+
+    const intervalId = window.setInterval(() => {
+      if (document.visibilityState === "visible") {
+        checkLockStatus();
+      }
+    }, VISIBLE_CHECK_INTERVAL_MS);
 
     return () => {
+      clearBackgroundTimer();
       document.removeEventListener(
         "visibilitychange",
         handleVisibilityChange
       );
-
-      window.removeEventListener(
-        "pagehide",
-        handlePageHide
-      );
-
-      window.removeEventListener(
-        "focus",
-        handleFocus
-      );
+      window.removeEventListener("pagehide", handlePageHide);
+      window.removeEventListener("pageshow", handlePageShow);
+      window.removeEventListener("blur", handleBlur);
+      window.removeEventListener("focus", handleFocus);
+      document.removeEventListener("freeze", handleFreeze);
+      document.removeEventListener("resume", handleResume);
+      window.clearInterval(intervalId);
     };
   }, [
-    lockAfterMs,
-    portal,
+    checkLockStatus,
+    clearBackgroundTimer,
+    markBackgroundAndScheduleLock,
     shouldBypassLock,
   ]);
 
   useEffect(() => {
-    function handleSecuritySettingsChange(
-      event: Event
-    ) {
-      const customEvent =
-        event as CustomEvent<{
-          portal?: string;
-          userId?: string;
-          settings?: RewardHubSecuritySettings;
-        }>;
+    function handleSecuritySettingsChange(event: Event) {
+      const customEvent = event as CustomEvent<{
+        portal?: string;
+        userId?: string;
+        settings?: RewardHubSecuritySettings;
+      }>;
 
-      const currentSession =
-        getRewardHubSession();
+      const currentSession = getRewardHubSession();
 
-      if (
-        !currentSession ||
-        currentSession.userType !==
-          portal
-      ) {
+      if (!currentSession || currentSession.userType !== portal) {
         return;
       }
 
       if (
         customEvent.detail?.portal &&
-        customEvent.detail.portal !==
-          portal
+        customEvent.detail.portal !== portal
       ) {
         return;
       }
 
       if (
         customEvent.detail?.userId &&
-        customEvent.detail.userId !==
-          currentSession.userId
+        customEvent.detail.userId !== currentSession.userId
       ) {
         return;
       }
 
+      activeSessionRef.current = currentSession;
+      setSession(currentSession);
+
       const nextSettings =
         customEvent.detail?.settings ||
-        getSecuritySettings(
-          portal,
-          currentSession.userId
-        );
+        getSecuritySettings(portal, currentSession.userId);
 
-      setSecuritySettings(
-        nextSettings
-      );
+      setSecuritySettings(nextSettings);
 
-      if (
-        !nextSettings.appLockEnabled
-      ) {
-        unlockRewardHub();
-
-        setIsLocked(
-          false
-        );
-
-        setUnlockError(
-          ""
-        );
+      if (!nextSettings.appLockEnabled) {
+        unlockAndReset();
+        return;
       }
+
+      checkLockStatus();
     }
 
     window.addEventListener(
@@ -593,200 +422,112 @@ export default function AppLock({
         handleSecuritySettingsChange
       );
     };
-  }, [
-    portal,
-  ]);
+  }, [checkLockStatus, portal, unlockAndReset]);
 
   const copy = {
     en: {
-      memberTitle:
-        "RewardHub Locked",
-
-      merchantTitle:
-        "RewardHub Business Locked",
-
-      message:
-        "Verify your identity to continue using your account.",
-
-      biometricButton:
-        "Unlock with biometrics",
-
-      unlocking:
-        "Verifying...",
-
-      normalButton:
-        "Unlock",
-
+      memberTitle: "RewardHub Locked",
+      merchantTitle: "RewardHub Business Locked",
+      message: "Verify your identity to continue using your account.",
+      biometricButton: "Unlock with biometrics",
+      unlocking: "Verifying...",
+      normalButton: "Unlock",
       biometricNote:
         "Use Face ID, Touch ID, fingerprint or Windows Hello.",
-
       normalNote:
         "Biometric unlock has not been enabled on this device.",
-
-      failed:
-        "Biometric verification failed. Please try again.",
+      failed: "Biometric verification failed. Please try again.",
     },
-
     zh: {
-      memberTitle:
-        "RewardHub 已锁定",
-
-      merchantTitle:
-        "RewardHub Business 已锁定",
-
-      message:
-        "请验证您的身份，才能继续使用账户。",
-
-      biometricButton:
-        "使用生物识别解锁",
-
-      unlocking:
-        "验证中...",
-
-      normalButton:
-        "解锁",
-
-      biometricNote:
-        "使用 Face ID、Touch ID、指纹或 Windows Hello。",
-
-      normalNote:
-        "此设备尚未启用生物识别解锁。",
-
-      failed:
-        "生物识别验证失败，请重试。",
+      memberTitle: "RewardHub 已锁定",
+      merchantTitle: "RewardHub Business 已锁定",
+      message: "请验证您的身份，才能继续使用账户。",
+      biometricButton: "使用生物识别解锁",
+      unlocking: "验证中...",
+      normalButton: "解锁",
+      biometricNote: "使用 Face ID、Touch ID、指纹或 Windows Hello。",
+      normalNote: "此设备尚未启用生物识别解锁。",
+      failed: "生物识别验证失败，请重试。",
     },
-
     ms: {
-      memberTitle:
-        "RewardHub Dikunci",
-
-      merchantTitle:
-        "RewardHub Business Dikunci",
-
-      message:
-        "Sahkan identiti anda untuk terus menggunakan akaun.",
-
-      biometricButton:
-        "Buka dengan biometrik",
-
-      unlocking:
-        "Mengesahkan...",
-
-      normalButton:
-        "Buka Kunci",
-
+      memberTitle: "RewardHub Dikunci",
+      merchantTitle: "RewardHub Business Dikunci",
+      message: "Sahkan identiti anda untuk terus menggunakan akaun.",
+      biometricButton: "Buka dengan biometrik",
+      unlocking: "Mengesahkan...",
+      normalButton: "Buka Kunci",
       biometricNote:
         "Gunakan Face ID, Touch ID, cap jari atau Windows Hello.",
-
       normalNote:
         "Buka kunci biometrik belum diaktifkan pada peranti ini.",
-
-      failed:
-        "Pengesahan biometrik gagal. Sila cuba lagi.",
+      failed: "Pengesahan biometrik gagal. Sila cuba lagi.",
     },
   } as const;
 
-  const text =
-    copy[
-      currentLanguage
-    ];
+  const text = copy[currentLanguage];
 
-    async function handleUnlock() {
+  async function handleUnlock() {
+    if (isUnlocking) {
+      return;
+    }
 
-  if (isUnlocking) {
-    return;
-  }
+    setUnlockError("");
 
-  setUnlockError("");
+    if (!securitySettings?.biometricEnabled) {
+      unlockAndReset();
+      return;
+    }
 
-  if (
-    !securitySettings?.biometricEnabled
-  ) {
-    unlockRewardHub();
-    setIsLocked(false);
-    return;
-  }
+    if (!session) {
+      setUnlockError(text.failed);
+      return;
+    }
 
-  if (!session) {
-    setUnlockError(text.failed);
-    return;
-  }
+    setIsUnlocking(true);
 
-  setIsUnlocking(true);
+    try {
+      const device = detectDeviceInformation();
 
-  try {
-    const device =
-      detectDeviceInformation();
-
-    const result =
-      await authenticateRewardHubBiometric({
+      const result = await authenticateRewardHubBiometric({
         userType: portal,
         userId: session.userId,
         deviceId: session.deviceId,
-        deviceName:
-          device.deviceName,
-        browser:
-          device.browser,
-        language:
-          currentLanguage,
+        deviceName: device.deviceName,
+        browser: device.browser,
+        language: currentLanguage,
       });
 
-    if (
-      !result.success ||
-      !result.verified ||
-      !result.authenticated
-    ) {
-      throw new Error(
-        text.failed
+      if (!result.success || !result.verified || !result.authenticated) {
+        throw new Error(text.failed);
+      }
+
+      unlockAndReset();
+    } catch (error) {
+      console.error("Biometric unlock error:", error);
+
+      setUnlockError(
+        error instanceof Error && error.message
+          ? error.message
+          : text.failed
       );
+    } finally {
+      setIsUnlocking(false);
     }
-
-    unlockRewardHub();
-    setUnlockError("");
-    setIsUnlocking(false);
-    setIsLocked(false);
-  } catch (error) {
-    console.error(
-      "Biometric unlock error:",
-      error
-    );
-
-    setUnlockError(
-      error instanceof Error &&
-      error.message
-        ? error.message
-        : text.failed
-    );
-  } finally {
-    setIsUnlocking(
-      false
-    );
   }
-}
 
-  if (
-    !isReady
-  ) {
+  if (!isReady) {
     return null;
   }
 
   if (
     shouldBypassLock ||
     !isLocked ||
-    securitySettings?.appLockEnabled ===
-      false
+    securitySettings?.appLockEnabled === false
   ) {
-    return (
-      <>
-        {children}
-      </>
-    );
+    return <>{children}</>;
   }
 
-  const biometricEnabled =
-    Boolean(
-      securitySettings?.biometricEnabled
-    );
+  const biometricEnabled = Boolean(securitySettings?.biometricEnabled);
 
   return (
     <main className="fixed inset-0 z-[9999] flex min-h-screen items-center justify-center overflow-y-auto bg-slate-950 px-4 py-8">
@@ -800,10 +541,7 @@ export default function AppLock({
         </div>
 
         <h1 className="mt-5 text-2xl font-black text-slate-950">
-          {portal ===
-          "MERCHANT"
-            ? text.merchantTitle
-            : text.memberTitle}
+          {portal === "MERCHANT" ? text.merchantTitle : text.memberTitle}
         </h1>
 
         <p className="mt-3 text-sm font-semibold leading-6 text-slate-500">
@@ -818,18 +556,12 @@ export default function AppLock({
 
         <button
           type="button"
-          disabled={
-            isUnlocking
-          }
-          onClick={
-            handleUnlock
-          }
+          disabled={isUnlocking}
+          onClick={handleUnlock}
           className={[
             "mt-6 flex w-full items-center justify-center gap-2 rounded-2xl bg-slate-950 px-4 py-4 text-sm font-black text-white shadow-xl transition",
             "hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-slate-300",
-            isUnlocking
-              ? "cursor-wait opacity-70"
-              : "",
+            isUnlocking ? "cursor-wait opacity-70" : "",
           ].join(" ")}
         >
           {isUnlocking ? (
@@ -848,9 +580,7 @@ export default function AppLock({
         </button>
 
         <p className="mt-4 text-xs font-semibold leading-5 text-slate-400">
-          {biometricEnabled
-            ? text.biometricNote
-            : text.normalNote}
+          {biometricEnabled ? text.biometricNote : text.normalNote}
         </p>
       </div>
     </main>
