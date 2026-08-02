@@ -3,29 +3,63 @@ import { redirect } from "next/navigation";
 const OFFICIAL_WEBSITE =
   "https://rewardhub-official.vercel.app";
 
+type SearchParamValue =
+  | string
+  | string[]
+  | undefined;
+
 type PageProps = {
-  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+  searchParams?: Promise<
+    Record<string, SearchParamValue>
+  >;
 };
 
-export default async function RedirectPage({
+export default async function MemberRegisterRedirectPage({
   searchParams,
 }: PageProps) {
-  const params = await searchParams;
-  const query = new URLSearchParams();
+  const params =
+    (await searchParams) ?? {};
 
-  if (params) {
-    Object.entries(params).forEach(([key, value]) => {
-      if (Array.isArray(value)) {
-        value.forEach((item) => query.append(key, item));
-      } else if (typeof value === "string") {
-        query.set(key, value);
+  const query =
+    new URLSearchParams();
+
+  Object.entries(params).forEach(
+    ([key, value]) => {
+      if (
+        typeof value === "string"
+      ) {
+        query.set(
+          key,
+          value
+        );
+
+        return;
       }
-    });
-  }
 
-  const suffix = query.toString()
-    ? `?${query.toString()}`
-    : "";
+      if (
+        Array.isArray(value)
+      ) {
+        value.forEach(
+          (item) => {
+            query.append(
+              key,
+              item
+            );
+          }
+        );
+      }
+    }
+  );
 
-  redirect(`${OFFICIAL_WEBSITE}/register${suffix}`);
+  const queryString =
+    query.toString();
+
+  const redirectUrl =
+    queryString
+      ? `${OFFICIAL_WEBSITE}/register?${queryString}`
+      : `${OFFICIAL_WEBSITE}/register`;
+
+  redirect(
+    redirectUrl
+  );
 }
