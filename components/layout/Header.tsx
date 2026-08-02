@@ -244,29 +244,17 @@ export default function Header() {
     <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/95 text-slate-950 backdrop-blur-xl">
       <div className="mx-auto flex min-h-[72px] w-full max-w-[1440px] items-center justify-between gap-4 px-4 py-2 sm:px-6 md:px-8 xl:px-10 2xl:px-12">
         <Link
-          href={homeHref}
-          className="flex min-w-0 shrink-0 items-center gap-3 no-underline"
-          aria-label={brandLabel}
-        >
-          <span className="flex h-11 items-center rounded-xl bg-slate-950 p-2">
-            <img
-  src="/logo/rewardhub-logo.png"
-  alt="RewardHub"
-  className="h-12 w-auto object-contain select-none"
-  draggable={false}
-/>
-          </span>
-
-          <span className="hidden min-w-0 sm:block">
-            <span className="block truncate text-sm font-black text-slate-950">
-              {brandLabel}
-            </span>
-
-            <span className="block text-[10px] font-bold uppercase tracking-[0.16em] text-slate-500">
-              {isBusiness ? "Merchant Portal" : "Member Portal"}
-            </span>
-          </span>
-        </Link>
+  href={homeHref}
+  className="flex min-w-0 shrink-0 items-center no-underline"
+  aria-label={brandLabel}
+>
+  <img
+    src="/logo/rewardhub-logo.png"
+    alt="RewardHub"
+    draggable={false}
+    className="h-10 w-auto max-w-[180px] object-contain sm:h-11"
+  />
+</Link>
 
         {showPortalControls && (
           <nav className="hidden min-w-0 flex-1 items-center justify-center gap-1 xl:flex">
