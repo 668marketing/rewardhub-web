@@ -56,17 +56,35 @@ export default function Header() {
     APP_VARIANT ===
     "business";
 
+  const AUTH_PATHS = [
+    "/login",
+    "/member/login",
+    "/merchant/login",
+    "/forgot-password",
+    "/member/forgot-password",
+    "/merchant/forgot-password",
+  ];
+
   const isAuthPage =
-    pathname ===
-      "/member/login" ||
-    pathname ===
-      "/merchant/login" ||
-    pathname.includes(
-      "/forgot-password"
+    AUTH_PATHS.includes(
+      pathname
     ) ||
     pathname.includes(
       "/reset-password"
     );
+
+  const isPortalPage =
+    isBusiness
+      ? pathname.startsWith(
+          "/merchant/"
+        )
+      : pathname.startsWith(
+          "/member/"
+        );
+
+  const showPortalControls =
+    isPortalPage &&
+    !isAuthPage;
 
   const pageText = {
     en: {
@@ -341,14 +359,6 @@ export default function Header() {
                 label:
                   copy.referral,
               },
-
-              {
-                href:
-                  "/member/profile",
-
-                label:
-                  copy.profile,
-              },
             ],
       [
         copy,
@@ -356,10 +366,17 @@ export default function Header() {
       ]
     );
 
-  const homeHref =
+  const loginHref =
     isBusiness
-      ? "/merchant/dashboard"
-      : "/member/dashboard";
+      ? "/merchant/login"
+      : "/login";
+
+  const homeHref =
+    showPortalControls
+      ? isBusiness
+        ? "/merchant/dashboard"
+        : "/member/dashboard"
+      : loginHref;
 
   const profileHref =
     isBusiness
@@ -384,6 +401,16 @@ export default function Header() {
   useEffect(() => {
     setMenuOpen(false);
   }, [pathname]);
+
+  useEffect(() => {
+    if (
+      !showPortalControls
+    ) {
+      setMenuOpen(false);
+    }
+  }, [
+    showPortalControls,
+  ]);
 
   useEffect(() => {
     function handleResize() {
@@ -483,7 +510,7 @@ export default function Header() {
           </span>
         </Link>
 
-        {!isAuthPage && (
+        {showPortalControls && (
           <nav className="hidden min-w-0 flex-1 items-center justify-center gap-1 xl:flex">
             {navItems.map(
               (
@@ -516,7 +543,7 @@ export default function Header() {
         )}
 
         <div className="flex shrink-0 items-center gap-2">
-          {!isAuthPage && (
+          {showPortalControls && (
             <>
               <IconLink
                 href={
@@ -576,7 +603,7 @@ export default function Header() {
             }
           />
 
-          {!isAuthPage && (
+          {showPortalControls && (
             <button
               type="button"
               onClick={() =>
@@ -614,7 +641,7 @@ export default function Header() {
       </div>
 
       {menuOpen &&
-        !isAuthPage && (
+        showPortalControls && (
           <nav
             id="portal-mobile-menu"
             className={[
