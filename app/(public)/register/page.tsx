@@ -11,6 +11,7 @@ import Header from "@/components/layout/Header";
 import LanguageSwitcher from "@/components/i18n/LanguageSwitcher";
 import { useLanguage } from "@/hooks/useLanguage";
 import { memberRegister } from "@/lib/api";
+import PWAInstallGuide from "@/components/pwa/PWAInstallGuide";
 
 function RegisterContent() {
   const {
@@ -387,26 +388,34 @@ function RegisterContent() {
                 </button>
               </form>
             ) : (
-              <div className="mt-8 rounded-3xl bg-emerald-50 p-6 text-center">
-                <p className="text-sm font-bold text-emerald-700">
-                  {copy.accountCreated}
-                </p>
+              <div className="mt-8">
+                <div className="rounded-[1.75rem] bg-emerald-50 p-6 text-center">
+                  <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-600 text-2xl text-white">
+                    ✓
+                  </div>
 
-                <h2 className="mt-3 text-3xl font-black text-emerald-900">
-                  {result.memberId}
-                </h2>
+                  <p className="mt-4 text-sm font-bold text-emerald-700">
+                    {copy.accountCreated}
+                  </p>
 
-                <p className="mt-2 text-sm font-semibold text-emerald-700">
-                  {copy.tier}:{" "}
-                  {result.tier || copy.silver}
-                </p>
+                  <h2 className="mt-3 text-3xl font-black text-emerald-900">
+                    {result.memberId}
+                  </h2>
 
-                <a
-                  href="/login"
-                  className="mt-6 block rounded-2xl bg-slate-950 py-4 text-sm font-black text-white no-underline"
-                >
-                  {copy.goToLogin}
-                </a>
+                  <p className="mt-2 text-sm font-semibold text-emerald-700">
+                    {copy.tier}:{" "}
+                    {result.tier || copy.silver}
+                  </p>
+                </div>
+
+                <PWAInstallGuide
+                  language={language}
+                  variant="member"
+                  loginHref="/login"
+                  accountId={result.memberId}
+                  statusLabel={copy.tier}
+                  statusValue={result.tier || copy.silver}
+                />
               </div>
             )}
           </div>

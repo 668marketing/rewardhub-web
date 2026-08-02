@@ -5,6 +5,7 @@ import Header from "@/components/layout/Header";
 import LanguageSwitcher from "@/components/i18n/LanguageSwitcher";
 import { useLanguage } from "@/hooks/useLanguage";
 import { merchantRegister } from "@/lib/api";
+import PWAInstallGuide from "@/components/pwa/PWAInstallGuide";
 
 const subCategoryOptions: Record<string, string[]> = {
   "Food & Beverage": [
@@ -708,25 +709,34 @@ referredByMerchant,
                 </button>
               </form>
             ) : (
-              <div className="mt-8 rounded-3xl bg-emerald-50 p-6 text-center">
-                <p className="text-sm font-bold text-emerald-700">
-                  {copy.accountCreated}
-                </p>
+              <div className="mt-8">
+                <div className="rounded-[1.75rem] bg-emerald-50 p-6 text-center">
+                  <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-600 text-2xl text-white">
+                    ✓
+                  </div>
 
-                <h2 className="mt-3 text-3xl font-black text-emerald-900">
-                  {result.merchantId}
-                </h2>
+                  <p className="mt-4 text-sm font-bold text-emerald-700">
+                    {copy.accountCreated}
+                  </p>
 
-                <p className="mt-2 text-sm font-semibold text-emerald-700">
-                  {copy.status}: {result.status || copy.active}
-                </p>
+                  <h2 className="mt-3 text-3xl font-black text-emerald-900">
+                    {result.merchantId}
+                  </h2>
 
-                <a
-                  href="/merchant/login"
-                  className="mt-6 block rounded-2xl bg-slate-950 py-4 text-sm font-black text-white"
-                >
-                  {copy.goToLogin}
-                </a>
+                  <p className="mt-2 text-sm font-semibold text-emerald-700">
+                    {copy.status}:{" "}
+                    {result.status || copy.active}
+                  </p>
+                </div>
+
+                <PWAInstallGuide
+                  language={language}
+                  variant="business"
+                  loginHref="/merchant/login"
+                  accountId={result.merchantId}
+                  statusLabel={copy.status}
+                  statusValue={result.status || copy.active}
+                />
               </div>
             )}
           </div>
