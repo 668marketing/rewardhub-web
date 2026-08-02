@@ -196,11 +196,11 @@ export default function MemberHeader() {
   aria-label={brandLabel}
 >
   <img
-    src="/logo/rewardhub-logo.png?v=4"
-    alt="RewardHub"
-    draggable={false}
-    className="h-10 w-auto max-w-[180px] object-contain sm:h-11"
-  />
+  src="/logo/rewardhub-logo.png?v=4"
+  alt="RewardHub"
+  draggable={false}
+  className="h-auto w-[140px] object-contain sm:w-[155px] md:w-[170px]"
+/>
 </Link>
 
         {showPortalControls && (

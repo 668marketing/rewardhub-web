@@ -211,7 +211,7 @@ export default function MerchantHeader() {
     src="/logo/rewardhub-logo.png?v=4"
     alt="RewardHub Business"
     draggable={false}
-    className="h-10 w-auto max-w-[180px] object-contain sm:h-11"
+    className="h-auto w-[140px] object-contain sm:w-[155px] md:w-[170px]"
   />
 </Link>
 
