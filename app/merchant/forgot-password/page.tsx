@@ -7,7 +7,6 @@ import {
   useState,
 } from "react";
 import Link from "next/link";
-import Header from "@/components/layout/Header";
 import {
   requestMerchantPasswordReset,
   resetMerchantPassword,
@@ -265,7 +264,6 @@ function MerchantForgotPasswordContent() {
 
   return (
     <>
-      <Header />
 
       <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,#fef3c7,transparent_35%),#f8fafc] px-4 py-8 sm:px-6 sm:py-12">
         <section className="mx-auto flex min-h-[calc(100vh-120px)] max-w-md items-center">
