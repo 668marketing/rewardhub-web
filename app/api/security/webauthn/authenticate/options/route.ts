@@ -287,9 +287,39 @@ function getErrorMessage(
   );
 }
 
+/*
+ * SimpleWebAuthn treats a custom string challenge as UTF-8
+ * bytes and returns its base64url representation in
+ * options.challenge. We precompute that value so Apps Script
+ * can store the exact challenge before options are returned.
+ */
+function createChallengePair() {
+  const source =
+    [
+      crypto.randomUUID(),
+      crypto.randomUUID(),
+    ].join(":");
+
+  const encoded =
+    Buffer.from(
+      source,
+      "utf8"
+    ).toString(
+      "base64url"
+    );
+
+  return {
+    source,
+    encoded,
+  };
+}
+
 export async function POST(
   request: Request
 ) {
+  const startedAt =
+    Date.now();
+
   try {
     const body =
       (
@@ -318,6 +348,7 @@ export async function POST(
         {
           success:
             false,
+
           message:
             "Invalid user type.",
         },
@@ -335,6 +366,7 @@ export async function POST(
         {
           success:
             false,
+
           message:
             "Missing user ID.",
         },
@@ -352,6 +384,7 @@ export async function POST(
         {
           success:
             false,
+
           message:
             "Missing device ID.",
         },
@@ -365,27 +398,83 @@ export async function POST(
     const config =
       getWebAuthnConfig();
 
-      console.log("WebAuthn configuration", {
-  requestUrl: request.url,
-  rpName: config.rpName,
-  rpId: config.rpId,
-  origin: config.origin,
-});
+    const challengeId =
+      crypto.randomUUID();
 
-    const devicesResult =
+    const challengePair =
+      createChallengePair();
+
+    const createdAt =
+      new Date();
+
+    const expiresAt =
+      new Date(
+        createdAt.getTime() +
+          config
+            .challengeTtlSeconds *
+            1000
+      );
+
+    /*
+     * One Apps Script request now performs both operations:
+     * 1. Read registered credentials.
+     * 2. Store the authentication challenge.
+     */
+    const preparationResult =
       await rewardHubBackend(
-        "getRegisteredDevices",
+        "prepareWebAuthnAuthentication",
         {
+          challengeId,
+
           userType,
+
           userId,
-          currentDeviceId:
-            deviceId,
+
+          deviceId,
+
+          purpose:
+            "AUTHENTICATION",
+
+          challenge:
+            challengePair.encoded,
+
+          rpId:
+            config.rpId,
+
+          origin:
+            config.origin,
+
+          expiresAt:
+            expiresAt.toISOString(),
+
+          browser:
+            clean(
+              body.browser
+            ),
+
+          deviceName:
+            clean(
+              body.deviceName
+            ),
+
+          status:
+            "PENDING",
+
+          createdAt:
+            createdAt.toISOString(),
+
+          updatedAt:
+            createdAt.toISOString(),
+        },
+        {
+          timeoutMs:
+            20_000,
         }
       );
 
     const registeredDevices =
       extractDevices(
-        devicesResult
+        preparationResult
       );
 
     const activeDevices =
@@ -432,6 +521,7 @@ export async function POST(
         {
           success:
             false,
+
           code:
             "NO_REGISTERED_CREDENTIAL",
 
@@ -479,6 +569,9 @@ export async function POST(
         rpID:
           config.rpId,
 
+        challenge:
+          challengePair.source,
+
         timeout:
           60_000,
 
@@ -488,66 +581,35 @@ export async function POST(
           "required",
       });
 
-    const challengeId =
-      crypto.randomUUID();
-
-    const createdAt =
-      new Date();
-
-    const expiresAt =
-      new Date(
-        createdAt.getTime() +
-          config
-            .challengeTtlSeconds *
-            1000
+    /*
+     * Fail safely if a future SimpleWebAuthn version changes
+     * custom-challenge encoding behaviour.
+     */
+    if (
+      options.challenge !==
+      challengePair.encoded
+    ) {
+      throw new Error(
+        "Generated WebAuthn challenge does not match the stored challenge."
       );
+    }
 
-    await rewardHubBackend(
-      "beginWebAuthnAuthentication",
-      {
-        challengeId,
+    const elapsedMs =
+      Date.now() -
+      startedAt;
 
-        userType,
-
-        userId,
-
-        deviceId,
-
-        purpose:
-          "AUTHENTICATION",
-
-        challenge:
-          options.challenge,
-
-        rpId:
-          config.rpId,
-
-        origin:
-          config.origin,
-
-        expiresAt:
-          expiresAt.toISOString(),
-
-        browser:
-          clean(
-            body.browser
-          ),
-
-        deviceName:
-          clean(
-            body.deviceName
-          ),
-
-        status:
-          "PENDING",
-
-        createdAt:
-          createdAt.toISOString(),
-
-        updatedAt:
-          createdAt.toISOString(),
-      }
-    );
+    if (
+      elapsedMs >=
+      5_000
+    ) {
+      console.warn(
+        "[WebAuthn] Slow authentication options request",
+        {
+          elapsedMs,
+          userType,
+        }
+      );
+    }
 
     return NextResponse.json(
       {
@@ -565,6 +627,9 @@ export async function POST(
         headers: {
           "Cache-Control":
             "no-store, max-age=0",
+
+          "Server-Timing":
+            `webauthn-options;dur=${elapsedMs}`,
         },
       }
     );
@@ -573,7 +638,16 @@ export async function POST(
   ) {
     console.error(
       "WebAuthn authentication options error:",
-      error
+      {
+        elapsedMs:
+          Date.now() -
+          startedAt,
+
+        message:
+          getErrorMessage(
+            error
+          ),
+      }
     );
 
     return NextResponse.json(
