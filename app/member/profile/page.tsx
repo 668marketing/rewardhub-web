@@ -1127,18 +1127,12 @@ export default function ProfilePage() {
             />
           </div>
           <section className="mt-6 rounded-[2rem] bg-white p-5 shadow-sm sm:p-7">
-            <h2 className="text-xl font-black text-slate-950 sm:text-2xl">
-              {ui.changePassword}
-            </h2>
-
-            <div className="mt-6">
-              <ActionCard
-                title={ui.changePassword}
-                subtitle={ui.changePasswordDescription}
-                href="/member/change-password"
-                openLabel={ui.open}
-              />
-            </div>
+            <ActionCard
+              title={ui.changePassword}
+              subtitle={ui.changePasswordDescription}
+              href="/member/change-password"
+              openLabel={ui.open}
+            />
           </section>
 
           <section className="mt-6 rounded-[2rem] border border-red-100 bg-white p-5 shadow-sm sm:p-7">
@@ -1792,19 +1786,23 @@ function ActionCard({
   return (
     <Link
       href={href}
-      className="rounded-xl bg-slate-50 p-3 no-underline transition hover:bg-slate-100 sm:rounded-2xl sm:p-5"
+      className="block w-full rounded-2xl border border-slate-200 bg-slate-50 p-5 no-underline shadow-sm transition hover:border-slate-300 hover:bg-slate-100 hover:shadow-md sm:p-6"
     >
-      <p className="text-sm font-black text-slate-950 sm:text-lg">
-        {title}
-      </p>
+      <div className="flex items-center justify-between gap-4">
+        <div className="min-w-0">
+          <p className="text-base font-black text-slate-950 sm:text-lg">
+            {title}
+          </p>
 
-      <p className="mt-1 text-[10px] font-bold leading-4 text-slate-500 sm:text-sm">
-        {subtitle}
-      </p>
+          <p className="mt-1 text-xs font-bold leading-5 text-slate-500 sm:text-sm">
+            {subtitle}
+          </p>
+        </div>
 
-      <p className="mt-3 text-[10px] font-black text-slate-950 sm:text-sm">
-        {openLabel} →
-      </p>
+        <span className="shrink-0 rounded-full bg-slate-950 px-4 py-2 text-xs font-black text-white sm:text-sm">
+          {openLabel} →
+        </span>
+      </div>
     </Link>
   );
 }
