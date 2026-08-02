@@ -85,18 +85,9 @@ const translations = {
     rewardCredits: "Reward Credits",
     enabledWithLimit: "Enabled ({{limit}}%)",
     disabled: "Disabled",
-    security: "Security",
-    securityDescription:
-      "Manage App Lock, biometric access, password and trusted devices.",
-    securityCenter: "Security Center",
-    securityCenterDescription:
-      "Manage App Lock, Face ID / Touch ID and trusted devices.",
     changePassword: "Change Password",
     changePasswordDescription:
       "Update your merchant account password securely.",
-    manageDevices: "Manage Devices",
-    manageDevicesDescription:
-      "Review all registered merchant devices.",
     open: "Open →",
     account: "Account",
     accountDescription: "Sign out from this merchant portal on the current device.",
@@ -169,17 +160,8 @@ const translations = {
     rewardCredits: "奖励金",
     enabledWithLimit: "已开启（{{limit}}%）",
     disabled: "已关闭",
-    security: "安全设置",
-    securityDescription:
-      "管理应用锁、生物识别、账户密码及受信任设备。",
-    securityCenter: "安全中心",
-    securityCenterDescription:
-      "管理应用锁、生物识别及受信任设备。",
     changePassword: "更改密码",
     changePasswordDescription: "安全更新你的商家账户密码。",
-    manageDevices: "设备管理",
-    manageDevicesDescription:
-      "查看所有已注册的商家设备。",
     open: "打开 →",
     account: "账户",
     accountDescription: "在当前设备退出商家后台。",
@@ -252,18 +234,9 @@ const translations = {
     rewardCredits: "Kredit Ganjaran",
     enabledWithLimit: "Diaktifkan ({{limit}}%)",
     disabled: "Dilumpuhkan",
-    security: "Keselamatan",
-    securityDescription:
-      "Urus App Lock, akses biometrik, kata laluan dan peranti dipercayai.",
-    securityCenter: "Pusat Keselamatan",
-    securityCenterDescription:
-      "Urus App Lock, Face ID / Touch ID dan peranti dipercayai.",
     changePassword: "Tukar Kata Laluan",
     changePasswordDescription:
       "Kemas kini kata laluan akaun pedagang dengan selamat.",
-    manageDevices: "Urus Peranti",
-    manageDevicesDescription:
-      "Lihat semua peranti pedagang yang didaftarkan.",
     open: "Buka →",
     account: "Akaun",
     accountDescription: "Log keluar daripada portal pedagang pada peranti ini.",
@@ -757,31 +730,27 @@ export default function MerchantProfilePage() {
   }
 
   function handleLogout() {
-    /*
-     * Clear both RewardHub account sessions.
-     *
-     * A device may previously have logged in as both Merchant and Member.
-     * Removing only the Merchant record would leave the old Member session
-     * available to other pages and to the support identity resolver.
-     */
-    localStorage.removeItem("merchant");
-    localStorage.removeItem("member");
+    localStorage.removeItem(
+      "merchant"
+    );
 
-    /*
-     * Clear the identity remembered by the RewardHub Tawk integration.
-     * The key is stored in sessionStorage by SupportModal.
-     */
+    localStorage.removeItem(
+      "rewardhub_session"
+    );
+
+    localStorage.removeItem(
+      "rewardhub_background_at_merchant"
+    );
+
     sessionStorage.removeItem(
       "rewardhub_tawk_identity"
     );
 
-    /*
-     * Use replace so the authenticated profile page is not kept in the
-     * browser history after logout.
-     */
     router.replace(
       "/merchant/login"
     );
+
+    router.refresh();
   }
 
   if (loading) {
@@ -1116,36 +1085,17 @@ export default function MerchantProfilePage() {
               />
             </div>
           ) : null}
-
           <SectionCard
-            title={t.security}
-            description={t.securityDescription}
+            title={t.changePassword}
+            description={t.changePasswordDescription}
           >
-            <div className="grid gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
-              <SecurityActionCard
-                title={t.securityCenter}
-                description={t.securityCenterDescription}
-                openLabel={t.open}
-                onClick={() =>
-                  router.push("/merchant/security")
-                }
-              />
-
+            <div>
               <SecurityActionCard
                 title={t.changePassword}
                 description={t.changePasswordDescription}
                 openLabel={t.open}
                 onClick={() =>
                   router.push("/merchant/profile/change-password")
-                }
-              />
-
-              <SecurityActionCard
-                title={t.manageDevices}
-                description={t.manageDevicesDescription}
-                openLabel={t.open}
-                onClick={() =>
-                  router.push("/merchant/devices")
                 }
               />
             </div>

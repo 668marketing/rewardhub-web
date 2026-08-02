@@ -246,8 +246,6 @@ type ProfileCopy = {
   referral: string;
   enabled: string;
   rewardCredits: string;
-  security: string;
-  protected: string;
   fullName: string;
   displayName: string;
   gender: string;
@@ -260,12 +258,8 @@ type ProfileCopy = {
   noAddress: string;
   deliveryPreference: string;
   defaultMethod: string;
-  securityCenter: string;
-  securityCenterDescription: string;
   changePassword: string;
   changePasswordDescription: string;
-  devices: string;
-  devicesDescription: string;
   dangerZone: string;
   logout: string;
   edit: string;
@@ -316,8 +310,6 @@ const PROFILE_COPY: Record<"en" | "zh" | "ms", ProfileCopy> = {
     referral: "Referral",
     enabled: "Enabled",
     rewardCredits: "Reward Credits",
-    security: "Security",
-    protected: "Protected",
     fullName: "Full Name",
     displayName: "Display Name",
     gender: "Gender",
@@ -330,13 +322,8 @@ const PROFILE_COPY: Record<"en" | "zh" | "ms", ProfileCopy> = {
     noAddress: "No shipping address saved yet.",
     deliveryPreference: "Delivery Preference",
     defaultMethod: "Default Method",
-    securityCenter: "Security Center",
-    securityCenterDescription:
-      "Manage App Lock, Face ID / Touch ID and trusted devices.",
     changePassword: "Change Password",
     changePasswordDescription: "Update your account password.",
-    devices: "Manage Devices",
-    devicesDescription: "Review all registered devices.",
     dangerZone: "Danger Zone",
     logout: "Logout",
     edit: "Edit",
@@ -385,8 +372,6 @@ const PROFILE_COPY: Record<"en" | "zh" | "ms", ProfileCopy> = {
     referral: "推荐功能",
     enabled: "已启用",
     rewardCredits: "Reward Credits",
-    security: "账户安全",
-    protected: "已保护",
     fullName: "姓名",
     displayName: "显示名称",
     gender: "性别",
@@ -399,13 +384,8 @@ const PROFILE_COPY: Record<"en" | "zh" | "ms", ProfileCopy> = {
     noAddress: "还没有保存收货地址。",
     deliveryPreference: "默认配送方式",
     defaultMethod: "默认方式",
-    securityCenter: "安全中心",
-    securityCenterDescription:
-      "管理应用锁、生物识别及受信任设备。",
     changePassword: "更改密码",
     changePasswordDescription: "更新会员账户密码。",
-    devices: "设备管理",
-    devicesDescription: "查看所有已注册设备。",
     dangerZone: "危险区域",
     logout: "退出登录",
     edit: "编辑",
@@ -454,8 +434,6 @@ const PROFILE_COPY: Record<"en" | "zh" | "ms", ProfileCopy> = {
     referral: "Rujukan",
     enabled: "Diaktifkan",
     rewardCredits: "Reward Credits",
-    security: "Keselamatan",
-    protected: "Dilindungi",
     fullName: "Nama Penuh",
     displayName: "Nama Paparan",
     gender: "Jantina",
@@ -468,13 +446,8 @@ const PROFILE_COPY: Record<"en" | "zh" | "ms", ProfileCopy> = {
     noAddress: "Belum ada alamat penghantaran disimpan.",
     deliveryPreference: "Kaedah Penghantaran Utama",
     defaultMethod: "Kaedah Utama",
-    securityCenter: "Pusat Keselamatan",
-    securityCenterDescription:
-      "Urus App Lock, Face ID / Touch ID dan peranti dipercayai.",
     changePassword: "Tukar Kata Laluan",
     changePasswordDescription: "Kemas kini kata laluan akaun.",
-    devices: "Urus Peranti",
-    devicesDescription: "Lihat semua peranti yang didaftarkan.",
     dangerZone: "Zon Bahaya",
     logout: "Log Keluar",
     edit: "Edit",
@@ -862,7 +835,11 @@ export default function ProfilePage() {
     );
 
     localStorage.removeItem(
-      "merchant"
+      "rewardhub_session"
+    );
+
+    localStorage.removeItem(
+      "rewardhub_background_at_member"
     );
 
     sessionStorage.removeItem(
@@ -872,6 +849,8 @@ export default function ProfilePage() {
     router.replace(
       "/login"
     );
+
+    router.refresh();
   }
 
   if (loading) {
@@ -1059,10 +1038,6 @@ export default function ProfilePage() {
                   label={ui.rewardCredits}
                   value={ui.enabled}
                 />
-                <SummaryRow
-                  label={ui.security}
-                  value={ui.protected}
-                />
               </div>
             </section>
           </div>
@@ -1151,20 +1126,12 @@ export default function ProfilePage() {
               }
             />
           </div>
-
           <section className="mt-6 rounded-[2rem] bg-white p-5 shadow-sm sm:p-7">
             <h2 className="text-xl font-black text-slate-950 sm:text-2xl">
-              {ui.security}
+              {ui.changePassword}
             </h2>
 
-            <div className="mt-6 grid gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
-              <ActionCard
-                title={ui.securityCenter}
-                subtitle={ui.securityCenterDescription}
-                href="/member/security"
-                openLabel={ui.open}
-              />
-
+            <div className="mt-6">
               <ActionCard
                 title={ui.changePassword}
                 subtitle={ui.changePasswordDescription}
