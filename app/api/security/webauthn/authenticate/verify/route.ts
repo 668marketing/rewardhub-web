@@ -614,6 +614,13 @@ export async function POST(
     const config =
       getWebAuthnConfig();
 
+      console.log("WebAuthn configuration", {
+  requestUrl: request.url,
+  rpName: config.rpName,
+  rpId: config.rpId,
+  origin: config.origin,
+});
+
     const [
       challengeResult,
       devicesResult,

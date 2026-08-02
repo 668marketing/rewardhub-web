@@ -1,169 +1,76 @@
 "use client";
 
-import {
-  type ReactNode,
-  useEffect,
-  useState,
-} from "react";
-import {
-  usePathname,
-  useRouter,
-} from "next/navigation";
+import { type ReactNode, useEffect, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { getRewardHubSession, saveRewardHubSession, touchRewardHubSession } from "@/lib/session";
 
-import {
-  getRewardHubSession,
-  saveRewardHubSession,
-  touchRewardHubSession,
-} from "@/lib/session";
+type MemberGuardProps = { children: ReactNode };
+type StoredMember = { memberId?: string; MEMBER_ID?: string };
 
-type MemberGuardProps = {
-  children: ReactNode;
-};
+const PUBLIC_MEMBER_PATHS = [
+  "/member/login",
+  "/member/register",
+  "/member/forgot-password",
+  "/member/reset-password",
+];
 
-type StoredMember = {
-  memberId?: string;
-  MEMBER_ID?: string;
-};
+function isPublicMemberPath(pathname: string) {
+  return PUBLIC_MEMBER_PATHS.some((path) => pathname === path || pathname.startsWith(`${path}/`));
+}
 
-function readStoredMember():
-  | StoredMember
-  | null {
+function readStoredMember(): StoredMember | null {
   try {
-    const raw =
-      localStorage.getItem(
-        "member"
-      );
-
-    if (!raw) {
-      return null;
-    }
-
-    const parsed =
-      JSON.parse(
-        raw
-      ) as StoredMember;
-
-    const memberId =
-      String(
-        parsed?.memberId ||
-        parsed?.MEMBER_ID ||
-        ""
-      ).trim();
-
-    if (!memberId) {
-      localStorage.removeItem(
-        "member"
-      );
-
-      return null;
-    }
-
+    const raw = localStorage.getItem("member");
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as StoredMember;
+    const memberId = String(parsed?.memberId || parsed?.MEMBER_ID || "").trim();
+    if (!memberId) { localStorage.removeItem("member"); return null; }
     return parsed;
   } catch {
-    localStorage.removeItem(
-      "member"
-    );
-
+    localStorage.removeItem("member");
     return null;
   }
 }
 
-export default function MemberGuard({
-  children,
-}: MemberGuardProps) {
-  const router =
-    useRouter();
-
-  const pathname =
-    usePathname();
-
-  const [
-    isChecking,
-    setIsChecking,
-  ] =
-    useState(true);
+export default function MemberGuard({ children }: MemberGuardProps) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const [isChecking, setIsChecking] = useState(true);
 
   useEffect(() => {
-    const storedMember =
-      readStoredMember();
+    const currentPath = pathname || "/member/dashboard";
 
-    if (!storedMember) {
-      router.replace(
-        `/login?redirect=${encodeURIComponent(
-          pathname ||
-          "/member/dashboard"
-        )}`
-      );
-
-      return;
-    }
-
-    const memberId =
-      String(
-        storedMember.memberId ||
-        storedMember.MEMBER_ID ||
-        ""
-      ).trim();
-
-    const session =
-      getRewardHubSession();
-
-    /*
-     * Compatibility migration:
-     *
-     * Existing RewardHub users may already
-     * have "member" in localStorage but no
-     * rewardhub_session because they logged
-     * in before the new session framework
-     * was introduced.
-     */
-    if (!session) {
-      saveRewardHubSession({
-        userType:
-          "MEMBER",
-
-        userId:
-          memberId,
-      });
-
+    if (isPublicMemberPath(currentPath)) {
       setIsChecking(false);
-
       return;
     }
 
-    const isCorrectSession =
-      session.userType ===
-        "MEMBER" &&
-      session.userId ===
-        memberId;
+    const session = getRewardHubSession();
 
-    if (!isCorrectSession) {
-      router.replace(
-        `/login?redirect=${encodeURIComponent(
-          pathname ||
-          "/member/dashboard"
-        )}`
-      );
-
+    if (session?.userType === "MEMBER" && session.userId) {
+      touchRewardHubSession();
+      setIsChecking(false);
       return;
     }
 
-    touchRewardHubSession();
-    setIsChecking(false);
-  }, [
-    pathname,
-    router,
-  ]);
+    const storedMember = readStoredMember();
+    const memberId = String(storedMember?.memberId || storedMember?.MEMBER_ID || "").trim();
+
+    if (memberId) {
+      saveRewardHubSession({ userType: "MEMBER", userId: memberId });
+      setIsChecking(false);
+      return;
+    }
+
+    router.replace(`/member/login?redirect=${encodeURIComponent(currentPath)}`);
+  }, [pathname, router]);
 
   if (isChecking) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-[#f6f7fb] px-4">
+      <main className="flex min-h-screen items-center justify-center bg-[#f8fafc] px-4">
         <div className="text-center">
           <div className="mx-auto h-9 w-9 animate-spin rounded-full border-4 border-slate-200 border-t-slate-950" />
-
-          <p className="mt-4 text-sm font-bold text-slate-500">
-            Loading RewardHub...
-          </p>
+          <p className="mt-4 text-sm font-bold text-slate-500">Loading RewardHub...</p>
         </div>
       </main>
     );

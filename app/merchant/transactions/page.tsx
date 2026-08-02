@@ -17,17 +17,17 @@ const translations = {
     loadFailed: "Failed to load transactions",
     receiptUploaded: "Receipt uploaded successfully",
     uploadFailed: "Upload failed",
-    merchantTransactions: "{t.merchantTransactions}",
-    transactionHistory: "{t.transactionHistory}",
+    merchantTransactions: "Merchant Transactions",
+    transactionHistory: "Transaction History",
     description:
       "Track customer payments, instant cashback, Reward Credits used, and points issued.",
-    customerPays: "{t.customerPays}",
-    originalSales: "{t.originalSales}",
-    cashbackGiven: "{t.cashbackGiven}",
-    rewardCreditsUsed: "{t.rewardCreditsUsed}",
-    pointsIssued: "{t.pointsIssued}",
+    customerPays: "Customer Pays",
+    originalSales: "Original Sales",
+    cashbackGiven: "Cashback Given",
+    rewardCreditsUsed: "Reward Credits Used",
+    pointsIssued: "Points Issued",
     pointsUnit: "pts",
-    allTransactions: "{t.allTransactions}",
+    allTransactions: "All Transactions",
     showingTransactions: "Showing {{count}} transaction(s)",
     searchPlaceholder: "Search TX / Member ID",
     allDates: "All Dates",
@@ -55,9 +55,9 @@ const translations = {
     view: "View",
     payment: "Payment",
     creditsUsed: "Credits Used",
-    viewReceipt: "{t.viewReceipt}",
-    noReceipt: "{t.noReceipt}",
-    transactionDetail: "{t.transactionDetail}",
+    viewReceipt: "View Receipt",
+    noReceipt: "No Receipt",
+    transactionDetail: "Transaction Detail",
     memberId: "Member ID",
     originalAmount: "Original Amount",
     rewardCredits: "Reward Credits",
@@ -65,7 +65,7 @@ const translations = {
     paymentMethod: "Payment Method",
     upload: "Upload",
     close: "Close",
-    receiptPreview: "{t.receiptPreview}",
+    receiptPreview: "Receipt Preview",
     receiptAlt: "Receipt",
     completed: "Completed",
     pending: "Pending",
@@ -393,15 +393,15 @@ export default function MerchantTransactionsPage() {
             </p>
 
             <div className="mt-6 grid grid-cols-2 gap-3 sm:mt-8 sm:gap-4 xl:grid-cols-5">
-              <Stat title="{t.customerPays}" value={`RM${money(totalPayAmount)}`} />
-              <Stat title="{t.originalSales}" value={`RM${money(totalOriginal)}`} />
-              <Stat title="{t.cashbackGiven}" value={`RM${money(totalCashback)}`} />
+              <Stat title={t.customerPays} value={`RM${money(totalPayAmount)}`} />
+              <Stat title={t.originalSales} value={`RM${money(totalOriginal)}`} />
+              <Stat title={t.cashbackGiven} value={`RM${money(totalCashback)}`} />
               <Stat
-                title="{t.rewardCreditsUsed}"
+                title={t.rewardCreditsUsed}
                 value={`RM${money(totalRewardCredits)}`}
               />
               <Stat
-                title="{t.pointsIssued}"
+                title={t.pointsIssued}
                 value={`${totalPoints} ${t.pointsUnit}`}
                 wideOnMobile
               />
@@ -525,7 +525,7 @@ export default function MerchantTransactionsPage() {
                       </td>
 
                       <td className="px-4 py-5 text-right">
-                        {Number(tx.pointsEarned || 0)} pts
+                        {Number(tx.pointsEarned || 0)} {t.pointsUnit}
                       </td>
 
                       <td className="px-4 py-5">{tx.paymentMethod || "-"}</td>
@@ -709,7 +709,7 @@ function TransactionDetailModal({
             label={t.rewardCredits}
             value={`RM${money(tx.rewardCreditsUsed)}`}
           />
-          <Detail label="{t.customerPays}" value={`RM${money(tx.payAmount)}`} />
+          <Detail label={t.customerPays} value={`RM${money(tx.payAmount)}`} />
           <Detail
             label={t.pointsEarned}
             value={`${Number(tx.pointsEarned || 0)} ${t.pointsUnit}`}
@@ -733,7 +733,7 @@ function TransactionDetailModal({
               )}
 
               <label className="cursor-pointer rounded-xl bg-slate-950 px-3 py-2 text-[10px] font-black text-white sm:text-xs">
-                Upload
+                {t.upload}
                 <input
                   type="file"
                   accept="image/*"
@@ -753,7 +753,7 @@ function TransactionDetailModal({
           onClick={onClose}
           className="mt-6 hidden w-full rounded-2xl bg-slate-950 py-4 text-sm font-black text-white sm:block"
         >
-          Close
+          {t.close}
         </button>
       </div>
     </div>
@@ -789,7 +789,7 @@ function ReceiptPreviewModal({
             onClick={onClose}
             className="rounded-xl bg-slate-950 px-3 py-2 text-xs font-black text-white sm:px-4 sm:text-sm"
           >
-            Close
+            {t.close}
           </button>
         </div>
 
