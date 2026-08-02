@@ -197,6 +197,9 @@ export default function AppLock({
 
   const mountedRef = useRef(true);
 
+  const autoUnlockAttemptedRef =
+    useRef(false);
+
   const currentPath = pathname || "/";
 
   const shouldBypassLock =
@@ -734,68 +737,148 @@ export default function AppLock({
   const text =
     copy[currentLanguage];
 
-  async function handleUnlock() {
-    if (isUnlocking) {
+  const handleUnlock =
+    useCallback(
+      async (
+        source:
+          | "auto"
+          | "manual" =
+          "manual"
+      ) => {
+        if (isUnlocking) {
+          return;
+        }
+
+        setUnlockError("");
+
+        if (
+          !securitySettings
+            ?.biometricEnabled
+        ) {
+          clearUnlockedState();
+          return;
+        }
+
+        if (!session) {
+          setUnlockError(
+            text.failed
+          );
+          return;
+        }
+
+        setIsUnlocking(true);
+
+        try {
+          const device =
+            detectDeviceInformation();
+
+          const result =
+            await authenticateRewardHubBiometric(
+              {
+                userType:
+                  portal,
+
+                userId:
+                  session.userId,
+
+                deviceId:
+                  session.deviceId,
+
+                deviceName:
+                  device.deviceName,
+
+                browser:
+                  device.browser,
+
+                language:
+                  currentLanguage,
+              }
+            );
+
+          if (
+            !result.success ||
+            !result.verified ||
+            !result.authenticated
+          ) {
+            throw new Error(
+              text.failed
+            );
+          }
+
+          clearUnlockedState();
+        } catch (error) {
+          console.error(
+            `Biometric unlock error (${source}):`,
+            error
+          );
+
+          setUnlockError(
+            error instanceof Error &&
+            error.message
+              ? error.message
+              : text.failed
+          );
+        } finally {
+          setIsUnlocking(false);
+        }
+      },
+      [
+        clearUnlockedState,
+        currentLanguage,
+        isUnlocking,
+        portal,
+        securitySettings
+          ?.biometricEnabled,
+        session,
+        text.failed,
+      ]
+    );
+
+  useEffect(() => {
+    if (!isLocked) {
+      autoUnlockAttemptedRef.current =
+        false;
+
       return;
     }
-
-    setUnlockError("");
 
     if (
-      !securitySettings?.biometricEnabled
+      !isReady ||
+      isUnlocking ||
+      !securitySettings
+        ?.appLockEnabled ||
+      !securitySettings
+        ?.biometricEnabled ||
+      autoUnlockAttemptedRef.current
     ) {
-      clearUnlockedState();
       return;
     }
 
-    if (!session) {
-      setUnlockError(text.failed);
-      return;
-    }
+    autoUnlockAttemptedRef.current =
+      true;
 
-    setIsUnlocking(true);
-
-    try {
-      const device =
-        detectDeviceInformation();
-
-      const result =
-        await authenticateRewardHubBiometric({
-          userType: portal,
-          userId: session.userId,
-          deviceId: session.deviceId,
-          deviceName: device.deviceName,
-          browser: device.browser,
-          language: currentLanguage,
-        });
-
-      if (
-        !result.success ||
-        !result.verified ||
-        !result.authenticated
-      ) {
-        throw new Error(
-          text.failed
+    const timer =
+      window.setTimeout(() => {
+        void handleUnlock(
+          "auto"
         );
-      }
+      }, 350);
 
-      clearUnlockedState();
-    } catch (error) {
-      console.error(
-        "Biometric unlock error:",
-        error
+    return () => {
+      window.clearTimeout(
+        timer
       );
-
-      setUnlockError(
-        error instanceof Error &&
-        error.message
-          ? error.message
-          : text.failed
-      );
-    } finally {
-      setIsUnlocking(false);
-    }
-  }
+    };
+  }, [
+    handleUnlock,
+    isLocked,
+    isReady,
+    isUnlocking,
+    securitySettings
+      ?.appLockEnabled,
+    securitySettings
+      ?.biometricEnabled,
+  ]);
 
   if (!isReady) {
     return null;
@@ -845,7 +928,11 @@ export default function AppLock({
         <button
           type="button"
           disabled={isUnlocking}
-          onClick={handleUnlock}
+          onClick={() => {
+            void handleUnlock(
+              "manual"
+            );
+          }}
           className={[
             "mt-6 flex w-full items-center justify-center gap-2 rounded-2xl bg-slate-950 px-4 py-4 text-sm font-black text-white shadow-xl transition",
             "hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-slate-300",
