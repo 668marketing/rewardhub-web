@@ -77,14 +77,6 @@ function getStoredMemberId() {
   }
 }
 
-function getApiUrl() {
-  return String(
-    process.env
-      .NEXT_PUBLIC_REWARDHUB_API ||
-      ""
-  ).trim();
-}
-
 async function updateMemberPassword(
   input: {
     memberId: string;
@@ -92,18 +84,9 @@ async function updateMemberPassword(
     newPassword: string;
   }
 ) {
-  const apiUrl =
-    getApiUrl();
-
-  if (!apiUrl) {
-    throw new Error(
-      "RewardHub API URL is missing."
-    );
-  }
-
   const response =
     await fetch(
-      apiUrl,
+      "/api/member/change-password",
       {
         method:
           "POST",
@@ -117,12 +100,9 @@ async function updateMemberPassword(
           "no-store",
 
         body:
-          JSON.stringify({
-            action:
-              "updateMemberPassword",
-
-            ...input,
-          }),
+          JSON.stringify(
+            input
+          ),
       }
     );
 
@@ -139,14 +119,13 @@ async function updateMemberPassword(
       ) as ApiResponse;
   } catch {
     throw new Error(
-      "RewardHub backend returned an invalid response."
+      "RewardHub returned an invalid response."
     );
   }
 
   if (
     !response.ok ||
-    result.success ===
-      false ||
+    result.success === false ||
     result.error
   ) {
     throw new Error(
