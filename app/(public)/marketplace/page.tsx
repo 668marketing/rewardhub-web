@@ -1,45 +1,31 @@
-import PublicLayout from "@/components/layout/PublicLayout";
-import { fetchMarketplaceMerchants } from "@/lib/api";
+import { redirect } from "next/navigation";
 
-import MarketplaceClient from "./MarketplaceClient";
-import MarketplaceHero from "./MarketplaceHero";
+const OFFICIAL_WEBSITE =
+  "https://rewardhub-official.vercel.app";
 
-type MarketplacePageProps = {
-  searchParams: Promise<{
-    ref?: string;
-  }>;
+type PageProps = {
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
 };
 
-export default async function MarketplacePage({
+export default async function RedirectPage({
   searchParams,
-}: MarketplacePageProps) {
+}: PageProps) {
   const params = await searchParams;
-  const refCode = params.ref?.trim() || "";
+  const query = new URLSearchParams();
 
-  const result = await fetchMarketplaceMerchants();
+  if (params) {
+    Object.entries(params).forEach(([key, value]) => {
+      if (Array.isArray(value)) {
+        value.forEach((item) => query.append(key, item));
+      } else if (typeof value === "string") {
+        query.set(key, value);
+      }
+    });
+  }
 
-  const data =
-    result?.data?.data ??
-    result?.data ??
-    result?.result ??
-    result;
+  const suffix = query.toString()
+    ? `?${query.toString()}`
+    : "";
 
-  const merchants = Array.isArray(data?.merchants)
-    ? data.merchants
-    : [];
-
-  return (
-    <PublicLayout>
-      <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,#dbeafe,transparent_35%),radial-gradient(circle_at_top_right,#fef3c7,transparent_30%),#f8fafc]">
-        <section className="mx-auto max-w-7xl px-4 py-5 sm:px-6 sm:py-8 lg:px-8 lg:py-16">
-          <MarketplaceHero />
-
-          <MarketplaceClient
-            merchants={merchants}
-            refCode={refCode}
-          />
-        </section>
-      </main>
-    </PublicLayout>
-  );
+  redirect(`${OFFICIAL_WEBSITE}/marketplace${suffix}`);
 }
