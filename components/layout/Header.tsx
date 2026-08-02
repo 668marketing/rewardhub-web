@@ -250,10 +250,11 @@ export default function Header() {
         >
           <span className="flex h-11 items-center rounded-xl bg-slate-950 p-2">
             <img
-              src="/logo/rewardhub-logo.png"
-              alt="RewardHub"
-              className="h-7 w-auto object-contain"
-            />
+  src="/logo/rewardhub-logo.png"
+  alt="RewardHub"
+  className="h-12 w-auto object-contain select-none"
+  draggable={false}
+/>
           </span>
 
           <span className="hidden min-w-0 sm:block">
