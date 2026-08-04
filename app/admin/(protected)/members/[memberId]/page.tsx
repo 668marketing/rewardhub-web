@@ -100,6 +100,10 @@ export default function AdminMemberDetailPage() {
         try {
           setError("");
 
+          if (!manualRefresh) {
+            setData(null);
+          }
+
           if (manualRefresh) {
             setRefreshing(true);
           } else {
@@ -137,7 +141,7 @@ export default function AdminMemberDetailPage() {
 
   const fullAddress =
     useMemo(() => {
-      if (!data) {
+      if (!data?.member) {
         return "";
       }
 
@@ -180,7 +184,7 @@ export default function AdminMemberDetailPage() {
     return <MemberDetailLoading />;
   }
 
-  if (!data) {
+  if (!data?.member) {
     return (
       <MemberDetailError
         message={
@@ -1085,8 +1089,70 @@ function ReferralsTab({
 }: {
   data: AdminMemberDetailData;
 }) {
+  const treeSummary =
+    data.referrals.treeSummary || {
+      level1: 0,
+      level2: 0,
+      level3: 0,
+      totalNetwork: 0,
+    };
+
+  const tree =
+    data.referrals.tree || [];
+
+  const introducedMerchants =
+    data.referrals
+      .introducedMerchants || {
+      summary: {
+        total: 0,
+        active: 0,
+        pending: 0,
+        rejected: 0,
+        other: 0,
+      },
+      merchants: [],
+    };
+
   return (
     <div className="mt-6 space-y-6">
+      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <MetricCard
+          label="Level 1 Members"
+          value={formatNumber(
+            treeSummary.level1
+          )}
+          note="Directly referred members"
+          icon={Users}
+        />
+
+        <MetricCard
+          label="Level 2 Members"
+          value={formatNumber(
+            treeSummary.level2
+          )}
+          note="Second-level network"
+          icon={Users}
+        />
+
+        <MetricCard
+          label="Level 3 Members"
+          value={formatNumber(
+            treeSummary.level3
+          )}
+          note="Third-level network"
+          icon={Users}
+        />
+
+        <MetricCard
+          label="Total Network"
+          value={formatNumber(
+            treeSummary.totalNetwork
+          )}
+          note="Members across three levels"
+          icon={Users}
+        />
+      </section>
+
       <section className="grid gap-4 sm:grid-cols-3">
         <MetricCard
           label="Available Credits"
@@ -1118,6 +1184,182 @@ function ReferralsTab({
           icon={Gift}
         />
       </section>
+
+      <ContentCard
+        title="Member Referral Tree"
+        description="Level 1, Level 2 and Level 3 member relationships"
+      >
+        {tree.length === 0 ? (
+          <EmptyState
+            icon={Users}
+            title="No referred members"
+            description="Members referred by this account will appear here."
+          />
+        ) : (
+          <div className="p-5 sm:p-6">
+            <div className="space-y-3">
+              {tree.map((node) => (
+                <ReferralTreeNode
+                  key={node.memberId}
+                  node={node}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+      </ContentCard>
+
+      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <MetricCard
+          label="Introduced Merchants"
+          value={formatNumber(
+            introducedMerchants
+              .summary.total
+          )}
+          note="All merchant introductions"
+          icon={Store}
+        />
+
+        <MetricCard
+          label="Active Merchants"
+          value={formatNumber(
+            introducedMerchants
+              .summary.active
+          )}
+          note="Approved merchant accounts"
+          icon={Store}
+        />
+
+        <MetricCard
+          label="Pending Merchants"
+          value={formatNumber(
+            introducedMerchants
+              .summary.pending
+          )}
+          note="Awaiting Admin review"
+          icon={Clock3}
+        />
+
+        <MetricCard
+          label="Rejected / Other"
+          value={formatNumber(
+            introducedMerchants
+              .summary.rejected +
+              introducedMerchants
+                .summary.other
+          )}
+          note="Not currently active"
+          icon={ShieldAlert}
+        />
+      </section>
+
+      <ContentCard
+        title="Member-Introduced Merchants"
+        description="Merchants registered using this member as the introducer"
+      >
+        {introducedMerchants
+          .merchants.length === 0 ? (
+          <EmptyState
+            icon={Store}
+            title="No introduced merchants"
+            description="Merchants introduced by this member will appear here."
+          />
+        ) : (
+          <div className="divide-y divide-white/[0.06]">
+            {introducedMerchants
+              .merchants.map(
+                (merchant) => (
+                  <div
+                    key={
+                      merchant.merchantId
+                    }
+                    className="flex flex-col gap-4 px-5 py-4 sm:px-6 xl:flex-row xl:items-center"
+                  >
+                    <div className="flex min-w-0 flex-1 items-center gap-3">
+                      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-emerald-400/10 bg-emerald-400/[0.08] text-sm font-semibold text-emerald-300">
+                        {getInitials(
+                          merchant.displayName ||
+                            merchant.businessName ||
+                            merchant.merchantId
+                        )}
+                      </div>
+
+                      <div className="min-w-0">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <Link
+                            href={`/admin/merchants/${encodeURIComponent(
+                              merchant.merchantId
+                            )}`}
+                            className="truncate text-sm font-medium text-white transition hover:text-emerald-300"
+                          >
+                            {merchant.displayName ||
+                              merchant.businessName ||
+                              merchant.merchantId}
+                          </Link>
+
+                          <StatusBadge
+                            status={
+                              merchant.status
+                            }
+                          />
+                        </div>
+
+                        <p className="mt-1 truncate text-xs text-slate-600">
+                          {merchant.merchantId}
+                          {merchant.loginEmail
+                            ? ` · ${merchant.loginEmail}`
+                            : ""}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 xl:min-w-[620px]">
+                      <ReferralTreeMetric
+                        label="Category"
+                        value={
+                          [
+                            merchant.category,
+                            merchant.subCategory,
+                          ]
+                            .filter(Boolean)
+                            .join(" · ") ||
+                          "—"
+                        }
+                      />
+
+                      <ReferralTreeMetric
+                        label="Location"
+                        value={
+                          [
+                            merchant.area,
+                            merchant.state,
+                          ]
+                            .filter(Boolean)
+                            .join(", ") ||
+                          "—"
+                        }
+                      />
+
+                      <ReferralTreeMetric
+                        label="Marketing Budget"
+                        value={`${formatNumber(
+                          merchant.marketingBudget
+                        )}%`}
+                      />
+
+                      <ReferralTreeMetric
+                        label="Registered"
+                        value={formatDate(
+                          merchant.createdAt
+                        )}
+                      />
+                    </div>
+                  </div>
+                )
+              )}
+          </div>
+        )}
+      </ContentCard>
 
       <ContentCard
         title="Referral Commission History"
@@ -1183,6 +1425,134 @@ function ReferralsTab({
           </div>
         )}
       </ContentCard>
+    </div>
+  );
+}
+
+function ReferralTreeNode({
+  node,
+}: {
+  node:
+    AdminMemberDetailData["referrals"]["tree"][number];
+}) {
+  const levelStyle =
+    node.level === 1
+      ? "border-emerald-400/15 bg-emerald-400/[0.045]"
+      : node.level === 2
+        ? "border-blue-400/15 bg-blue-400/[0.04]"
+        : "border-violet-400/15 bg-violet-400/[0.04]";
+
+  return (
+    <div
+      className={
+        node.level > 1
+          ? "ml-5 border-l border-white/[0.07] pl-4 sm:ml-8 sm:pl-5"
+          : ""
+      }
+    >
+      <div
+        className={`rounded-2xl border p-4 ${levelStyle}`}
+      >
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center">
+          <div className="flex min-w-0 flex-1 items-center gap-3">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-white/[0.07] bg-slate-950/35 text-sm font-semibold text-slate-300">
+              {getInitials(
+                node.fullName ||
+                  node.memberId
+              )}
+            </div>
+
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-2">
+                <Link
+                  href={`/admin/members/${encodeURIComponent(
+                    node.memberId
+                  )}`}
+                  className="truncate text-sm font-medium text-white transition hover:text-emerald-300"
+                >
+                  {node.fullName ||
+                    node.memberId}
+                </Link>
+
+                <span className="rounded-md border border-white/[0.07] bg-slate-950/35 px-2 py-0.5 text-[10px] font-semibold text-slate-500">
+                  L{node.level}
+                </span>
+
+                <TierBadge
+                  tier={node.tier}
+                />
+
+                <StatusBadge
+                  status={node.status}
+                />
+              </div>
+
+              <p className="mt-1 truncate text-xs text-slate-600">
+                {node.memberId}
+                {node.email
+                  ? ` · ${node.email}`
+                  : ""}
+              </p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:min-w-[430px]">
+            <ReferralTreeMetric
+              label="Joined"
+              value={formatDate(
+                node.createdAt
+              )}
+            />
+
+            <ReferralTreeMetric
+              label="Lifetime Spend"
+              value={formatCurrency(
+                node.totalSpend
+              )}
+            />
+
+            <ReferralTreeMetric
+              label="Transactions"
+              value={formatNumber(
+                node.totalTransactions
+              )}
+            />
+          </div>
+        </div>
+      </div>
+
+      {node.children.length > 0 ? (
+        <div className="mt-3 space-y-3">
+          {node.children.map(
+            (child) => (
+              <ReferralTreeNode
+                key={child.memberId}
+                node={child}
+              />
+            )
+          )}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function ReferralTreeMetric({
+  label,
+  value,
+}: {
+  label: string;
+  value: string;
+}) {
+  return (
+    <div>
+      <p className="text-[10px] uppercase tracking-wide text-slate-700">
+        {label}
+      </p>
+
+      <p className="mt-1 truncate text-xs font-medium text-slate-300">
+        {value}
+      </p>
     </div>
   );
 }

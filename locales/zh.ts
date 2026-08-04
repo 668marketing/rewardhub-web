@@ -701,6 +701,7 @@ memberMerchantDetail: {
   verifiedPurchase: "已验证消费",
   noCommentAdded: "没有填写评价内容。",
   merchantReply: "商家回复",
+  pinnedReview: "官方置顶评价",
 },
 
 memberReview: {

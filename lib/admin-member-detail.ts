@@ -1,5 +1,41 @@
 import type { AdminMember } from "@/lib/admin-members";
 
+export type AdminReferralTreeMember = {
+  memberId: string;
+  fullName: string;
+  email: string;
+  phone: string;
+  tier: string;
+  status: string;
+  referredByMemberId: string;
+  level: number;
+  createdAt: string;
+  totalSpend: number;
+  totalTransactions: number;
+  children: AdminReferralTreeMember[];
+};
+
+export type AdminIntroducedMerchant = {
+  merchantId: string;
+  businessName: string;
+  displayName: string;
+  loginEmail: string;
+  phone: string;
+  category: string;
+  subCategory: string;
+  state: string;
+  area: string;
+  logoUrl: string;
+  status: string;
+  marketingBudget: number;
+  rewardCreditEnabled: boolean;
+  maxRewardCreditPercent: number;
+  referredByMember: string;
+  referredByMemberName: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
 export type AdminMemberDetailData = {
   member: AdminMember & {
     dateOfBirth?: string;
@@ -40,6 +76,27 @@ export type AdminMemberDetailData = {
       totalCommission: number;
       totalPaid: number;
       historyCount: number;
+    };
+
+    treeSummary: {
+      level1: number;
+      level2: number;
+      level3: number;
+      totalNetwork: number;
+    };
+
+    tree: AdminReferralTreeMember[];
+
+    introducedMerchants: {
+      summary: {
+        total: number;
+        active: number;
+        pending: number;
+        rejected: number;
+        other: number;
+      };
+
+      merchants: AdminIntroducedMerchant[];
     };
 
     history: Array<{
@@ -127,14 +184,84 @@ export async function getAdminMemberDetail(
     );
   }
 
-  if (!response.ok || !result.data) {
+  if (
+    !response.ok ||
+    !result.data ||
+    !result.data.member
+  ) {
     throw new Error(
       result.error ||
         "Unable to load member details."
     );
   }
 
-  return result.data;
+  const referrals =
+    result.data.referrals || {
+      summary: {
+        availableCommission: 0,
+        totalCommission: 0,
+        totalPaid: 0,
+        historyCount: 0,
+      },
+      history: [],
+    };
+
+  return {
+    ...result.data,
+
+    referrals: {
+      ...referrals,
+
+      summary: {
+        availableCommission:
+          Number(
+            referrals.summary
+              ?.availableCommission || 0
+          ),
+        totalCommission:
+          Number(
+            referrals.summary
+              ?.totalCommission || 0
+          ),
+        totalPaid:
+          Number(
+            referrals.summary
+              ?.totalPaid || 0
+          ),
+        historyCount:
+          Number(
+            referrals.summary
+              ?.historyCount || 0
+          ),
+      },
+
+      treeSummary:
+        referrals.treeSummary || {
+          level1: 0,
+          level2: 0,
+          level3: 0,
+          totalNetwork: 0,
+        },
+
+      tree:
+        referrals.tree || [],
+
+      introducedMerchants:
+        referrals.introducedMerchants || {
+          summary: {
+            total: 0,
+            active: 0,
+            pending: 0,
+            rejected: 0,
+            other: 0,
+          },
+          merchants: [],
+        },
+
+      history:
+        referrals.history || [],
+    },
+  };
 }
 
 export type AdminMemberStatusResult = {

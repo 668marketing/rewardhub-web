@@ -4,10 +4,13 @@ import {
 } from "next/server";
 
 export const runtime = "nodejs";
-export const dynamic = "force-dynamic";
+export const dynamic =
+  "force-dynamic";
 
 const API_URL =
-  "https://script.google.com/macros/s/AKfycbwZukKlv976yMLEA3Ap-_h6z4pyD8fTHzgpwHZlxAPGjfAjFYxRB6VdJXDK_zTJZmLs/exec";
+  process.env
+    .REWARDHUB_APPS_SCRIPT_URL ||
+  "";
 
 type JsonObject = Record<
   string,
@@ -65,10 +68,45 @@ function removeJsonPrefix(
     .trim();
 }
 
+function isValidAppsScriptUrl(
+  value: string
+) {
+  return (
+    /^https:\/\/script\.google\.com\/macros\/s\/[^/]+\/exec$/.test(
+      String(value || "").trim()
+    )
+  );
+}
+
 export async function POST(
   request: NextRequest
 ) {
   try {
+    if (
+      !API_URL ||
+      !isValidAppsScriptUrl(
+        API_URL
+      )
+    ) {
+      console.error(
+        "INVALID REWARDHUB APPS SCRIPT URL:",
+        API_URL
+      );
+
+      return NextResponse.json(
+        {
+          success: false,
+          error:
+            "RewardHub backend URL is not configured correctly.",
+          message:
+            "Please set REWARDHUB_APPS_SCRIPT_URL to a valid Apps Script /exec deployment URL.",
+        },
+        {
+          status: 500,
+        }
+      );
+    }
+
     let body: unknown;
 
     try {
@@ -156,7 +194,7 @@ export async function POST(
 
             signal:
               AbortSignal.timeout(
-                90000
+                60000
               ),
           }
         );
@@ -169,18 +207,30 @@ export async function POST(
         }
       );
 
+      const isTimeout =
+        error instanceof Error &&
+        (
+          error.name ===
+            "TimeoutError" ||
+          error.name ===
+            "AbortError"
+        );
+
       return NextResponse.json(
         {
           success: false,
-          error:
-            "Unable to connect to the RewardHub backend.",
+          error: isTimeout
+            ? "RewardHub backend request timed out."
+            : "Unable to connect to the RewardHub backend.",
           message:
             error instanceof Error
               ? error.message
               : "Apps Script request failed.",
         },
         {
-          status: 502,
+          status: isTimeout
+            ? 504
+            : 502,
         }
       );
     }
@@ -253,13 +303,24 @@ export async function POST(
         }
       );
 
+      const pageNotFound =
+        upstreamResponse.status ===
+          404 ||
+        /page not found/i.test(
+          cleanedText
+        );
+
       return NextResponse.json(
         {
           success: false,
-          error:
-            "RewardHub backend returned an invalid response.",
-          message:
-            "The Apps Script backend did not return valid JSON.",
+
+          error: pageNotFound
+            ? "RewardHub Apps Script deployment was not found."
+            : "RewardHub backend returned an invalid response.",
+
+          message: pageNotFound
+            ? "The configured Apps Script deployment URL is invalid, deleted or no longer accessible."
+            : "The Apps Script backend did not return valid JSON.",
 
           details:
             process.env.NODE_ENV ===
@@ -270,7 +331,9 @@ export async function POST(
               : undefined,
         },
         {
-          status: 502,
+          status: pageNotFound
+            ? 502
+            : 502,
         }
       );
     }
@@ -341,10 +404,6 @@ export async function POST(
       );
     }
 
-    /*
-     * Return the Apps Script JSON response
-     * without converting it to text again.
-     */
     return NextResponse.json(
       parsed,
       {

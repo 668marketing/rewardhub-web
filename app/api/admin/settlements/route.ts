@@ -4,46 +4,16 @@ import {
 } from "next/server";
 
 export const runtime = "nodejs";
-export const dynamic = "force-dynamic";
+export const dynamic =
+  "force-dynamic";
 
-type RewardHubResponse<T> = {
+type BackendResponse<T> = {
   success?: boolean;
   data?: T;
   result?: T;
   error?: string;
   message?: string;
 };
-
-function getRequestOrigin(
-  request: NextRequest
-) {
-  const forwardedHost =
-    request.headers.get(
-      "x-forwarded-host"
-    );
-
-  const host =
-    forwardedHost ||
-    request.headers.get("host");
-
-  const forwardedProtocol =
-    request.headers.get(
-      "x-forwarded-proto"
-    );
-
-  const protocol =
-    forwardedProtocol ||
-    (process.env.NODE_ENV ===
-    "production"
-      ? "https"
-      : "http");
-
-  if (host) {
-    return `${protocol}://${host}`;
-  }
-
-  return request.nextUrl.origin;
-}
 
 function clearAdminCookie(
   response: NextResponse
@@ -84,12 +54,15 @@ export async function GET(
       );
     }
 
-    const origin =
-      getRequestOrigin(request);
+    const searchParams =
+      request.nextUrl.searchParams;
 
     const backendResponse =
       await fetch(
-        `${origin}/api/rewardhub`,
+        new URL(
+          "/api/rewardhub",
+          request.nextUrl.origin
+        ),
         {
           method: "POST",
           headers: {
@@ -99,20 +72,46 @@ export async function GET(
           cache: "no-store",
           body: JSON.stringify({
             action:
-              "getAdminDashboardSummary",
+              "getAdminSettlements",
+
             token,
-            userAgent:
-              request.headers.get(
-                "user-agent"
+
+            search:
+              searchParams.get(
+                "search"
               ) || "",
-            ipAddress:
-              request.headers.get(
-                "x-forwarded-for"
-              ) ||
-              request.headers.get(
-                "x-real-ip"
-              ) ||
-              "",
+
+            status:
+              searchParams.get(
+                "status"
+              ) || "ALL",
+
+            month:
+              searchParams.get(
+                "month"
+              ) || "",
+
+            dateFrom:
+              searchParams.get(
+                "dateFrom"
+              ) || "",
+
+            dateTo:
+              searchParams.get(
+                "dateTo"
+              ) || "",
+
+            page: Number(
+              searchParams.get(
+                "page"
+              ) || 1
+            ),
+
+            pageSize: Number(
+              searchParams.get(
+                "pageSize"
+              ) || 25
+            ),
           }),
         }
       );
@@ -121,14 +120,14 @@ export async function GET(
       await backendResponse.text();
 
     let payload:
-      RewardHubResponse<unknown>;
+      BackendResponse<unknown>;
 
     try {
       payload =
         JSON.parse(rawText);
     } catch {
       console.error(
-        "Invalid dashboard backend response:",
+        "Invalid admin settlements backend response:",
         rawText
       );
 
@@ -136,7 +135,11 @@ export async function GET(
         {
           success: false,
           error:
-            "Dashboard backend returned an invalid response.",
+            rawText
+              .replace(/\s+/g, " ")
+              .trim()
+              .slice(0, 500) ||
+            "Settlement backend returned an empty response.",
         },
         { status: 502 }
       );
@@ -146,50 +149,34 @@ export async function GET(
       !backendResponse.ok ||
       payload.success === false
     ) {
-      const errorMessage =
+      const message =
         payload.error ||
         payload.message ||
-        "Unable to load dashboard.";
+        "Unable to load settlements.";
 
-      const normalizedError =
-  String(errorMessage || "")
-    .trim()
-    .toLowerCase();
-
-const isAuthError =
-  backendResponse.status === 401 ||
-  normalizedError ===
-    "admin authentication required" ||
-  normalizedError ===
-    "admin authentication required." ||
-  normalizedError ===
-    "invalid admin session" ||
-  normalizedError ===
-    "invalid admin session." ||
-  normalizedError ===
-    "admin session expired" ||
-  normalizedError ===
-    "admin session expired." ||
-  normalizedError ===
-    "administrator account is inactive" ||
-  normalizedError ===
-    "administrator account is inactive.";
+      const unauthorized =
+        /session|unauthorized|expired|inactive/i.test(
+          message
+        );
 
       const response =
         NextResponse.json(
           {
             success: false,
-            error: errorMessage,
+            error: message,
           },
           {
-            status: isAuthError
-              ? 401
-              : 500,
+            status:
+              unauthorized
+                ? 401
+                : 400,
           }
         );
 
-      return isAuthError
-        ? clearAdminCookie(response)
+      return unauthorized
+        ? clearAdminCookie(
+            response
+          )
         : response;
     }
 
@@ -202,7 +189,7 @@ const isAuthError =
         {
           success: false,
           error:
-            "Dashboard data is missing.",
+            "Settlement data is missing.",
         },
         { status: 502 }
       );
@@ -214,7 +201,7 @@ const isAuthError =
     });
   } catch (error) {
     console.error(
-      "Admin dashboard route error:",
+      "Admin settlements route error:",
       error
     );
 
@@ -224,7 +211,7 @@ const isAuthError =
         error:
           error instanceof Error
             ? error.message
-            : "Unable to load dashboard.",
+            : "Unable to load settlements.",
       },
       { status: 500 }
     );

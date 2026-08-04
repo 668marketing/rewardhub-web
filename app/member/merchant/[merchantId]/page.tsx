@@ -800,6 +800,12 @@ function ReviewCard({
     review?.UPDATED_AT ||
     "";
 
+    const isPinned =
+  review?.isPinned === true ||
+  review?.IS_PINNED === true ||
+  String(review?.isPinned).toUpperCase() === "TRUE" ||
+  String(review?.IS_PINNED).toUpperCase() === "TRUE";
+
   return (
     <article className="rounded-[1.5rem] border border-slate-100 bg-slate-50 p-4 shadow-sm sm:rounded-[2rem] sm:p-5">
       <div className="flex items-start justify-between gap-4">
@@ -810,12 +816,18 @@ function ReviewCard({
           </p>
 
           <p className="mt-2 break-words text-sm font-black text-slate-950 sm:text-base">
-            {memberName}
-          </p>
+  {memberName}
+</p>
 
-          <p className="mt-1 text-[10px] font-black text-emerald-700 sm:text-xs">
-            {t("memberMerchantDetail.verifiedPurchase")}
-          </p>
+{isPinned && (
+  <div className="mt-2 inline-flex items-center rounded-full border border-amber-300 bg-amber-100 px-3 py-1 text-[10px] font-black text-amber-800 sm:text-xs">
+    📌 {t("memberMerchantDetail.pinnedReview")}
+  </div>
+)}
+
+<p className="mt-2 text-[10px] font-black text-emerald-700 sm:text-xs">
+  {t("memberMerchantDetail.verifiedPurchase")}
+</p>
         </div>
 
         <p className="shrink-0 text-right text-[9px] font-bold leading-4 text-slate-400 sm:text-xs">

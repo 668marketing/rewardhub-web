@@ -704,6 +704,7 @@ memberMerchantDetail: {
   verifiedPurchase: "Verified Purchase",
   noCommentAdded: "No comment added.",
   merchantReply: "Merchant Reply",
+  pinnedReview: "Pinned Review",
 },
 
 memberReview: {

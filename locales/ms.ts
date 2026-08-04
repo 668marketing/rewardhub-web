@@ -708,6 +708,7 @@ memberMerchantDetail: {
   verifiedPurchase: "Pembelian Disahkan",
   noCommentAdded: "Tiada komen ditambah.",
   merchantReply: "Balasan Peniaga",
+  pinnedReview: "Ulasan Disemat",
 },
 
 memberReview: {

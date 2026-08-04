@@ -76,35 +76,34 @@ const navigationGroups: NavigationGroup[] =
   available: true,
 },
         {
-          label:
-            "Merchant Applications",
-          href:
-            "/admin/merchant-applications",
-          icon: Building2,
-          permission:
-            "merchants.manage",
-          available: false,
-        },
+  label:
+    "Merchant Applications",
+  href:
+    "/admin/merchant-applications",
+  icon: Building2,
+  permission:
+    "merchants.manage",
+  available: true,
+},
       ],
     },
     {
       label: "Finance",
       items: [
         {
-          label: "Transactions",
-          href: "/admin/transactions",
-          icon: ReceiptText,
-          permission:
-            "transactions.view",
-          available: false,
-        },
+  label: "Transactions",
+  href: "/admin/transactions",
+  icon: ReceiptText,
+  permission: "transactions.view",
+  available: true,
+},
         {
           label: "Settlements",
           href: "/admin/settlements",
           icon: WalletCards,
           permission:
             "settlements.view",
-          available: false,
+          available: true,
         },
         {
           label: "Marketing Budget",
@@ -112,7 +111,7 @@ const navigationGroups: NavigationGroup[] =
           icon: BarChart3,
           permission:
             "marketing.view",
-          available: false,
+          available: true,
         },
         {
           label: "Reward Credits",
@@ -121,7 +120,7 @@ const navigationGroups: NavigationGroup[] =
           icon: Gift,
           permission:
             "reward_credits.view",
-          available: false,
+          available: true,
         },
         {
           label: "Points",
@@ -129,7 +128,7 @@ const navigationGroups: NavigationGroup[] =
           icon: Star,
           permission:
             "points.view",
-          available: false,
+          available: true,
         },
       ],
     },
@@ -144,7 +143,7 @@ const navigationGroups: NavigationGroup[] =
           icon: CreditCard,
           permission:
             "cards.view",
-          available: false,
+          available: true,
         },
         {
   label: "Rewards",
@@ -159,16 +158,16 @@ const navigationGroups: NavigationGroup[] =
           icon: Package,
           permission:
             "products.view",
-          available: false,
+          available: true,
         },
         {
-          label: "Reviews",
-          href: "/admin/reviews",
-          icon: Star,
-          permission:
-            "reviews.view",
-          available: false,
-        },
+  label: "Reviews",
+  href: "/admin/reviews",
+  icon: Star,
+  permission:
+    "reviews.view",
+  available: true,
+},
         {
           label: "Notifications",
           href:
