@@ -167,37 +167,61 @@ export async function POST(
       Response;
 
     try {
-      upstreamResponse =
-        await fetch(
-          API_URL,
-          {
-            method: "POST",
+      async function fetchAppsScript() {
+  return fetch(API_URL, {
+    method: "POST",
 
-            headers: {
-              "Content-Type":
-                "text/plain;charset=utf-8",
+    headers: {
+      "Content-Type":
+        "text/plain;charset=utf-8",
 
-              Accept:
-                "application/json",
-            },
+      Accept:
+        "application/json",
 
-            body:
-              JSON.stringify(
-                body
-              ),
+      "Cache-Control":
+        "no-cache",
+    },
 
-            cache:
-              "no-store",
+    body:
+      JSON.stringify(body),
 
-            redirect:
-              "follow",
+    cache:
+      "no-store",
 
-            signal:
-              AbortSignal.timeout(
-                60000
-              ),
-          }
-        );
+    redirect:
+      "follow",
+
+    signal:
+      AbortSignal.timeout(
+        60000
+      ),
+  });
+}
+
+upstreamResponse =
+  await fetchAppsScript();
+
+/*
+ * Google Apps Script 有时跳转到临时
+ * googleusercontent URL 时会返回 404。
+ * 遇到这种情况等待一下，再从原始
+ * /exec URL 重新请求一次。
+ */
+if (
+  upstreamResponse.status ===
+  404
+) {
+  await new Promise(
+    (resolve) =>
+      setTimeout(
+        resolve,
+        800
+      )
+  );
+
+  upstreamResponse =
+    await fetchAppsScript();
+}
     } catch (error) {
       console.error(
         "REWARDHUB UPSTREAM FETCH ERROR:",
