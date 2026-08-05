@@ -183,7 +183,7 @@ const navigationGroups: NavigationGroup[] =
           icon: Megaphone,
           permission:
             "marketing.view",
-          available: false,
+          available: true,
         },
       ],
     },
@@ -196,7 +196,7 @@ const navigationGroups: NavigationGroup[] =
           icon: FileBarChart,
           permission:
             "reports.view",
-          available: false,
+          available: true,
         },
         {
           label: "Admin Users",
@@ -204,7 +204,7 @@ const navigationGroups: NavigationGroup[] =
           icon: UserCog,
           permission:
             "admin_users.view",
-          available: false,
+          available: true,
         },
         {
           label: "Settings",
@@ -212,7 +212,7 @@ const navigationGroups: NavigationGroup[] =
           icon: Settings,
           permission:
             "settings.view",
-          available: false,
+          available: true,
         },
       ],
     },

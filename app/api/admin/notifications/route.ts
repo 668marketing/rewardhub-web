@@ -44,6 +44,14 @@ type NotificationRequestBody = {
   image?: string;
 };
 
+type AdminNotificationPatchBody = {
+  action?:
+    | "MARK_READ"
+    | "MARK_ALL_READ";
+
+  notificationId?: string;
+};
+
 function getRequestOrigin(
   request: NextRequest
 ) {
@@ -102,7 +110,7 @@ async function callRewardHub(
     string,
     unknown
   >
-) {
+): Promise<unknown> {
   const origin =
     getRequestOrigin(request);
 
@@ -130,7 +138,11 @@ async function callRewardHub(
 
   try {
     result =
-      JSON.parse(rawText);
+      rawText
+        ? JSON.parse(
+            rawText
+          )
+        : {};
   } catch {
     console.error(
       "Invalid RewardHub notification response:",
@@ -154,28 +166,43 @@ async function callRewardHub(
   }
 
   const responsePayload =
-  result.data ??
-  result.result ??
-  null;
+    result.data ??
+    result.result ??
+    null;
 
-if (
-  responsePayload &&
-  typeof responsePayload === "object"
-) {
-  const payload =
-    responsePayload as Record<
-      string,
-      unknown
-    >;
+  if (
+    responsePayload &&
+    typeof responsePayload ===
+      "object"
+  ) {
+    const nestedPayload =
+      responsePayload as Record<
+        string,
+        unknown
+      >;
 
-  if ("data" in payload) {
-    return payload.data;
+    if (
+      Object.prototype.hasOwnProperty.call(
+        nestedPayload,
+        "data"
+      )
+    ) {
+      return nestedPayload.data;
+    }
+
+    if (
+      Object.prototype.hasOwnProperty.call(
+        nestedPayload,
+        "result"
+      )
+    ) {
+      return nestedPayload.result;
+    }
+
+    return nestedPayload;
   }
 
-  return payload;
-}
-
-return responsePayload;
+  return responsePayload;
 }
 
 export async function GET(
@@ -257,6 +284,32 @@ export async function GET(
 
       payload.limit =
         200;
+    } else if (
+      mode ===
+      "inbox"
+    ) {
+      action =
+        "getAdminNotificationInbox";
+
+      payload.limit =
+        Math.min(
+          Math.max(
+            Number(
+              request.nextUrl
+                .searchParams
+                .get("limit") ||
+                8
+            ),
+            1
+          ),
+          100
+        );
+
+      payload.unreadOnly =
+        request.nextUrl
+          .searchParams
+          .get("unreadOnly") ===
+        "true";
     }
 
     payload.action =
@@ -276,7 +329,10 @@ export async function GET(
             mode ===
             "history"
               ? "Notification history data is missing."
-              : "Notification dashboard data is missing.",
+              : mode ===
+                  "inbox"
+                ? "Administrator notification inbox data is missing."
+                : "Notification dashboard data is missing.",
         },
         {
           status: 502,
@@ -308,6 +364,222 @@ export async function GET(
       NextResponse.json(
         {
           success: false,
+          error:
+            errorMessage,
+        },
+        {
+          status:
+            isAuthError
+              ? 401
+              : 500,
+        }
+      );
+
+    return isAuthError
+      ? clearAdminCookie(
+          response
+        )
+      : response;
+  }
+}
+
+
+export async function PATCH(
+  request: NextRequest
+) {
+  try {
+    const token =
+      request.cookies.get(
+        "rewardhub_admin_session"
+      )?.value;
+
+    if (!token) {
+      return NextResponse.json(
+        {
+          success:
+            false,
+
+          error:
+            "Admin authentication required.",
+        },
+        {
+          status:
+            401,
+        }
+      );
+    }
+
+    let body:
+      AdminNotificationPatchBody;
+
+    try {
+      body =
+        (await request.json()) as
+          AdminNotificationPatchBody;
+    } catch {
+      return NextResponse.json(
+        {
+          success:
+            false,
+
+          error:
+            "Invalid notification update request.",
+        },
+        {
+          status:
+            400,
+        }
+      );
+    }
+
+    const action =
+      String(
+        body.action ||
+        ""
+      )
+        .trim()
+        .toUpperCase();
+
+    const metadata = {
+      userAgent:
+        request.headers.get(
+          "user-agent"
+        ) || "",
+
+      ipAddress:
+        request.headers.get(
+          "x-forwarded-for"
+        ) ||
+        request.headers.get(
+          "x-real-ip"
+        ) ||
+        "",
+    };
+
+    if (
+      action ===
+      "MARK_READ"
+    ) {
+      const notificationId =
+        String(
+          body.notificationId ||
+          ""
+        ).trim();
+
+      if (!notificationId) {
+        return NextResponse.json(
+          {
+            success:
+              false,
+
+            error:
+              "Notification ID is required.",
+          },
+          {
+            status:
+              400,
+          }
+        );
+      }
+
+      const data =
+        await callRewardHub(
+          request,
+          {
+            action:
+              "markAdminNotificationRead",
+
+            token,
+            notificationId,
+
+            ...metadata,
+          }
+        );
+
+      return NextResponse.json(
+        {
+          success:
+            true,
+
+          data,
+        },
+        {
+          headers: {
+            "Cache-Control":
+              "no-store, no-cache, must-revalidate",
+          },
+        }
+      );
+    }
+
+    if (
+      action ===
+      "MARK_ALL_READ"
+    ) {
+      const data =
+        await callRewardHub(
+          request,
+          {
+            action:
+              "markAllAdminNotificationsRead",
+
+            token,
+
+            ...metadata,
+          }
+        );
+
+      return NextResponse.json(
+        {
+          success:
+            true,
+
+          data,
+        },
+        {
+          headers: {
+            "Cache-Control":
+              "no-store, no-cache, must-revalidate",
+          },
+        }
+      );
+    }
+
+    return NextResponse.json(
+      {
+        success:
+          false,
+
+        error:
+          "Unsupported notification update action.",
+      },
+      {
+        status:
+          400,
+      }
+    );
+  } catch (error) {
+    console.error(
+      "Notification PATCH error:",
+      error
+    );
+
+    const errorMessage =
+      error instanceof Error
+        ? error.message
+        : "Unable to update administrator notifications.";
+
+    const isAuthError =
+      /unauthorized|session|expired|inactive/i.test(
+        errorMessage
+      );
+
+    const response =
+      NextResponse.json(
+        {
+          success:
+            false,
+
           error:
             errorMessage,
         },

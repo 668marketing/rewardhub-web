@@ -11,20 +11,27 @@ import {
 import {
   Bell,
   CheckCircle2,
+  Copy,
   Eye,
+  ExternalLink,
   History,
+  Loader2,
   Megaphone,
   RefreshCw,
   Send,
   Smartphone,
   Store,
+  Trash2,
   Users,
+  X,
   XCircle,
 } from "lucide-react";
 
 import {
+  deleteAdminNotificationHistory,
   formatNotificationDate,
   getAdminNotificationDashboard,
+  getAdminNotificationDetail,
   getAdminNotificationHistory,
   getNotificationTargetLabel,
   sendAdminNotification,
@@ -32,6 +39,7 @@ import {
 
 import type {
   AdminNotificationDashboard,
+  AdminNotificationDetail,
   AdminNotificationHistoryItem,
   NotificationTargetType,
 } from "@/lib/admin-notifications";
@@ -195,6 +203,32 @@ export default function AdminNotificationsPage() {
     );
 
   const [
+    selectedNotificationId,
+    setSelectedNotificationId,
+  ] =
+    useState("");
+
+  const [
+    notificationDetail,
+    setNotificationDetail,
+  ] =
+    useState<AdminNotificationDetail | null>(
+      null
+    );
+
+  const [
+    detailLoading,
+    setDetailLoading,
+  ] =
+    useState(false);
+
+  const [
+    deletingHistory,
+    setDeletingHistory,
+  ] =
+    useState(false);
+
+  const [
     targetType,
     setTargetType,
   ] =
@@ -329,6 +363,243 @@ export default function AdminNotificationsPage() {
   useEffect(() => {
     void loadNotificationData();
   }, [loadNotificationData]);
+
+  useEffect(() => {
+    if (
+      !selectedNotificationId
+    ) {
+      setNotificationDetail(
+        null
+      );
+      return;
+    }
+
+    let active = true;
+
+    async function loadDetail() {
+      try {
+        setDetailLoading(true);
+        setFeedback(null);
+
+        const result =
+          await getAdminNotificationDetail(
+            selectedNotificationId
+          );
+
+        if (active) {
+          setNotificationDetail(
+            result
+          );
+        }
+      } catch (error) {
+        if (active) {
+          setFeedback({
+            type: "error",
+            message:
+              error instanceof Error
+                ? error.message
+                : "Unable to load notification details.",
+          });
+
+          setSelectedNotificationId(
+            ""
+          );
+        }
+      } finally {
+        if (active) {
+          setDetailLoading(
+            false
+          );
+        }
+      }
+    }
+
+    void loadDetail();
+
+    return () => {
+      active = false;
+    };
+  }, [
+    selectedNotificationId,
+  ]);
+
+  function closeDetail() {
+    if (deletingHistory) {
+      return;
+    }
+
+    setSelectedNotificationId(
+      ""
+    );
+
+    setNotificationDetail(
+      null
+    );
+  }
+
+  function duplicateNotification() {
+    const item =
+      notificationDetail
+        ?.notification;
+
+    if (!item) {
+      return;
+    }
+
+    const normalizedTargetType =
+      String(
+        item.targetType || ""
+      ).toUpperCase() as
+        NotificationTargetType;
+
+    const supportedTargets:
+      NotificationTargetType[] = [
+        "ALL_MEMBERS",
+        "ALL_MERCHANTS",
+        "SPECIFIC_MEMBER",
+        "SPECIFIC_MERCHANT",
+      ];
+
+    if (
+      supportedTargets.includes(
+        normalizedTargetType
+      )
+    ) {
+      setTargetType(
+        normalizedTargetType
+      );
+    }
+
+    setTargetId(
+      item.targetId || ""
+    );
+
+    setTitle(
+      item.title || ""
+    );
+
+    setMessage(
+      item.message || ""
+    );
+
+    setImage(
+      item.image || ""
+    );
+
+    const itemUrl =
+      String(
+        item.url || ""
+      ).trim();
+
+    const targetUsesMemberPages =
+      normalizedTargetType ===
+        "ALL_MEMBERS" ||
+      normalizedTargetType ===
+        "SPECIFIC_MEMBER";
+
+    const availablePages =
+      targetUsesMemberPages
+        ? MEMBER_RELATED_PAGES
+        : MERCHANT_RELATED_PAGES;
+
+    const matchesRelatedPage =
+      availablePages.some(
+        (option) =>
+          option.value ===
+          itemUrl &&
+          Boolean(
+            option.value
+          )
+      );
+
+    if (matchesRelatedPage) {
+      setRelatedPage(
+        itemUrl
+      );
+
+      setCustomUrl("");
+    } else {
+      setRelatedPage("");
+
+      setCustomUrl(
+        itemUrl
+      );
+    }
+
+    closeDetail();
+
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+
+    setFeedback({
+      type: "success",
+      message:
+        "Notification copied to the send form. Review it before sending.",
+    });
+  }
+
+  async function deleteHistoryRecord() {
+    const item =
+      notificationDetail
+        ?.notification;
+
+    if (!item) {
+      return;
+    }
+
+    const confirmed =
+      window.confirm(
+        "Delete this notification history record? Existing member or merchant notifications will not be deleted."
+      );
+
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      setDeletingHistory(
+        true
+      );
+
+      setFeedback(null);
+
+      await deleteAdminNotificationHistory(
+        item.notificationId
+      );
+
+      setSelectedNotificationId(
+        ""
+      );
+
+      setNotificationDetail(
+        null
+      );
+
+      setFeedback({
+        type: "success",
+        message:
+          "Notification history record deleted. Existing user notifications were preserved.",
+      });
+
+      await loadNotificationData(
+        true
+      );
+    } catch (error) {
+      setFeedback({
+        type: "error",
+        message:
+          error instanceof Error
+            ? error.message
+            : "Unable to delete notification history.",
+      });
+    } finally {
+      setDeletingHistory(
+        false
+      );
+    }
+  }
 
   async function handleSubmit(
     event: FormEvent<HTMLFormElement>
@@ -900,11 +1171,17 @@ export default function AdminNotificationsPage() {
             {historyItems
   .slice(0, 8)
   .map((item) => (
-                <article
+                <button
+                  type="button"
                   key={
                     item.notificationId
                   }
-                  className="rounded-2xl border border-slate-800 bg-[#050d1e] p-4"
+                  onClick={() =>
+                    setSelectedNotificationId(
+                      item.notificationId
+                    )
+                  }
+                  className="block w-full rounded-2xl border border-slate-800 bg-[#050d1e] p-4 text-left transition hover:border-slate-700 hover:bg-[#071126]"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
@@ -950,11 +1227,359 @@ export default function AdminNotificationsPage() {
                       )}
                     </span>
                   </div>
-                </article>
+                </button>
               ))}
           </div>
         </section>
       </section>
+
+      {selectedNotificationId ? (
+        <NotificationDetailDrawer
+          detail={
+            notificationDetail
+          }
+          loading={
+            detailLoading
+          }
+          deleting={
+            deletingHistory
+          }
+          onClose={
+            closeDetail
+          }
+          onDuplicate={
+            duplicateNotification
+          }
+          onDelete={() =>
+            void deleteHistoryRecord()
+          }
+        />
+      ) : null}
+    </div>
+  );
+}
+
+function NotificationDetailDrawer({
+  detail,
+  loading,
+  deleting,
+  onClose,
+  onDuplicate,
+  onDelete,
+}: {
+  detail:
+    AdminNotificationDetail | null;
+  loading: boolean;
+  deleting: boolean;
+  onClose: () => void;
+  onDuplicate: () => void;
+  onDelete: () => void;
+}) {
+  const item =
+    detail?.notification;
+
+  const analytics =
+    detail?.analytics;
+
+  return (
+    <div className="fixed inset-0 z-[200]">
+      <button
+        type="button"
+        aria-label="Close notification details"
+        onClick={onClose}
+        className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm"
+      />
+
+      <aside className="absolute inset-y-0 right-0 flex w-full max-w-2xl flex-col border-l border-slate-800 bg-[#050d1e] shadow-2xl">
+        <header className="flex items-start justify-between border-b border-slate-800 px-5 py-5 sm:px-7">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-[0.14em] text-emerald-300">
+              Notification History
+            </p>
+
+            <h2 className="mt-2 text-xl font-black text-white">
+              Notification Detail
+            </h2>
+
+            <p className="mt-1 break-all text-xs text-slate-600">
+              {item?.notificationId ||
+                "Loading notification"}
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={deleting}
+            className="rounded-xl p-2 text-slate-500 transition hover:bg-white/[0.05] hover:text-white disabled:opacity-40"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </header>
+
+        <div className="flex-1 overflow-y-auto px-5 py-6 sm:px-7">
+          {loading ||
+          !item ? (
+            <div className="flex min-h-[420px] items-center justify-center">
+              <Loader2 className="h-7 w-7 animate-spin text-emerald-300" />
+            </div>
+          ) : (
+            <div className="space-y-5">
+              <section className="rounded-3xl border border-slate-800 bg-[#071126] p-5">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <h3 className="break-words text-xl font-black text-white">
+                      {item.title ||
+                        "Untitled Notification"}
+                    </h3>
+
+                    <p className="mt-2 text-sm text-slate-500">
+                      {getNotificationTargetLabel(
+                        item.targetType,
+                        item.targetId
+                      )}
+                    </p>
+                  </div>
+
+                  <StatusBadge
+                    status={
+                      item.status
+                    }
+                  />
+                </div>
+
+                <p className="mt-5 whitespace-pre-wrap text-sm leading-7 text-slate-300">
+                  {item.message ||
+                    "—"}
+                </p>
+              </section>
+
+              {item.image ? (
+                <section className="overflow-hidden rounded-3xl border border-slate-800 bg-[#071126]">
+                  <img
+                    src={item.image}
+                    alt={
+                      item.title ||
+                      "Notification image"
+                    }
+                    className="max-h-72 w-full object-cover"
+                  />
+                </section>
+              ) : null}
+
+              <section className="grid gap-3 sm:grid-cols-3">
+                <DetailMetric
+                  label="Attempted"
+                  value={
+                    item.attemptedCount
+                  }
+                />
+
+                <DetailMetric
+                  label="Sent"
+                  value={
+                    item.sentCount
+                  }
+                />
+
+                <DetailMetric
+                  label="Failed"
+                  value={
+                    item.failedCount
+                  }
+                />
+              </section>
+
+              <section className="grid gap-3 sm:grid-cols-3">
+                <DetailMetric
+                  label="Recipients"
+                  value={
+                    analytics
+                      ?.recipientCount ||
+                    0
+                  }
+                />
+
+                <DetailMetric
+                  label="Read"
+                  value={
+                    analytics
+                      ?.readCount ||
+                    0
+                  }
+                />
+
+                <DetailMetric
+                  label="Unread"
+                  value={
+                    analytics
+                      ?.unreadCount ||
+                    0
+                  }
+                />
+              </section>
+
+              <section className="rounded-3xl border border-slate-800 bg-[#071126] p-5">
+                <h3 className="font-bold text-white">
+                  Delivery Information
+                </h3>
+
+                <div className="mt-5 grid gap-5 sm:grid-cols-2">
+                  <DetailInfo
+                    label="Channel"
+                    value={
+                      item.channel ||
+                      "—"
+                    }
+                  />
+
+                  <DetailInfo
+                    label="Read Rate"
+                    value={`${Number(
+                      analytics?.readRate ||
+                        0
+                    ).toFixed(2)}%`}
+                  />
+
+                  <DetailInfo
+                    label="Created By"
+                    value={
+                      item.createdBy ||
+                      "—"
+                    }
+                  />
+
+                  <DetailInfo
+                    label="Created At"
+                    value={formatNotificationDate(
+                      item.createdAt
+                    )}
+                  />
+                </div>
+
+                <div className="mt-5">
+                  <DetailInfo
+                    label="Destination"
+                    value={
+                      item.url ||
+                      "No related page"
+                    }
+                  />
+
+                  {item.url ? (
+                    <a
+                      href={item.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-3 inline-flex items-center gap-2 text-xs font-bold text-emerald-300 no-underline"
+                    >
+                      <ExternalLink className="h-4 w-4" />
+                      Open destination
+                    </a>
+                  ) : null}
+                </div>
+              </section>
+
+              {item.errorSummary ? (
+                <section className="rounded-3xl border border-red-400/20 bg-red-400/10 p-5">
+                  <h3 className="font-bold text-red-200">
+                    Error Summary
+                  </h3>
+
+                  <p className="mt-3 whitespace-pre-wrap break-words text-sm leading-6 text-red-200/80">
+                    {
+                      item.errorSummary
+                    }
+                  </p>
+                </section>
+              ) : null}
+            </div>
+          )}
+        </div>
+
+        <footer className="grid gap-3 border-t border-slate-800 bg-[#050d1e] px-5 py-5 sm:grid-cols-2 sm:px-7">
+          <button
+            type="button"
+            disabled={
+              loading ||
+              !item ||
+              deleting
+            }
+            onClick={
+              onDuplicate
+            }
+            className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-emerald-400 text-sm font-black text-slate-950 transition hover:bg-emerald-300 disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            <Copy className="h-4 w-4" />
+            Duplicate to Form
+          </button>
+
+          <button
+            type="button"
+            disabled={
+              loading ||
+              !item ||
+              deleting
+            }
+            onClick={
+              onDelete
+            }
+            className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl border border-red-400/20 bg-red-400/10 text-sm font-black text-red-300 transition hover:bg-red-400/20 disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            {deleting ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Trash2 className="h-4 w-4" />
+            )}
+
+            {deleting
+              ? "Deleting..."
+              : "Delete History"}
+          </button>
+        </footer>
+      </aside>
+    </div>
+  );
+}
+
+function DetailMetric({
+  label,
+  value,
+}: {
+  label: string;
+  value: number;
+}) {
+  return (
+    <div className="rounded-2xl border border-slate-800 bg-[#071126] p-4">
+      <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-slate-600">
+        {label}
+      </p>
+
+      <p className="mt-2 text-2xl font-black text-white">
+        {Number(
+          value || 0
+        ).toLocaleString()}
+      </p>
+    </div>
+  );
+}
+
+function DetailInfo({
+  label,
+  value,
+}: {
+  label: string;
+  value: string;
+}) {
+  return (
+    <div>
+      <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-slate-600">
+        {label}
+      </p>
+
+      <p className="mt-2 break-words text-sm font-semibold text-slate-300">
+        {value || "—"}
+      </p>
     </div>
   );
 }

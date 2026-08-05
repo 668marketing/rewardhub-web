@@ -536,7 +536,7 @@ export default function AdminMembersPage() {
             <Search className="pointer-events-none absolute left-4 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-slate-600" />
 
             <input
-              type="search"
+              type="text"
               value={searchInput}
               onChange={(event) =>
                 setSearchInput(

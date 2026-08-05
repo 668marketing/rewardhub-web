@@ -10,7 +10,9 @@ import {
   useRef,
   useState,
 } from "react";
-import { useRouter } from "next/navigation";
+import {
+  useRouter,
+} from "next/navigation";
 import {
   AlertTriangle,
   Loader2,
@@ -29,9 +31,16 @@ type AdminAuthContextValue = {
   admin: AdminUser;
   permissions: string[];
   expiresAt: string;
+
   hasPermission: (
     permission: string
   ) => boolean;
+
+  updateCurrentAdmin: (
+    nextAdmin:
+      AdminUser
+  ) => void;
+
   refreshSession: () => Promise<void>;
   signOut: () => Promise<void>;
 };
@@ -42,9 +51,10 @@ const AdminAuthContext =
   );
 
 export function useAdminAuth() {
-  const context = useContext(
-    AdminAuthContext
-  );
+  const context =
+    useContext(
+      AdminAuthContext
+    );
 
   if (!context) {
     throw new Error(
@@ -64,67 +74,67 @@ type LoadSessionOptions = {
   force?: boolean;
 };
 
-/*
- * 浏览器重新获得焦点时，
- * 最多每 5 分钟验证一次 Session。
- */
 const FOCUS_RECHECK_INTERVAL =
   5 * 60 * 1000;
 
 export default function AdminRouteGuard({
   children,
 }: AdminRouteGuardProps) {
-  const router = useRouter();
+  const router =
+    useRouter();
 
-  const [admin, setAdmin] =
-    useState<AdminUser | null>(null);
+  const [
+    admin,
+    setAdmin,
+  ] =
+    useState<AdminUser | null>(
+      null
+    );
 
-  const [permissions, setPermissions] =
+  const [
+    permissions,
+    setPermissions,
+  ] =
     useState<string[]>([]);
 
-  const [expiresAt, setExpiresAt] =
+  const [
+    expiresAt,
+    setExpiresAt,
+  ] =
     useState("");
 
-  const [loading, setLoading] =
+  const [
+    loading,
+    setLoading,
+  ] =
     useState(true);
 
-  const [refreshing, setRefreshing] =
+  const [
+    refreshing,
+    setRefreshing,
+  ] =
     useState(false);
 
-  const [error, setError] =
+  const [
+    error,
+    setError,
+  ] =
     useState("");
 
-  /*
-   * 保存最新的 Admin 数据。
-   *
-   * 使用 Ref 后，loadSession 不需要依赖 admin，
-   * 因此不会因为 setAdmin 而不断重新创建，
-   * 也不会导致首次验证的 useEffect 重复运行。
-   */
   const adminRef =
-    useRef<AdminUser | null>(null);
+    useRef<AdminUser | null>(
+      null
+    );
 
-  /*
-   * 防止多个 Session 验证同时执行。
-   */
   const requestInProgressRef =
     useRef(false);
 
-  /*
-   * 记录最近一次验证完成的时间。
-   */
   const lastCheckedAtRef =
     useRef(0);
 
-  /*
-   * 避免组件卸载后继续修改 React State。
-   */
   const mountedRef =
     useRef(false);
 
-  /*
-   * 避免同一次失效 Session 重复跳转 Login。
-   */
   const redirectingRef =
     useRef(false);
 
@@ -134,16 +144,21 @@ export default function AdminRouteGuard({
         nextAdmin:
           | AdminUser
           | null,
-        nextPermissions: string[] = [],
+        nextPermissions:
+          string[] = [],
         nextExpiresAt = ""
       ) => {
         adminRef.current =
           nextAdmin;
 
-        setAdmin(nextAdmin);
+        setAdmin(
+          nextAdmin
+        );
+
         setPermissions(
           nextPermissions
         );
+
         setExpiresAt(
           nextExpiresAt
         );
@@ -151,9 +166,28 @@ export default function AdminRouteGuard({
       []
     );
 
+  const updateCurrentAdmin =
+    useCallback(
+      (
+        nextAdmin:
+          AdminUser
+      ) => {
+        adminRef.current =
+          nextAdmin;
+
+        setAdmin(
+          nextAdmin
+        );
+      },
+      []
+    );
+
   const redirectToLogin =
     useCallback(
-      (clearState = true) => {
+      (
+        clearState =
+          true
+      ) => {
         if (
           redirectingRef.current
         ) {
@@ -163,7 +197,9 @@ export default function AdminRouteGuard({
         redirectingRef.current =
           true;
 
-        if (clearState) {
+        if (
+          clearState
+        ) {
           updateAdminState(
             null,
             [],
@@ -184,35 +220,30 @@ export default function AdminRouteGuard({
   const loadSession =
     useCallback(
       async (
-        options: LoadSessionOptions = {}
+        options:
+          LoadSessionOptions = {}
       ) => {
         const manual =
-          options.manual === true;
+          options.manual ===
+          true;
 
         const force =
-          options.force === true;
+          options.force ===
+          true;
 
-        /*
-         * 已有一个请求执行中时，
-         * 不再发起第二个请求。
-         */
         if (
           requestInProgressRef.current
         ) {
           return;
         }
 
-        const now =
+        const currentTime =
           Date.now();
 
-        /*
-         * 已经登录并且刚验证过，
-         * 非强制请求直接跳过。
-         */
         if (
           !force &&
           adminRef.current &&
-          now -
+          currentTime -
             lastCheckedAtRef.current <
             FOCUS_RECHECK_INTERVAL
         ) {
@@ -226,14 +257,22 @@ export default function AdminRouteGuard({
           if (
             mountedRef.current
           ) {
-            setError("");
+            setError(
+              ""
+            );
 
-            if (manual) {
-              setRefreshing(true);
+            if (
+              manual
+            ) {
+              setRefreshing(
+                true
+              );
             } else if (
               !adminRef.current
             ) {
-              setLoading(true);
+              setLoading(
+                true
+              );
             }
           }
 
@@ -246,32 +285,25 @@ export default function AdminRouteGuard({
             return;
           }
 
-          /*
-           * 只有 API 明确表示 authenticated=false，
-           * 才视为真正未登录或 Session 已失效。
-           *
-           * 网络错误、502、503、超时、无效 JSON，
-           * 不会在这里自动退出。
-           */
           if (
             result.authenticated ===
             false
           ) {
-            redirectToLogin(true);
+            redirectToLogin(
+              true
+            );
+
             return;
           }
 
-          /*
-           * 服务器有响应，但资料不完整。
-           * 这属于暂时性 API 问题，不清除现有登录。
-           */
           if (
-            result.success !== true ||
+            result.success !==
+              true ||
             !result.admin
           ) {
             throw new Error(
               result.error ||
-                "Unable to validate admin session."
+              "Unable to validate admin session."
             );
           }
 
@@ -285,11 +317,16 @@ export default function AdminRouteGuard({
             )
               ? result.permissions
               : [],
-            result.expiresAt || ""
+            result.expiresAt ||
+              ""
           );
 
-          setError("");
-        } catch (sessionError) {
+          setError(
+            ""
+          );
+        } catch (
+          sessionError
+        ) {
           console.error(
             "Admin session load error:",
             sessionError
@@ -301,13 +338,6 @@ export default function AdminRouteGuard({
             return;
           }
 
-          /*
-           * 请求失败时保留现有 Admin。
-           *
-           * 如果用户已经进入后台，
-           * 不会因为 Apps Script 暂时缓慢、
-           * 网络失败或返回 502 而被踢去 Login。
-           */
           setError(
             sessionError instanceof
               Error
@@ -315,10 +345,6 @@ export default function AdminRouteGuard({
               : "Unable to validate admin session."
           );
         } finally {
-          /*
-           * 无论成功或失败都记录时间，
-           * 防止浏览器 Focus 时不断重复请求。
-           */
           lastCheckedAtRef.current =
             Date.now();
 
@@ -328,8 +354,13 @@ export default function AdminRouteGuard({
           if (
             mountedRef.current
           ) {
-            setLoading(false);
-            setRefreshing(false);
+            setLoading(
+              false
+            );
+
+            setRefreshing(
+              false
+            );
           }
         }
       },
@@ -339,32 +370,23 @@ export default function AdminRouteGuard({
       ]
     );
 
-  /*
-   * 首次进入受保护 Admin 页面时验证一次。
-   *
-   * loadSession 已不再依赖 admin，
-   * 因此 setAdmin 后不会再次触发这个 Effect。
-   */
   useEffect(() => {
     mountedRef.current =
       true;
 
     void loadSession({
-      force: true,
+      force:
+        true,
     });
 
     return () => {
       mountedRef.current =
         false;
     };
-  }, [loadSession]);
+  }, [
+    loadSession,
+  ]);
 
-  /*
-   * 浏览器重新获得焦点时检查 Session。
-   *
-   * 5 分钟以内不会重复检查，
-   * 同时也不会产生多个并行请求。
-   */
   useEffect(() => {
     function handleFocus() {
       if (
@@ -398,12 +420,10 @@ export default function AdminRouteGuard({
         handleFocus
       );
     };
-  }, [loadSession]);
+  }, [
+    loadSession,
+  ]);
 
-  /*
-   * 当页面从后台标签页重新变为可见时，
-   * 使用相同的 5 分钟限制检查 Session。
-   */
   useEffect(() => {
     function handleVisibilityChange() {
       if (
@@ -444,48 +464,58 @@ export default function AdminRouteGuard({
         handleVisibilityChange
       );
     };
-  }, [loadSession]);
+  }, [
+    loadSession,
+  ]);
 
   const signOut =
-    useCallback(async () => {
-      if (
-        redirectingRef.current
-      ) {
-        return;
-      }
+    useCallback(
+      async () => {
+        if (
+          redirectingRef.current
+        ) {
+          return;
+        }
 
-      redirectingRef.current =
-        true;
+        redirectingRef.current =
+          true;
 
-      try {
-        await logoutAdmin();
-      } catch (logoutError) {
-        console.error(
-          "Admin logout error:",
+        try {
+          await logoutAdmin();
+        } catch (
           logoutError
-        );
-      } finally {
-        updateAdminState(
-          null,
-          [],
-          ""
-        );
+        ) {
+          console.error(
+            "Admin logout error:",
+            logoutError
+          );
+        } finally {
+          updateAdminState(
+            null,
+            [],
+            ""
+          );
 
-        setError("");
+          setError(
+            ""
+          );
 
-        router.replace(
-          "/admin/login"
-        );
-      }
-    }, [
-      router,
-      updateAdminState,
-    ]);
+          router.replace(
+            "/admin/login"
+          );
+        }
+      },
+      [
+        router,
+        updateAdminState,
+      ]
+    );
 
   const hasPermission =
     useCallback(
       (
-        permission: string
+        permission:
+          string
       ) => {
         if (
           permissions.includes(
@@ -499,21 +529,33 @@ export default function AdminRouteGuard({
           permission
         );
       },
-      [permissions]
+      [
+        permissions,
+      ]
     );
 
   const refreshSession =
-    useCallback(async () => {
-      await loadSession({
-        manual: true,
-        force: true,
-      });
-    }, [loadSession]);
+    useCallback(
+      async () => {
+        await loadSession({
+          manual:
+            true,
+
+          force:
+            true,
+        });
+      },
+      [
+        loadSession,
+      ]
+    );
 
   const contextValue =
     useMemo<AdminAuthContextValue | null>(
       () => {
-        if (!admin) {
+        if (
+          !admin
+        ) {
           return null;
         }
 
@@ -522,6 +564,7 @@ export default function AdminRouteGuard({
           permissions,
           expiresAt,
           hasPermission,
+          updateCurrentAdmin,
           refreshSession,
           signOut,
         };
@@ -531,15 +574,12 @@ export default function AdminRouteGuard({
         permissions,
         expiresAt,
         hasPermission,
+        updateCurrentAdmin,
         refreshSession,
         signOut,
       ]
     );
 
-  /*
-   * 首次进入 Admin Portal，
-   * Session 仍在验证中。
-   */
   if (
     loading &&
     !admin
@@ -560,20 +600,13 @@ export default function AdminRouteGuard({
           </h1>
 
           <p className="mt-2 text-sm text-slate-500">
-            Verifying your secure
-            session…
+            Verifying your secure session…
           </p>
         </div>
       </main>
     );
   }
 
-  /*
-   * 首次 Session 验证遇到临时网络错误。
-   *
-   * 不直接退出，
-   * 让管理员自行重试。
-   */
   if (
     !admin ||
     !contextValue
@@ -586,8 +619,7 @@ export default function AdminRouteGuard({
           </div>
 
           <h1 className="mt-5 text-xl font-semibold text-white">
-            Session verification
-            delayed
+            Session verification delayed
           </h1>
 
           <p className="mt-3 text-sm leading-6 text-slate-400">
@@ -597,7 +629,9 @@ export default function AdminRouteGuard({
 
           <button
             type="button"
-            disabled={refreshing}
+            disabled={
+              refreshing
+            }
             onClick={() => {
               void refreshSession();
             }}
@@ -630,7 +664,9 @@ export default function AdminRouteGuard({
 
   return (
     <AdminAuthContext.Provider
-      value={contextValue}
+      value={
+        contextValue
+      }
     >
       {children}
 
@@ -675,7 +711,9 @@ export default function AdminRouteGuard({
               type="button"
               aria-label="Dismiss warning"
               onClick={() =>
-                setError("")
+                setError(
+                  ""
+                )
               }
               className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-slate-500 transition hover:bg-white/[0.05] hover:text-white"
             >
