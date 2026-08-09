@@ -16,6 +16,7 @@ import {
   useState,
 } from "react";
 
+import LanguageSwitcher from "@/components/i18n/LanguageSwitcher";
 import { useLanguage } from "@/hooks/useLanguage";
 
 type PortalType = "member" | "business";
@@ -270,7 +271,7 @@ export default function Header() {
           </nav>
         )}
 
-        <div className="flex shrink-0 items-center gap-2">
+        <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
           {showPortalControls && (
             <>
               <IconLink
@@ -297,6 +298,10 @@ export default function Header() {
               </IconLink>
             </>
           )}
+
+          <div className="shrink-0">
+            <LanguageSwitcher compact />
+          </div>
 
           <SupportIconButton
             label={copy.openSupport}
