@@ -610,7 +610,7 @@ export default function ProductDetailPage() {
 
   return (
     <MemberLayout>
-      <main className="min-h-screen bg-[#f4f6fa] pb-32 text-slate-950 lg:pb-14">
+      <main className="min-h-screen bg-[#f4f6fa] pb-56 text-slate-950 lg:pb-14">
         <section className="mx-auto w-full max-w-[1380px] px-4 py-5 sm:px-6 sm:py-8 lg:px-8 xl:px-10">
           {/* Breadcrumb / Back */}
           <div className="mb-5 flex items-center justify-between gap-4">
@@ -1134,7 +1134,7 @@ export default function ProductDetailPage() {
         </section>
 
         {/* Mobile fixed action */}
-        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/95 px-4 pb-[calc(12px+env(safe-area-inset-bottom))] pt-3 shadow-[0_-12px_35px_rgba(15,23,42,0.10)] backdrop-blur-xl lg:hidden">
+        <div className="fixed inset-x-0 bottom-[78px] z-[60] border-t border-slate-200 bg-white/95 px-4 pb-3 pt-3 shadow-[0_-12px_35px_rgba(15,23,42,0.10)] backdrop-blur-xl lg:hidden">
           <div className="mx-auto grid max-w-3xl grid-cols-2 gap-3">
             <button
               type="button"
@@ -1144,7 +1144,7 @@ export default function ProductDetailPage() {
               disabled={
                 !productStatus.available
               }
-              className="flex min-h-13 items-center justify-center gap-2 rounded-2xl border border-slate-300 bg-white px-4 text-sm font-black text-slate-950 disabled:bg-slate-100 disabled:text-slate-400"
+              className="flex min-h-[52px] items-center justify-center gap-2 rounded-2xl border border-slate-300 bg-white px-4 text-sm font-black text-slate-950 disabled:bg-slate-100 disabled:text-slate-400"
             >
               <ShoppingCart className="h-5 w-5" />
               Add to Cart
@@ -1158,7 +1158,7 @@ export default function ProductDetailPage() {
               disabled={
                 !productStatus.available
               }
-              className="flex min-h-13 items-center justify-center rounded-2xl bg-slate-950 px-4 text-sm font-black text-white disabled:bg-slate-300"
+              className="flex min-h-[52px] items-center justify-center rounded-2xl bg-slate-950 px-4 text-sm font-black text-white disabled:bg-slate-300"
             >
               Buy Now
             </button>
