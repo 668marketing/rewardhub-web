@@ -762,25 +762,6 @@ export default function ProductDetailPage() {
                     {productName}
                   </h1>
 
-                  <MerchantMiniProfile
-                    href={
-                      merchantHref
-                    }
-                    name={
-                      merchantName
-                    }
-                    category={
-                      merchant.category ||
-                      t("memberProductDetail.rewardHubMerchant")
-                    }
-                    logoUrl={
-                      merchantLogo
-                    }
-                    verified={
-                      merchant.verified !==
-                      false
-                    }
-                  />
                 </div>
 
                 {/* Price */}
@@ -1102,61 +1083,6 @@ export default function ProductDetailPage() {
         </div>
       </main>
     </MemberLayout>
-  );
-}
-
-function MerchantMiniProfile({
-  href,
-  name,
-  category,
-  logoUrl,
-  verified,
-}: {
-  href: string;
-  name: string;
-  category: string;
-  logoUrl: string;
-  verified: boolean;
-}) {
-  const { t } =
-    useLanguage();
-
-  return (
-    <Link
-      href={href}
-      className="mt-5 flex w-fit max-w-full items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-2.5 pr-4 text-slate-950 no-underline transition hover:border-slate-300 hover:bg-white hover:shadow-sm"
-    >
-      <MerchantLogo
-        name={name}
-        logoUrl={logoUrl}
-        size="small"
-      />
-
-      <div className="min-w-0">
-        <div className="flex items-center gap-1.5">
-          <p className="truncate text-sm font-black">
-            {name}
-          </p>
-
-          {verified ? (
-            <span
-              className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-emerald-500 text-[9px] text-white"
-              title={t("memberProductDetail.verifiedMerchant")}
-            >
-              ✓
-            </span>
-          ) : null}
-        </div>
-
-        <p className="mt-0.5 truncate text-xs font-bold text-slate-500">
-          {category}
-        </p>
-      </div>
-
-      <span className="ml-1 text-sm font-black text-slate-400">
-        →
-      </span>
-    </Link>
   );
 }
 
