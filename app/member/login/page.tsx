@@ -9,7 +9,6 @@ import Link from "next/link";
 import {
   useRouter,
 } from "next/navigation";
-import LanguageSwitcher from "@/components/i18n/LanguageSwitcher";
 import { useLanguage } from "@/hooks/useLanguage";
 import Header from "@/components/layout/Header";
 import {
@@ -420,11 +419,9 @@ function LoginContent() {
 
   return (
     <>
-<Header />
+      <Header />
+
       <main className="relative min-h-screen bg-[radial-gradient(circle_at_top_left,#dbeafe,transparent_35%),#f8fafc]">
-        <div className="absolute right-4 top-4 z-40 sm:right-6 sm:top-6">
-          <LanguageSwitcher compact />
-        </div>
         <section className="mx-auto flex min-h-[calc(100vh-80px)] max-w-7xl items-center px-4 py-8 sm:px-6 sm:py-12">
           <div className="mx-auto w-full max-w-md rounded-[1.75rem] bg-white p-5 shadow-2xl sm:rounded-[2rem] sm:p-8">
             <div className="text-center">
@@ -489,7 +486,9 @@ function LoginContent() {
                     setErrorMessage("")
                   }
                   className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-xl font-medium leading-none text-red-400 transition hover:bg-red-100 hover:text-red-600"
-                  aria-label={copy.dismissError}
+                  aria-label={
+                    copy.dismissError
+                  }
                 >
                   ×
                 </button>
@@ -521,8 +520,12 @@ function LoginContent() {
                     event.target.value
                   );
 
-                  if (errorMessage) {
-                    setErrorMessage("");
+                  if (
+                    errorMessage
+                  ) {
+                    setErrorMessage(
+                      ""
+                    );
                   }
                 }}
                 required
@@ -533,7 +536,9 @@ function LoginContent() {
                   )
                 }
                 className="w-full rounded-xl border border-slate-200 px-4 py-4 text-sm font-semibold outline-none transition focus:border-slate-950 focus:ring-2 focus:ring-slate-950/10 sm:rounded-2xl sm:px-5"
-                placeholder={copy.loginId}
+                placeholder={
+                  copy.loginId
+                }
               />
 
               <div className="relative">
@@ -553,8 +558,12 @@ function LoginContent() {
                       event.target.value
                     );
 
-                    if (errorMessage) {
-                      setErrorMessage("");
+                    if (
+                      errorMessage
+                    ) {
+                      setErrorMessage(
+                        ""
+                      );
                     }
                   }}
                   required
@@ -565,7 +574,9 @@ function LoginContent() {
                     )
                   }
                   className="w-full rounded-xl border border-slate-200 px-4 py-4 pr-20 text-sm font-semibold outline-none transition focus:border-slate-950 focus:ring-2 focus:ring-slate-950/10 sm:rounded-2xl sm:px-5 sm:pr-24"
-                  placeholder={copy.password}
+                  placeholder={
+                    copy.password
+                  }
                 />
 
                 <button
@@ -591,7 +602,9 @@ function LoginContent() {
                   href="/forgot-password"
                   className="text-xs font-black text-slate-600 no-underline hover:text-slate-950"
                 >
-                  {copy.forgotPassword}
+                  {
+                    copy.forgotPassword
+                  }
                 </Link>
               </div>
 
@@ -609,14 +622,18 @@ function LoginContent() {
             </form>
 
             <p className="mt-6 text-center text-sm font-semibold text-slate-500">
-              {copy.newToRewardHub}{" "}
+              {
+                copy.newToRewardHub
+              }{" "}
               <Link
                 href={
                   registerHref
                 }
                 className="font-black text-slate-950 no-underline"
               >
-                {copy.register}
+                {
+                  copy.register
+                }
               </Link>
             </p>
           </div>
@@ -648,7 +665,11 @@ function LoginLoading() {
         <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-slate-950" />
 
         <p className="mt-4 text-sm font-semibold text-slate-500">
-          {loadingText[language]}
+          {
+            loadingText[
+              language
+            ]
+          }
         </p>
       </div>
     </main>
