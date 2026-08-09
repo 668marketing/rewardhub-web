@@ -410,4 +410,4 @@ export async function searchAdminGlobal(
   return normalizeSearchData(
     payload
   );
-}
+}   

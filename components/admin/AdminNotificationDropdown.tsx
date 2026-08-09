@@ -39,7 +39,128 @@ const INBOX_LIMIT =
   8;
 
 const AUTO_REFRESH_MS =
-  60_000;
+  3_000;
+
+
+function playAdminNotificationSound() {
+  if (
+    typeof window ===
+    "undefined"
+  ) {
+    return;
+  }
+
+  try {
+    const AudioContextClass =
+      window.AudioContext ||
+      (
+        window as typeof window & {
+          webkitAudioContext?:
+            typeof AudioContext;
+        }
+      ).webkitAudioContext;
+
+    if (!AudioContextClass) {
+      return;
+    }
+
+    const audioContext =
+      new AudioContextClass();
+
+    const playTone = (
+      frequency: number,
+      startOffset: number,
+      duration: number
+    ) => {
+      const oscillator =
+        audioContext.createOscillator();
+
+      const gain =
+        audioContext.createGain();
+
+      oscillator.type =
+        "sine";
+
+      oscillator.frequency.setValueAtTime(
+        frequency,
+        audioContext.currentTime +
+          startOffset
+      );
+
+      gain.gain.setValueAtTime(
+        0.0001,
+        audioContext.currentTime +
+          startOffset
+      );
+
+      gain.gain.exponentialRampToValueAtTime(
+        0.16,
+        audioContext.currentTime +
+          startOffset +
+          0.02
+      );
+
+      gain.gain.exponentialRampToValueAtTime(
+        0.0001,
+        audioContext.currentTime +
+          startOffset +
+          duration
+      );
+
+      oscillator.connect(
+        gain
+      );
+
+      gain.connect(
+        audioContext.destination
+      );
+
+      oscillator.start(
+        audioContext.currentTime +
+          startOffset
+      );
+
+      oscillator.stop(
+        audioContext.currentTime +
+          startOffset +
+          duration
+      );
+    };
+
+    if (
+      audioContext.state ===
+      "suspended"
+    ) {
+      void audioContext.resume();
+    }
+
+    playTone(
+      880,
+      0,
+      0.16
+    );
+
+    playTone(
+      1175,
+      0.18,
+      0.22
+    );
+
+    window.setTimeout(
+      () => {
+        void audioContext.close();
+      },
+      700
+    );
+  } catch (
+    soundError
+  ) {
+    console.warn(
+      "Unable to play administrator notification sound:",
+      soundError
+    );
+  }
+}
 
 export default function AdminNotificationDropdown({
   open,
@@ -57,6 +178,12 @@ export default function AdminNotificationDropdown({
     useRef<AbortController | null>(
       null
     );
+
+  const previousUnreadCountRef =
+    useRef(0);
+
+  const hasLoadedInboxRef =
+    useRef(false);
 
   const [
     loading,
@@ -129,6 +256,7 @@ export default function AdminNotificationDropdown({
       async (
         options?: {
           silent?: boolean;
+          playSoundOnIncrease?: boolean;
         }
       ) => {
         abortControllerRef.current?.abort();
@@ -173,13 +301,37 @@ export default function AdminNotificationDropdown({
                 controller.signal,
             });
 
+          const nextUnreadCount =
+            Math.max(
+              0,
+              Number(
+                inbox.unreadCount ||
+                0
+              )
+            );
+
+          const shouldPlaySound =
+            Boolean(
+              options
+                ?.playSoundOnIncrease
+            ) &&
+            hasLoadedInboxRef.current &&
+            nextUnreadCount >
+              previousUnreadCountRef.current;
+
           setNotifications(
             inbox.items
           );
 
           setServerUnreadCount(
-            inbox.unreadCount
+            nextUnreadCount
           );
+
+          previousUnreadCountRef.current =
+            nextUnreadCount;
+
+          hasLoadedInboxRef.current =
+            true;
 
           window.dispatchEvent(
             new CustomEvent(
@@ -187,11 +339,17 @@ export default function AdminNotificationDropdown({
               {
                 detail: {
                   unreadCount:
-                    inbox.unreadCount,
+                    nextUnreadCount,
                 },
               }
             )
           );
+
+          if (
+            shouldPlaySound
+          ) {
+            playAdminNotificationSound();
+          }
         } catch (
           loadError
         ) {
@@ -264,15 +422,12 @@ export default function AdminNotificationDropdown({
   ]);
 
   useEffect(() => {
-    if (
-      !open
-    ) {
-      abortControllerRef.current?.abort();
-
-      return;
-    }
-
-    void loadNotifications();
+    void loadNotifications({
+      silent:
+        !open,
+      playSoundOnIncrease:
+        true,
+    });
 
     const timer =
       window.setInterval(
@@ -280,14 +435,59 @@ export default function AdminNotificationDropdown({
           void loadNotifications({
             silent:
               true,
+            playSoundOnIncrease:
+              true,
           });
         },
         AUTO_REFRESH_MS
       );
 
+    function handleWindowFocus() {
+      void loadNotifications({
+        silent:
+          true,
+        playSoundOnIncrease:
+          true,
+      });
+    }
+
+    function handleVisibilityChange() {
+      if (
+        document.visibilityState ===
+        "visible"
+      ) {
+        void loadNotifications({
+          silent:
+            true,
+          playSoundOnIncrease:
+            true,
+        });
+      }
+    }
+
+    window.addEventListener(
+      "focus",
+      handleWindowFocus
+    );
+
+    document.addEventListener(
+      "visibilitychange",
+      handleVisibilityChange
+    );
+
     return () => {
       window.clearInterval(
         timer
+      );
+
+      window.removeEventListener(
+        "focus",
+        handleWindowFocus
+      );
+
+      document.removeEventListener(
+        "visibilitychange",
+        handleVisibilityChange
       );
 
       abortControllerRef.current?.abort();
@@ -354,6 +554,9 @@ export default function AdminNotificationDropdown({
       setServerUnreadCount(
         0
       );
+
+      previousUnreadCountRef.current =
+        0;
 
       window.dispatchEvent(
         new CustomEvent(
@@ -441,6 +644,9 @@ export default function AdminNotificationDropdown({
         setServerUnreadCount(
           nextUnreadCount
         );
+
+        previousUnreadCountRef.current =
+          nextUnreadCount;
 
         window.dispatchEvent(
           new CustomEvent(

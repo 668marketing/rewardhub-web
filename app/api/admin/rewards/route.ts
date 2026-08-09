@@ -18,7 +18,8 @@ type AdminRewardsGetAction =
   | "getAdminRewardsDashboard"
   | "getAdminRewardRedemptions"
   | "getAdminRewards"
-  | "getAdminRewardDetail";
+  | "getAdminRewardDetail"
+  | "getAdminRewardRedemptionDetail";
 
 type AdminRewardsPostAction =
   | "createAdminReward"
@@ -226,6 +227,12 @@ export async function GET(
       action =
         "getAdminRewardRedemptions";
     } else if (
+      mode ===
+      "redemptiondetail"
+    ) {
+      action =
+        "getAdminRewardRedemptionDetail";
+    } else if (
       mode === "list"
     ) {
       action =
@@ -238,6 +245,28 @@ export async function GET(
     } else {
       action =
         "getAdminRewardsDashboard";
+    }
+
+    const redemptionId =
+      searchParams.get(
+        "redemptionId"
+      ) || "";
+
+    if (
+      mode ===
+        "redemptiondetail" &&
+      !redemptionId.trim()
+    ) {
+      return NextResponse.json(
+        {
+          success: false,
+          error:
+            "Redemption ID is required.",
+        },
+        {
+          status: 400,
+        }
+      );
     }
 
     const backendResponse =
@@ -257,50 +286,76 @@ export async function GET(
             JSON.stringify({
               action,
               token,
+
               rewardId:
                 searchParams.get(
                   "rewardId"
                 ) || "",
+
+              redemptionId,
+
               search:
                 searchParams.get(
                   "search"
                 ) || "",
+
               status:
                 searchParams.get(
                   "status"
                 ) || "ALL",
+
               category:
                 searchParams.get(
                   "category"
                 ) || "ALL",
+
               rewardType:
                 searchParams.get(
                   "rewardType"
                 ) || "ALL",
+
               deliveryMethod:
                 searchParams.get(
                   "deliveryMethod"
                 ) || "ALL",
+
               dateFrom:
                 searchParams.get(
                   "dateFrom"
                 ) || "",
+
               dateTo:
                 searchParams.get(
                   "dateTo"
                 ) || "",
+
               page:
                 Number(
                   searchParams.get(
                     "page"
                   ) || 1
                 ),
+
               pageSize:
                 Number(
                   searchParams.get(
                     "pageSize"
                   ) || 25
                 ),
+
+              userAgent:
+                request.headers.get(
+                  "user-agent"
+                ) || "",
+
+              ipAddress:
+                request.headers.get(
+                  "x-forwarded-for"
+                ) ||
+                request.headers.get(
+                  "x-real-ip"
+                ) ||
+                "",
             }),
         }
       );
@@ -310,7 +365,10 @@ export async function GET(
         unknown
       >(
         backendResponse,
-        "Unable to load rewards."
+        mode ===
+          "redemptiondetail"
+          ? "Unable to load redemption details."
+          : "Unable to load rewards."
       );
 
     if (!parsed.ok) {
@@ -334,12 +392,27 @@ export async function GET(
         : response;
     }
 
-    return NextResponse.json({
-      success: true,
-      data:
-        parsed.data,
-    });
+    return NextResponse.json(
+      {
+        success: true,
+        data:
+          parsed.data,
+      },
+      {
+        headers: {
+          "Cache-Control":
+            "no-store, no-cache, must-revalidate",
+          Pragma:
+            "no-cache",
+        },
+      }
+    );
   } catch (error) {
+    console.error(
+      "Admin rewards GET route error:",
+      error
+    );
+
     return NextResponse.json(
       {
         success: false,
@@ -377,11 +450,27 @@ export async function POST(
       );
     }
 
-    const body =
-      (await request.json()) as Record<
-        string,
-        unknown
-      >;
+    let body:
+      Record<string, unknown>;
+
+    try {
+      body =
+        (await request.json()) as Record<
+          string,
+          unknown
+        >;
+    } catch {
+      return NextResponse.json(
+        {
+          success: false,
+          error:
+            "Invalid rewards request body.",
+        },
+        {
+          status: 400,
+        }
+      );
+    }
 
     const mode =
       String(
@@ -446,6 +535,20 @@ export async function POST(
               ...body,
               action,
               token,
+
+              userAgent:
+                request.headers.get(
+                  "user-agent"
+                ) || "",
+
+              ipAddress:
+                request.headers.get(
+                  "x-forwarded-for"
+                ) ||
+                request.headers.get(
+                  "x-real-ip"
+                ) ||
+                "",
             }),
         }
       );
@@ -479,12 +582,27 @@ export async function POST(
         : response;
     }
 
-    return NextResponse.json({
-      success: true,
-      data:
-        parsed.data,
-    });
+    return NextResponse.json(
+      {
+        success: true,
+        data:
+          parsed.data,
+      },
+      {
+        headers: {
+          "Cache-Control":
+            "no-store, no-cache, must-revalidate",
+          Pragma:
+            "no-cache",
+        },
+      }
+    );
   } catch (error) {
+    console.error(
+      "Admin rewards POST route error:",
+      error
+    );
+
     return NextResponse.json(
       {
         success: false,

@@ -30,7 +30,7 @@ import {
 } from "next/navigation";
 
 import {
-  getAdminRewardRedemptions,
+  getAdminRewardRedemptionDetail,
   updateAdminRewardRedemption,
   type AdminRewardRedemption,
 } from "@/lib/admin-rewards";
@@ -106,32 +106,12 @@ export default function AdminRewardRedemptionDetailPage() {
           setError("");
 
           const result =
-            await getAdminRewardRedemptions({
-              search:
-                redemptionId,
-              status: "ALL",
-              rewardType:
-                "ALL",
-              deliveryMethod:
-                "ALL",
-              page: 1,
-              pageSize: 25,
-            });
+            await getAdminRewardRedemptionDetail(
+              redemptionId
+            );
 
           const exactMatch =
-            result.redemptions.find(
-              function (
-                redemption
-              ) {
-                return (
-                  String(
-                    redemption.redemptionId ||
-                    ""
-                  ).trim() ===
-                  redemptionId
-                );
-              }
-            ) || null;
+            result.redemption;
 
           if (!exactMatch) {
             throw new Error(
@@ -139,11 +119,15 @@ export default function AdminRewardRedemptionDetailPage() {
             );
           }
 
-          setItem(exactMatch);
+          setItem(
+            exactMatch
+          );
+
           setTrackingNo(
             exactMatch.trackingNo ||
             ""
           );
+
           setAdminNote(
             exactMatch.adminNote ||
             ""
@@ -287,9 +271,33 @@ export default function AdminRewardRedemptionDetailPage() {
           .adminNote || ""
       );
 
+      const refundMessage =
+        result.refund?.applied
+          ? [
+              `${formatNumber(
+                result.refund.pointsRefunded
+              )} points refunded`,
+              result.refund.stockRestored > 0
+                ? `${formatNumber(
+                    result.refund.stockRestored
+                  )} stock restored`
+                : "",
+              result.refund.voucherRestored
+                ? "Voucher restored"
+                : "",
+            ]
+              .filter(Boolean)
+              .join(" · ")
+          : "";
+
       setActionMessage(
-        result.message ||
-        "Redemption updated successfully."
+        [
+          result.message ||
+            "Redemption updated successfully.",
+          refundMessage,
+        ]
+          .filter(Boolean)
+          .join(" ")
       );
 
       setCancelReason("");
@@ -1025,6 +1033,24 @@ export default function AdminRewardRedemptionDetailPage() {
                     )
                   }
                 />
+
+                {isPhysical && (
+                  <TimelineItem
+                    title="Shipped"
+                    value={formatDateTime(
+                      item.shippedAt
+                    )}
+                    active={
+                      status ===
+                        "SHIPPED" ||
+                      status ===
+                        "COMPLETED" ||
+                      Boolean(
+                        item.shippedAt
+                      )
+                    }
+                  />
+                )}
 
                 <TimelineItem
                   title="Completed"

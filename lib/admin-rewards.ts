@@ -42,6 +42,21 @@ export type AdminRewardRedemption = {
   redemptionSource: string;
   adminNote: string;
 
+  refund?: {
+    applied: boolean;
+    pointsRefunded: number;
+    previousPoints: number;
+    currentPoints: number;
+    previousTotalRedeemed: number;
+    currentTotalRedeemed: number;
+    stockRestored: number;
+    previousStock: number | null;
+    currentStock: number | null;
+    voucherRestored: boolean;
+    voucherId: string;
+    voucherStatus: string;
+  };
+
   redeemedAt: string;
 processedAt: string;
 shippedAt: string;
@@ -288,6 +303,54 @@ export async function getAdminRewardRedemptions(
   >(
     response,
     "Unable to load reward redemptions."
+  );
+}
+
+
+export type AdminRewardRedemptionDetailData = {
+  generatedAt: string;
+  timezone: string;
+
+  admin: {
+    adminId: string;
+    fullName: string;
+    role: string;
+  };
+
+  redemption:
+    AdminRewardRedemption;
+};
+
+export async function getAdminRewardRedemptionDetail(
+  redemptionId: string
+): Promise<AdminRewardRedemptionDetailData> {
+  const params =
+    new URLSearchParams();
+
+  params.set(
+    "mode",
+    "redemptionDetail"
+  );
+
+  params.set(
+    "redemptionId",
+    redemptionId
+  );
+
+  const response =
+    await fetch(
+      `/api/admin/rewards?${params.toString()}`,
+      {
+        method: "GET",
+        cache: "no-store",
+      }
+    );
+
+  return readApiResponse<
+    AdminRewardRedemptionDetailData
+  >(
+    response,
+    "Unable to load redemption details."
   );
 }
 
@@ -693,6 +756,24 @@ export type UpdateAdminRewardRedemptionInput = {
 
 export type UpdateAdminRewardRedemptionResult = {
   message: string;
+
+  notification?: unknown;
+
+  refund?: {
+    applied: boolean;
+    pointsRefunded: number;
+    previousPoints: number;
+    currentPoints: number;
+    previousTotalRedeemed: number;
+    currentTotalRedeemed: number;
+    stockRestored: number;
+    previousStock: number | null;
+    currentStock: number | null;
+    voucherRestored: boolean;
+    voucherId: string;
+    voucherStatus: string;
+  };
+
   redemption:
     AdminRewardRedemption;
 };
@@ -727,4 +808,3 @@ export async function updateAdminRewardRedemption(
     "Unable to update redemption."
   );
 }
-

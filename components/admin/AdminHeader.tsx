@@ -48,6 +48,11 @@ type AdminHeaderProps = {
   onMenuOpen: () => void;
 };
 
+type UnknownRecord = Record<
+  string,
+  unknown
+>;
+
 const EMPTY_SEARCH_RESULT: AdminGlobalSearchData = {
   query: "",
   minimumQueryLength: 2,
@@ -56,6 +61,166 @@ const EMPTY_SEARCH_RESULT: AdminGlobalSearchData = {
   results: [],
   groups: [],
 };
+
+const ADMIN_NOTIFICATION_POLL_INTERVAL =
+  15000;
+
+function isRecord(
+  value: unknown
+): value is UnknownRecord {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    !Array.isArray(value)
+  );
+}
+
+/**
+ * Support different possible API response structures:
+ *
+ * { unreadCount: 1 }
+ * { data: { unreadCount: 1 } }
+ * { data: { data: { unreadCount: 1 } } }
+ * { result: { unreadCount: 1 } }
+ * { summary: { unread: 1 } }
+ */
+function extractUnreadNotificationCount(
+  value: unknown,
+  depth = 0
+): number | null {
+  if (
+    depth > 6 ||
+    !isRecord(value)
+  ) {
+    return null;
+  }
+
+  const possibleKeys = [
+    "unreadCount",
+    "unreadNotificationCount",
+    "totalUnread",
+    "unread",
+  ];
+
+  for (
+    const key of possibleKeys
+  ) {
+    const candidate =
+      value[key];
+
+    if (
+      typeof candidate ===
+        "number" &&
+      Number.isFinite(candidate)
+    ) {
+      return Math.max(
+        0,
+        Math.floor(candidate)
+      );
+    }
+
+    if (
+      typeof candidate ===
+        "string" &&
+      candidate.trim() !== "" &&
+      Number.isFinite(
+        Number(candidate)
+      )
+    ) {
+      return Math.max(
+        0,
+        Math.floor(
+          Number(candidate)
+        )
+      );
+    }
+  }
+
+  const nestedKeys = [
+    "data",
+    "result",
+    "payload",
+    "summary",
+    "notifications",
+  ];
+
+  for (
+    const key of nestedKeys
+  ) {
+    const nestedResult =
+      extractUnreadNotificationCount(
+        value[key],
+        depth + 1
+      );
+
+    if (
+      nestedResult !== null
+    ) {
+      return nestedResult;
+    }
+  }
+
+  return null;
+}
+
+function getApiErrorMessage(
+  value: unknown,
+  fallback: string
+) {
+  if (!isRecord(value)) {
+    return fallback;
+  }
+
+  if (
+    typeof value.error ===
+      "string" &&
+    value.error.trim()
+  ) {
+    return value.error;
+  }
+
+  if (
+    typeof value.message ===
+      "string" &&
+    value.message.trim()
+  ) {
+    return value.message;
+  }
+
+  const nestedData =
+    value.data;
+
+  if (
+    isRecord(nestedData)
+  ) {
+    if (
+      typeof nestedData.error ===
+        "string" &&
+      nestedData.error.trim()
+    ) {
+      return nestedData.error;
+    }
+
+    if (
+      typeof nestedData.message ===
+        "string" &&
+      nestedData.message.trim()
+    ) {
+      return nestedData.message;
+    }
+  }
+
+  return fallback;
+}
+
+function isAbortError(
+  error: unknown
+) {
+  return (
+    error instanceof Error &&
+    error.name === "AbortError"
+  );
+}
 
 export default function AdminHeader({
   onMenuOpen,
@@ -85,6 +250,11 @@ export default function AdminHeader({
     notificationsOpen,
     setNotificationsOpen,
   ] = useState(false);
+
+  const [
+    unreadNotificationCount,
+    setUnreadNotificationCount,
+  ] = useState(0);
 
   const [
     searchOpen,
@@ -139,16 +309,20 @@ export default function AdminHeader({
       null
     );
 
+  const notificationAbortRef =
+    useRef<AbortController | null>(
+      null
+    );
+
+  const notificationRequestRunningRef =
+    useRef(false);
+
   const normalizedQuery =
     searchQuery.trim();
 
   const minimumQueryLength =
     searchResult.minimumQueryLength ||
     2;
-
-  const hasEnoughCharacters =
-    normalizedQuery.length >=
-    minimumQueryLength;
 
   const visibleResults =
     useMemo(
@@ -158,6 +332,149 @@ export default function AdminHeader({
           20
         ),
       [searchResult.results]
+    );
+
+  const loadUnreadNotificationCount =
+    useCallback(
+      async (
+        options?: {
+          force?: boolean;
+        }
+      ) => {
+        const force =
+          options?.force === true;
+
+        /*
+         * Avoid multiple polling requests
+         * running at the same time.
+         */
+        if (
+          notificationRequestRunningRef.current &&
+          !force
+        ) {
+          return;
+        }
+
+        if (force) {
+          notificationAbortRef.current?.abort();
+        }
+
+        const controller =
+          new AbortController();
+
+        notificationAbortRef.current =
+          controller;
+
+        notificationRequestRunningRef.current =
+          true;
+
+        try {
+          const params =
+            new URLSearchParams();
+
+          params.set(
+            "limit",
+            "1"
+          );
+
+          params.set(
+            "_",
+            String(
+              Date.now()
+            )
+          );
+
+          const response =
+            await fetch(
+              `/api/admin/notifications?${params.toString()}`,
+              {
+                method: "GET",
+                cache: "no-store",
+                credentials:
+                  "include",
+                headers: {
+                  Accept:
+                    "application/json",
+                  "Cache-Control":
+                    "no-cache",
+                  Pragma:
+                    "no-cache",
+                },
+                signal:
+                  controller.signal,
+              }
+            );
+
+          let result: unknown;
+
+          try {
+            result =
+              await response.json();
+          } catch {
+            throw new Error(
+              "Notification API returned invalid JSON."
+            );
+          }
+
+          if (!response.ok) {
+            throw new Error(
+              getApiErrorMessage(
+                result,
+                "Unable to load admin notification count."
+              )
+            );
+          }
+
+          const unreadCount =
+            extractUnreadNotificationCount(
+              result
+            );
+
+          /*
+           * Only update when a valid unread
+           * count exists in the response.
+           *
+           * This prevents temporary API issues
+           * from wrongly removing the red badge.
+           */
+          if (
+            unreadCount !== null
+          ) {
+            setUnreadNotificationCount(
+              unreadCount
+            );
+          }
+        } catch (error) {
+          if (
+            isAbortError(
+              error
+            )
+          ) {
+            return;
+          }
+
+          console.error(
+            "Unable to refresh admin notification count:",
+            error
+          );
+        } finally {
+          /*
+           * Only the current request is allowed
+           * to reset the request-running status.
+           */
+          if (
+            notificationAbortRef.current ===
+            controller
+          ) {
+            notificationAbortRef.current =
+              null;
+
+            notificationRequestRunningRef.current =
+              false;
+          }
+        }
+      },
+      []
     );
 
   useEffect(() => {
@@ -200,6 +517,171 @@ export default function AdminHeader({
     };
   }, []);
 
+  /*
+   * Receive unread-count updates from
+   * AdminNotificationDropdown.
+   *
+   * For example, after:
+   * - loading notifications
+   * - marking one notification as read
+   * - marking all notifications as read
+   */
+  useEffect(() => {
+    function handleNotificationCount(
+      event: Event
+    ) {
+      const detail =
+        (
+          event as CustomEvent<{
+            unreadCount?: number;
+          }>
+        ).detail;
+
+      const nextCount =
+        Number(
+          detail?.unreadCount
+        );
+
+      if (
+        Number.isFinite(
+          nextCount
+        )
+      ) {
+        setUnreadNotificationCount(
+          Math.max(
+            0,
+            Math.floor(
+              nextCount
+            )
+          )
+        );
+      }
+    }
+
+    window.addEventListener(
+      "rewardhub-admin-notification-count",
+      handleNotificationCount
+    );
+
+    return () => {
+      window.removeEventListener(
+        "rewardhub-admin-notification-count",
+        handleNotificationCount
+      );
+    };
+  }, []);
+
+  /*
+   * Automatically refresh unread
+   * admin notification count.
+   */
+  useEffect(() => {
+    /*
+     * Load immediately when Admin Header
+     * is mounted.
+     */
+    void loadUnreadNotificationCount({
+      force: true,
+    });
+
+    /*
+     * Check every 15 seconds while the
+     * browser page is visible.
+     */
+    const intervalId =
+      window.setInterval(
+        () => {
+          if (
+            document.visibilityState ===
+            "visible"
+          ) {
+            void loadUnreadNotificationCount();
+          }
+        },
+        ADMIN_NOTIFICATION_POLL_INTERVAL
+      );
+
+    /*
+     * Refresh immediately when the admin
+     * returns to this browser window.
+     */
+    function handleWindowFocus() {
+      void loadUnreadNotificationCount({
+        force: true,
+      });
+    }
+
+    /*
+     * Refresh when the tab becomes visible.
+     */
+    function handleVisibilityChange() {
+      if (
+        document.visibilityState ===
+        "visible"
+      ) {
+        void loadUnreadNotificationCount({
+          force: true,
+        });
+      }
+    }
+
+    /*
+     * Other admin components may dispatch
+     * this event when a refresh is needed.
+     */
+    function handleNotificationRefresh() {
+      void loadUnreadNotificationCount({
+        force: true,
+      });
+    }
+
+    window.addEventListener(
+      "focus",
+      handleWindowFocus
+    );
+
+    document.addEventListener(
+      "visibilitychange",
+      handleVisibilityChange
+    );
+
+    window.addEventListener(
+      "rewardhub-admin-notification-refresh",
+      handleNotificationRefresh
+    );
+
+    return () => {
+      window.clearInterval(
+        intervalId
+      );
+
+      window.removeEventListener(
+        "focus",
+        handleWindowFocus
+      );
+
+      document.removeEventListener(
+        "visibilitychange",
+        handleVisibilityChange
+      );
+
+      window.removeEventListener(
+        "rewardhub-admin-notification-refresh",
+        handleNotificationRefresh
+      );
+
+      notificationAbortRef.current?.abort();
+
+      notificationAbortRef.current =
+        null;
+
+      notificationRequestRunningRef.current =
+        false;
+    };
+  }, [
+    loadUnreadNotificationCount,
+  ]);
+
   useEffect(() => {
     function handleShortcut(
       event: KeyboardEvent
@@ -216,7 +698,10 @@ export default function AdminHeader({
         isSearchShortcut
       ) {
         event.preventDefault();
-        setSearchOpen(true);
+
+        setSearchOpen(
+          true
+        );
 
         window.setTimeout(
           () => {
@@ -227,10 +712,12 @@ export default function AdminHeader({
       }
 
       if (
-        event.key === "Escape"
+        event.key ===
+        "Escape"
       ) {
         setSearchOpen(false);
         setProfileOpen(false);
+        setNotificationsOpen(false);
         setActiveResultIndex(-1);
       }
     }
@@ -248,12 +735,22 @@ export default function AdminHeader({
     };
   }, []);
 
+  /*
+   * Close open menus when the admin
+   * changes route.
+   */
   useEffect(() => {
     setSearchOpen(false);
     setProfileOpen(false);
+    setNotificationsOpen(false);
     setActiveResultIndex(-1);
-  }, [pathname]);
+  }, [
+    pathname,
+  ]);
 
+  /*
+   * Admin global search.
+   */
   useEffect(() => {
     searchAbortRef.current?.abort();
 
@@ -263,23 +760,28 @@ export default function AdminHeader({
       setSearchResult(
         EMPTY_SEARCH_RESULT
       );
+
       setSearching(false);
       setSearchError("");
       setActiveResultIndex(-1);
+
       return;
     }
 
     if (
-      normalizedQuery.length < 2
+      normalizedQuery.length <
+      2
     ) {
       setSearchResult({
         ...EMPTY_SEARCH_RESULT,
         query:
           normalizedQuery,
       });
+
       setSearching(false);
       setSearchError("");
       setActiveResultIndex(-1);
+
       return;
     }
 
@@ -324,7 +826,10 @@ export default function AdminHeader({
             );
           } catch (error) {
             if (
-              controller.signal.aborted
+              controller.signal.aborted ||
+              isAbortError(
+                error
+              )
             ) {
               return;
             }
@@ -339,12 +844,16 @@ export default function AdminHeader({
                 : "Unable to search RewardHub."
             );
 
-            setActiveResultIndex(-1);
+            setActiveResultIndex(
+              -1
+            );
           } finally {
             if (
               !controller.signal.aborted
             ) {
-              setSearching(false);
+              setSearching(
+                false
+              );
             }
           }
         },
@@ -355,12 +864,17 @@ export default function AdminHeader({
       window.clearTimeout(
         timer
       );
+
       controller.abort();
     };
-  }, [normalizedQuery]);
+  }, [
+    normalizedQuery,
+  ]);
 
   const openSearch =
     useCallback(() => {
+      setProfileOpen(false);
+      setNotificationsOpen(false);
       setSearchOpen(true);
 
       window.setTimeout(
@@ -388,7 +902,9 @@ export default function AdminHeader({
         }
 
         closeSearch();
+
         setSearchQuery("");
+
         setSearchResult(
           EMPTY_SEARCH_RESULT
         );
@@ -407,9 +923,7 @@ export default function AdminHeader({
     event:
       React.KeyboardEvent<HTMLInputElement>
   ) {
-    if (
-      !searchOpen
-    ) {
+    if (!searchOpen) {
       setSearchOpen(true);
     }
 
@@ -418,7 +932,8 @@ export default function AdminHeader({
       0
     ) {
       if (
-        event.key === "Escape"
+        event.key ===
+        "Escape"
       ) {
         closeSearch();
       }
@@ -458,7 +973,8 @@ export default function AdminHeader({
     }
 
     if (
-      event.key === "Enter"
+      event.key ===
+      "Enter"
     ) {
       event.preventDefault();
 
@@ -468,12 +984,15 @@ export default function AdminHeader({
         ];
 
       if (result) {
-        openResult(result);
+        openResult(
+          result
+        );
       }
     }
 
     if (
-      event.key === "Escape"
+      event.key ===
+      "Escape"
     ) {
       closeSearch();
     }
@@ -486,7 +1005,18 @@ export default function AdminHeader({
 
     setLoggingOut(true);
 
-    await signOut();
+    try {
+      await signOut();
+    } catch (error) {
+      console.error(
+        "Admin sign out failed:",
+        error
+      );
+
+      setLoggingOut(
+        false
+      );
+    }
   }
 
   return (
@@ -494,7 +1024,9 @@ export default function AdminHeader({
       <div className="flex w-full items-center gap-3">
         <button
           type="button"
-          onClick={onMenuOpen}
+          onClick={
+            onMenuOpen
+          }
           aria-label="Open admin menu"
           className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-white/[0.07] bg-white/[0.035] text-slate-400 transition hover:bg-white/[0.07] hover:text-white lg:hidden"
         >
@@ -502,23 +1034,42 @@ export default function AdminHeader({
         </button>
 
         <div
-          ref={searchRef}
+          ref={
+            searchRef
+          }
           className="relative hidden max-w-xl flex-1 md:block"
         >
           <Search className="pointer-events-none absolute left-4 top-1/2 z-10 h-[18px] w-[18px] -translate-y-1/2 text-slate-600" />
 
           <input
-            ref={searchInputRef}
+            ref={
+              searchInputRef
+            }
             type="text"
-            value={searchQuery}
-            onFocus={openSearch}
+            value={
+              searchQuery
+            }
+            onFocus={
+              openSearch
+            }
             onChange={(
               event
             ) => {
               setSearchQuery(
                 event.target.value
               );
-              setSearchOpen(true);
+
+              setSearchOpen(
+                true
+              );
+
+              setProfileOpen(
+                false
+              );
+
+              setNotificationsOpen(
+                false
+              );
             }}
             onKeyDown={
               handleSearchKeyDown
@@ -537,10 +1088,13 @@ export default function AdminHeader({
               type="button"
               onClick={() => {
                 setSearchQuery("");
+
                 setSearchResult(
                   EMPTY_SEARCH_RESULT
                 );
+
                 setSearchError("");
+
                 searchInputRef.current?.focus();
               }}
               className="absolute right-[58px] top-1/2 z-10 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-lg text-slate-500 transition hover:bg-white/[0.07] hover:text-white"
@@ -551,9 +1105,11 @@ export default function AdminHeader({
           ) : null}
 
           {searchOpen ? (
-            <div className="absolute left-0 right-0 top-[calc(100%+10px)] overflow-hidden rounded-2xl border border-white/[0.09] bg-slate-900 shadow-2xl shadow-black/45">
+            <div className="absolute left-0 right-0 top-[calc(100%+10px)] z-50 overflow-hidden rounded-2xl border border-white/[0.09] bg-slate-900 shadow-2xl shadow-black/45">
               <SearchPanel
-                query={normalizedQuery}
+                query={
+                  normalizedQuery
+                }
                 minimumQueryLength={
                   minimumQueryLength
                 }
@@ -585,7 +1141,9 @@ export default function AdminHeader({
 
         <button
           type="button"
-          onClick={openSearch}
+          onClick={
+            openSearch
+          }
           aria-label="Open global search"
           className="flex h-11 w-11 items-center justify-center rounded-xl border border-white/[0.07] bg-white/[0.035] text-slate-400 transition hover:bg-white/[0.07] hover:text-white md:hidden"
         >
@@ -593,7 +1151,7 @@ export default function AdminHeader({
         </button>
 
         {searchOpen ? (
-          <div className="fixed inset-0 z-50 bg-slate-950/95 p-4 backdrop-blur-xl md:hidden">
+          <div className="fixed inset-0 z-[100] bg-slate-950/95 p-4 backdrop-blur-xl md:hidden">
             <div className="mx-auto max-w-xl">
               <div className="flex items-center gap-3">
                 <div className="relative flex-1">
@@ -626,6 +1184,7 @@ export default function AdminHeader({
                     closeSearch
                   }
                   className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/[0.09] text-slate-400"
+                  aria-label="Close search"
                 >
                   <X className="h-5 w-5" />
                 </button>
@@ -669,18 +1228,33 @@ export default function AdminHeader({
         <div className="ml-auto flex items-center gap-2">
           <button
             type="button"
-            aria-label="Notifications"
+            aria-label={
+              unreadNotificationCount >
+              0
+                ? `Notifications (${unreadNotificationCount} unread)`
+                : "Notifications"
+            }
             onClick={() => {
               setNotificationsOpen(
-                (
-                  current
-                ) =>
+                (current) =>
                   !current
               );
 
               setProfileOpen(
                 false
               );
+
+              setSearchOpen(
+                false
+              );
+
+              /*
+               * Immediately sync unread count
+               * when opening the bell.
+               */
+              void loadUnreadNotificationCount({
+                force: true,
+              });
             }}
             className={[
               "relative flex h-11 w-11 items-center justify-center rounded-xl border transition",
@@ -690,27 +1264,45 @@ export default function AdminHeader({
             ].join(" ")}
           >
             <Bell className="h-5 w-5" />
+
+            {unreadNotificationCount >
+            0 ? (
+              <span className="pointer-events-none absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-bold leading-none text-white ring-2 ring-slate-950">
+                {unreadNotificationCount >
+                99
+                  ? "99+"
+                  : unreadNotificationCount}
+              </span>
+            ) : null}
           </button>
 
           <div
-            ref={dropdownRef}
+            ref={
+              dropdownRef
+            }
             className="relative"
           >
             <button
               type="button"
               onClick={() => {
                 setProfileOpen(
-                  (
-                    current
-                  ) =>
+                  (current) =>
                     !current
                 );
 
                 setNotificationsOpen(
                   false
                 );
+
+                setSearchOpen(
+                  false
+                );
               }}
               className="flex h-11 items-center gap-3 rounded-xl border border-white/[0.07] bg-white/[0.035] px-2 transition hover:bg-white/[0.065] sm:pr-3"
+              aria-expanded={
+                profileOpen
+              }
+              aria-label="Open administrator account menu"
             >
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-500 text-xs font-bold uppercase text-slate-950">
                 {getInitials(
@@ -741,7 +1333,7 @@ export default function AdminHeader({
             </button>
 
             {profileOpen ? (
-              <div className="absolute right-0 top-[calc(100%+10px)] w-72 overflow-hidden rounded-2xl border border-white/[0.09] bg-slate-900 shadow-2xl shadow-black/40">
+              <div className="absolute right-0 top-[calc(100%+10px)] z-50 w-72 overflow-hidden rounded-2xl border border-white/[0.09] bg-slate-900 shadow-2xl shadow-black/40">
                 <div className="border-b border-white/[0.07] p-4">
                   <div className="flex items-start gap-3">
                     <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-400/10 text-emerald-300">
@@ -813,7 +1405,11 @@ export default function AdminHeader({
                     }
                     className="flex h-11 w-full items-center gap-3 rounded-xl px-3 text-left text-sm text-red-300 transition hover:bg-red-400/10 disabled:cursor-not-allowed disabled:opacity-50"
                   >
-                    <LogOut className="h-[18px] w-[18px]" />
+                    {loggingOut ? (
+                      <Loader2 className="h-[18px] w-[18px] animate-spin" />
+                    ) : (
+                      <LogOut className="h-[18px] w-[18px]" />
+                    )}
 
                     {loggingOut
                       ? "Signing out…"
@@ -879,7 +1475,14 @@ function SearchPanel({
         </p>
 
         <p className="mt-2 text-xs leading-5 text-slate-500">
-          Search members, merchants, transactions, settlements, products, rewards, campaigns and administrators.
+          Search members,
+          merchants,
+          transactions,
+          settlements,
+          products,
+          rewards,
+          campaigns and
+          administrators.
         </p>
       </div>
     );
@@ -918,7 +1521,8 @@ function SearchPanel({
   }
 
   if (
-    results.length === 0
+    results.length ===
+    0
   ) {
     return (
       <div className="px-5 py-10 text-center">
@@ -927,7 +1531,9 @@ function SearchPanel({
         </p>
 
         <p className="mt-2 text-xs text-slate-500">
-          Try searching by ID, name, email, phone or status.
+          Try searching by ID,
+          name, email, phone or
+          status.
         </p>
       </div>
     );
@@ -1010,6 +1616,7 @@ function SearchPanel({
 
                   <p className="mt-1 truncate text-xs text-slate-500">
                     {result.typeLabel}
+
                     {result.subtitle
                       ? ` · ${result.subtitle}`
                       : ""}
@@ -1017,7 +1624,9 @@ function SearchPanel({
 
                   {result.description ? (
                     <p className="mt-1 line-clamp-1 text-xs text-slate-600">
-                      {result.description}
+                      {
+                        result.description
+                      }
                     </p>
                   ) : null}
                 </div>
@@ -1060,13 +1669,19 @@ function StatusBadge({
       .toUpperCase();
 
   const className =
-    normalized === "ACTIVE" ||
-    normalized === "APPROVED" ||
-    normalized === "COMPLETED" ||
-    normalized === "PAID" ||
-    normalized === "PUBLISHED"
+    normalized ===
+      "ACTIVE" ||
+    normalized ===
+      "APPROVED" ||
+    normalized ===
+      "COMPLETED" ||
+    normalized ===
+      "PAID" ||
+    normalized ===
+      "PUBLISHED"
       ? "border-emerald-400/20 bg-emerald-400/10 text-emerald-300"
-      : normalized === "PENDING" ||
+      : normalized ===
+            "PENDING" ||
           normalized ===
             "UNDER_REVIEW" ||
           normalized ===
@@ -1143,21 +1758,28 @@ function getInitials(
   fullName: string
 ) {
   const parts =
-    fullName
+    String(
+      fullName || ""
+    )
       .trim()
       .split(/\s+/)
       .filter(Boolean);
 
   if (
-    parts.length === 0
+    parts.length ===
+    0
   ) {
     return "AD";
   }
 
   return parts
-    .slice(0, 2)
-    .map((part) =>
-      part.charAt(0)
+    .slice(
+      0,
+      2
+    )
+    .map(
+      (part) =>
+        part.charAt(0)
     )
     .join("")
     .toUpperCase();
@@ -1166,7 +1788,12 @@ function getInitials(
 function formatRole(
   role: string
 ) {
-  return role
+  const normalizedRole =
+    String(
+      role || "ADMIN"
+    );
+
+  return normalizedRole
     .toLowerCase()
     .split("_")
     .map(

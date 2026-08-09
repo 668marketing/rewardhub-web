@@ -1147,15 +1147,20 @@ function ProductDrawer({
                       (imageUrl, index) => (
                         <a
                           key={`${imageUrl}-${index}`}
-                          href={imageUrl}
+                          href={
+                            normalizeProductImageUrl(
+                              imageUrl
+                            ) || imageUrl
+                          }
                           target="_blank"
                           rel="noreferrer"
                           className="overflow-hidden rounded-2xl border border-white/[0.08] bg-white/[0.03]"
                         >
-                          <img
+                          <SafeProductImage
                             src={imageUrl}
                             alt={`${product.productName} ${index + 1}`}
                             className="h-32 w-full object-cover"
+                            fallbackClassName="flex h-32 w-full items-center justify-center bg-white/[0.03] text-slate-600"
                           />
                         </a>
                       )
@@ -1328,6 +1333,165 @@ function ProductActionButtons({
   );
 }
 
+
+function normalizeProductImageUrl(
+  value: string
+) {
+  const raw =
+    String(value || "")
+      .trim();
+
+  if (!raw) {
+    return "";
+  }
+
+  /*
+   * Google Sheets / Apps Script can sometimes return a Drive image
+   * URL with extra text around it. Keep the first usable URL only.
+   */
+  const urlMatch =
+    raw.match(
+      /https?:\/\/[^\s|]+/i
+    );
+
+  const candidate =
+    urlMatch
+      ? urlMatch[0]
+      : raw;
+
+  try {
+    const decoded =
+      decodeURIComponent(
+        candidate
+      );
+
+    const driveId =
+      extractGoogleDriveFileId(
+        decoded
+      );
+
+    if (driveId) {
+      /*
+       * This endpoint is more reliable for direct browser <img> usage
+       * than a normal Drive share/view page.
+       */
+      return (
+        "https://drive.google.com/thumbnail?id=" +
+        encodeURIComponent(
+          driveId
+        ) +
+        "&sz=w1600"
+      );
+    }
+
+    return decoded;
+  } catch {
+    const driveId =
+      extractGoogleDriveFileId(
+        candidate
+      );
+
+    if (driveId) {
+      return (
+        "https://drive.google.com/thumbnail?id=" +
+        encodeURIComponent(
+          driveId
+        ) +
+        "&sz=w1600"
+      );
+    }
+
+    return candidate;
+  }
+}
+
+function extractGoogleDriveFileId(
+  value: string
+) {
+  const text =
+    String(value || "");
+
+  const patterns = [
+    /\/file\/d\/([a-zA-Z0-9_-]+)/i,
+    /[?&]id=([a-zA-Z0-9_-]+)/i,
+    /\/d\/([a-zA-Z0-9_-]+)/i,
+  ];
+
+  for (
+    const pattern of patterns
+  ) {
+    const match =
+      text.match(
+        pattern
+      );
+
+    if (
+      match &&
+      match[1]
+    ) {
+      return match[1];
+    }
+  }
+
+  return "";
+}
+
+function SafeProductImage({
+  src,
+  alt,
+  className,
+  fallbackClassName,
+}: {
+  src: string;
+  alt: string;
+  className: string;
+  fallbackClassName: string;
+}) {
+  const [failed, setFailed] =
+    useState(false);
+
+  const normalizedSrc =
+    useMemo(
+      () =>
+        normalizeProductImageUrl(
+          src
+        ),
+      [src]
+    );
+
+  useEffect(() => {
+    setFailed(false);
+  }, [normalizedSrc]);
+
+  if (
+    !normalizedSrc ||
+    failed
+  ) {
+    return (
+      <div
+        className={
+          fallbackClassName
+        }
+      >
+        <ImageIcon className="h-5 w-5" />
+      </div>
+    );
+  }
+
+  return (
+    <img
+      src={normalizedSrc}
+      alt={alt}
+      loading="lazy"
+      referrerPolicy="no-referrer"
+      onError={() =>
+        setFailed(true)
+      }
+      className={className}
+    />
+  );
+}
+
 function ProductImage({
   src,
   alt,
@@ -1342,21 +1506,12 @@ function ProductImage({
       ? "h-24 w-24"
       : "h-12 w-12";
 
-  if (!src) {
-    return (
-      <div
-        className={`flex ${size} shrink-0 items-center justify-center rounded-xl border border-white/[0.08] bg-white/[0.03] text-slate-600`}
-      >
-        <ImageIcon className="h-5 w-5" />
-      </div>
-    );
-  }
-
   return (
-    <img
+    <SafeProductImage
       src={src}
       alt={alt}
       className={`${size} shrink-0 rounded-xl border border-white/[0.08] object-cover`}
+      fallbackClassName={`flex ${size} shrink-0 items-center justify-center rounded-xl border border-white/[0.08] bg-white/[0.03] text-slate-600`}
     />
   );
 }

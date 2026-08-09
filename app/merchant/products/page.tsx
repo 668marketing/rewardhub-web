@@ -1921,7 +1921,7 @@ function ProductDrawer({
     uploadingGallery;
 
   return (
-    <div className="fixed inset-0 z-[100]">
+    <div className="fixed inset-0 z-[1000]">
       <button
         type="button"
         aria-label={t.closeForm}
@@ -1929,7 +1929,7 @@ function ProductDrawer({
         className="absolute inset-0 bg-slate-950/70 backdrop-blur-sm"
       />
 
-      <aside className="absolute right-0 top-0 flex h-full min-h-0 w-full max-w-[680px] flex-col overflow-hidden bg-white shadow-2xl">
+      <aside className="absolute right-0 top-0 flex h-[100dvh] min-h-0 w-full max-w-[680px] flex-col overflow-hidden bg-white shadow-2xl">
         <header className="shrink-0 flex items-start justify-between gap-5 border-b border-slate-100 bg-white px-5 py-5 sm:px-7">
           <div className="flex items-center gap-3">
             <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-950 text-white">
@@ -1965,7 +1965,7 @@ function ProductDrawer({
           </button>
         </header>
 
-        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-6 pb-8 sm:px-7">
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-6 pb-10 sm:px-7">
           {formError ? (
             <div className="mb-5 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-bold text-red-700">
               {formError}
@@ -2263,7 +2263,7 @@ function ProductDrawer({
           </div>
         </div>
 
-        <footer className="relative z-10 shrink-0 border-t border-slate-100 bg-white px-5 py-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:px-7">
+        <footer className="relative z-20 shrink-0 border-t border-slate-100 bg-white px-5 pt-4 pb-[calc(1rem+env(safe-area-inset-bottom))] shadow-[0_-10px_30px_rgba(15,23,42,0.06)] sm:px-7 sm:pb-4">
   <div className="mx-auto flex w-full max-w-full flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-end">
     <button
       type="button"
@@ -2791,7 +2791,7 @@ function DeleteProductDialog({
   }
 
   return (
-    <div className="fixed inset-0 z-[120] flex items-center justify-center bg-slate-950/70 px-4 backdrop-blur-sm">
+    <div className="fixed inset-0 z-[1100] flex items-center justify-center bg-slate-950/70 px-4 backdrop-blur-sm">
       <div className="w-full max-w-md rounded-[2rem] bg-white p-6 shadow-2xl sm:p-8">
         <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-red-50 text-red-500">
           <Trash2 className="h-6 w-6" />

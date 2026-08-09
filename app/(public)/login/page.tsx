@@ -9,8 +9,6 @@ import Link from "next/link";
 import {
   useRouter,
 } from "next/navigation";
-
-import Header from "@/components/layout/Header";
 import LanguageSwitcher from "@/components/i18n/LanguageSwitcher";
 import { useLanguage } from "@/hooks/useLanguage";
 import {
@@ -454,7 +452,6 @@ function LoginContent() {
 
   return (
     <>
-      <Header />
 
       <main className="relative min-h-screen bg-[radial-gradient(circle_at_top_left,#dbeafe,transparent_35%),#f8fafc]">
         <div className="absolute right-4 top-4 z-40 sm:right-6 sm:top-6">
