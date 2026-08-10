@@ -23,6 +23,8 @@ import {
   useState,
 } from "react";
 
+import MemberLayout from "@/components/layout/MemberLayout";
+
 import { useLanguage } from "@/hooks/useLanguage";
 
 import {
@@ -469,6 +471,44 @@ export default function MemberRewardRedemptionDetailPage() {
       item?.status || ""
     );
 
+  const isCancelled =
+    status === "CANCELLED";
+
+  const voucherStatus =
+    normalizeStatus(
+      item?.voucherStatus || ""
+    );
+
+  const isVoucher =
+    Boolean(
+      item?.voucherCode
+    );
+
+  const isDigitalReward =
+    normalizeStatus(
+      item?.deliveryMethod || ""
+    ) === "DIGITAL" ||
+    isVoucher;
+
+  const voucherIsUsed =
+    Boolean(
+      item?.voucherUsed
+    ) ||
+    voucherStatus === "USED";
+
+  const voucherIsAvailable =
+    Boolean(
+      item?.voucherAvailable
+    ) ||
+    voucherStatus === "REDEEMED" ||
+    voucherStatus === "ASSIGNED";
+
+  const voucherIsExpired =
+    voucherStatus === "EXPIRED";
+
+  const voucherIsDisabled =
+    voucherStatus === "DISABLED";
+
   const imageSrc =
     useMemo(
       function () {
@@ -544,15 +584,17 @@ export default function MemberRewardRedemptionDetailPage() {
 
   if (loading) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-[#f6f7fb]">
-        <div className="text-center">
-          <Loader2 className="mx-auto h-8 w-8 animate-spin text-slate-950" />
+      <MemberLayout>
+        <main className="flex min-h-[60vh] items-center justify-center bg-[#f6f7fb]">
+          <div className="text-center">
+            <Loader2 className="mx-auto h-8 w-8 animate-spin text-slate-950" />
 
-          <p className="mt-4 text-sm font-bold text-slate-500">
-            {t("memberRewardRedemptionDetail.loadingDetails")}
-          </p>
-        </div>
-      </main>
+            <p className="mt-4 text-sm font-bold text-slate-500">
+              {t("memberRewardRedemptionDetail.loadingDetails")}
+            </p>
+          </div>
+        </main>
+      </MemberLayout>
     );
   }
 
@@ -561,43 +603,45 @@ export default function MemberRewardRedemptionDetailPage() {
     !item
   ) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-[#f6f7fb] px-5">
-        <div className="w-full max-w-lg rounded-[32px] border border-red-200 bg-white p-7 text-center shadow-[0_20px_70px_rgba(15,23,42,0.08)]">
-          <AlertTriangle className="mx-auto h-9 w-9 text-red-500" />
+      <MemberLayout>
+        <main className="flex min-h-[60vh] items-center justify-center bg-[#f6f7fb] px-5">
+          <div className="w-full max-w-lg rounded-[32px] border border-red-200 bg-white p-7 text-center shadow-[0_20px_70px_rgba(15,23,42,0.08)]">
+            <AlertTriangle className="mx-auto h-9 w-9 text-red-500" />
 
-          <h1 className="mt-4 text-xl font-black text-slate-950">
-            {t("memberRewardRedemptionDetail.unableToLoad")}
-          </h1>
+            <h1 className="mt-4 text-xl font-black text-slate-950">
+              {t("memberRewardRedemptionDetail.unableToLoad")}
+            </h1>
 
-          <p className="mt-3 text-sm font-semibold leading-6 text-red-600">
-            {error}
-          </p>
+            <p className="mt-3 text-sm font-semibold leading-6 text-red-600">
+              {error}
+            </p>
 
-          <div className="mt-6 grid gap-3 sm:grid-cols-2">
-            <button
-              type="button"
-              onClick={() =>
-                router.push(
-                  "/member/points"
-                )
-              }
-              className="rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-black text-slate-800"
-            >
-              {t("memberRewardRedemptionDetail.backToPoints")}
-            </button>
+            <div className="mt-6 grid gap-3 sm:grid-cols-2">
+              <button
+                type="button"
+                onClick={() =>
+                  router.push(
+                    "/member/points"
+                  )
+                }
+                className="rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-black text-slate-800"
+              >
+                {t("memberRewardRedemptionDetail.backToPoints")}
+              </button>
 
-            <button
-              type="button"
-              onClick={() =>
-                void loadDetail()
-              }
-              className="rounded-2xl bg-slate-950 px-5 py-3 text-sm font-black text-white"
-            >
-              {t("memberRewardRedemptionDetail.tryAgain")}
-            </button>
+              <button
+                type="button"
+                onClick={() =>
+                  void loadDetail()
+                }
+                className="rounded-2xl bg-slate-950 px-5 py-3 text-sm font-black text-white"
+              >
+                {t("memberRewardRedemptionDetail.tryAgain")}
+              </button>
+            </div>
           </div>
-        </div>
-      </main>
+        </main>
+      </MemberLayout>
     );
   }
 
@@ -606,7 +650,8 @@ export default function MemberRewardRedemptionDetailPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#f6f7fb] px-3 pb-28 pt-3 sm:px-6 sm:pb-32 sm:pt-5 lg:px-8 lg:pb-14 lg:pt-9">
+    <MemberLayout>
+      <main className="min-h-screen bg-[#f6f7fb] px-3 pb-28 pt-3 sm:px-6 sm:pb-32 sm:pt-5 lg:px-8 lg:pb-14 lg:pt-9">
       <div className="mx-auto w-full max-w-5xl">
         <div className="flex items-center justify-between gap-2 sm:gap-3">
           <button
@@ -735,11 +780,9 @@ export default function MemberRewardRedemptionDetailPage() {
             </div>
 
             {item.voucherCode && (
-              <CopyBox
-                label={t("memberRewardRedemptionDetail.voucherCode")}
-                value={
-                  item.voucherCode
-                }
+              <VoucherLifecycleCard
+                item={item}
+                language={language}
                 copied={
                   copied ===
                   "voucher"
@@ -750,10 +793,24 @@ export default function MemberRewardRedemptionDetailPage() {
                     item.voucherCode
                   )
                 }
+                used={
+                  voucherIsUsed
+                }
+                available={
+                  voucherIsAvailable
+                }
+                expired={
+                  voucherIsExpired
+                }
+                disabled={
+                  voucherIsDisabled
+                }
               />
             )}
 
-            <section className="rounded-[22px] border border-slate-200 bg-slate-50 p-4 sm:rounded-[28px] sm:p-6">
+            {!isDigitalReward &&
+              !isCancelled && (
+              <section className="rounded-[22px] border border-slate-200 bg-slate-50 p-4 sm:rounded-[28px] sm:p-6">
               <div className="flex items-center gap-3">
                 <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-950 text-white sm:h-11 sm:w-11 sm:rounded-2xl">
                   <Truck className="h-5 w-5" />
@@ -830,9 +887,10 @@ export default function MemberRewardRedemptionDetailPage() {
                   {t("memberRewardRedemptionDetail.trackingPending")}
                 </div>
               )}
-            </section>
+              </section>
+            )}
 
-            {item.address && (
+            {!isDigitalReward && item.address && (
               <section className="rounded-[22px] border border-slate-200 bg-white p-4 sm:rounded-[28px] sm:p-6">
                 <div className="flex items-center gap-3">
                   <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700 sm:h-11 sm:w-11 sm:rounded-2xl">
@@ -895,81 +953,101 @@ export default function MemberRewardRedemptionDetailPage() {
                   active
                   completed
                   language={language}
+                  last={isCancelled}
                 />
 
-                <Timeline
-                  title={t("memberRewardRedemptionDetail.processing")}
-                  description={t("memberRewardRedemptionDetail.processingDescription")}
-                  date={
-                    item.processedAt
-                  }
-                  active={
-                    Boolean(
-                      item.processedAt
-                    )
-                  }
-                  completed={
-                    Boolean(
-                      item.processedAt
-                    )
-                  }
-                  language={language}
-                />
+                {isCancelled ? (
+                  <CancelledTimeline
+                    reason={
+                      item.cancelReason
+                    }
+                    date={
+                      item.updatedAt
+                    }
+                    language={language}
+                  />
+                ) : (
+                  <>
+                    <Timeline
+                      title={t("memberRewardRedemptionDetail.processing")}
+                      description={t("memberRewardRedemptionDetail.processingDescription")}
+                      date={
+                        item.processedAt
+                      }
+                      active={
+                        Boolean(
+                          item.processedAt
+                        )
+                      }
+                      completed={
+                        Boolean(
+                          item.processedAt
+                        )
+                      }
+                      language={language}
+                      last={
+                        isDigitalReward &&
+                        status !== "COMPLETED"
+                      }
+                    />
 
-                <Timeline
-                  title={t("memberRewardRedemptionDetail.shipped")}
-                  description={
-                    item.trackingNo
-                      ? `${item.courier || t("memberRewardRedemptionDetail.courier")} · ${item.trackingNo}`
-                      : t("memberRewardRedemptionDetail.shippedDescription")
-                  }
-                  date={
-                    item.shippedAt
-                  }
-                  active={Boolean(
-                    item.shippedAt
-                  )}
-                  completed={Boolean(
-                    item.shippedAt
-                  )}
-                  language={language}
-                />
+                    {!isDigitalReward && (
+                      <Timeline
+                        title={t("memberRewardRedemptionDetail.shipped")}
+                        description={
+                          item.trackingNo
+                            ? `${item.courier || t("memberRewardRedemptionDetail.courier")} · ${item.trackingNo}`
+                            : t("memberRewardRedemptionDetail.shippedDescription")
+                        }
+                        date={
+                          item.shippedAt
+                        }
+                        active={Boolean(
+                          item.shippedAt
+                        )}
+                        completed={Boolean(
+                          item.shippedAt
+                        )}
+                        language={language}
+                      />
+                    )}
 
-                <Timeline
-                  title={t("memberRewardRedemptionDetail.completed")}
-                  description={t("memberRewardRedemptionDetail.completedDescription")}
-                  date={
-                    item.completedAt
-                  }
-                  active={
-                    status ===
-                    "COMPLETED"
-                  }
-                  completed={
-                    status ===
-                    "COMPLETED"
-                  }
-                  language={language}
-                  last
-                />
+                    <Timeline
+                      title={t("memberRewardRedemptionDetail.completed")}
+                      description={
+                        isDigitalReward
+                          ? (
+                              language === "zh"
+                                ? "电子奖励已经完成兑换并可按当前 Voucher 状态使用。"
+                                : language === "ms"
+                                  ? "Ganjaran digital telah selesai ditebus dan boleh digunakan mengikut status baucar semasa."
+                                  : "The digital reward redemption is complete and can be used according to its current voucher status."
+                            )
+                          : t("memberRewardRedemptionDetail.completedDescription")
+                      }
+                      date={
+                        item.completedAt
+                      }
+                      active={
+                        status ===
+                        "COMPLETED"
+                      }
+                      completed={
+                        status ===
+                        "COMPLETED"
+                      }
+                      language={language}
+                      last
+                    />
+                  </>
+                )}
               </div>
             </section>
-
-            {item.cancelReason && (
-              <div className="rounded-[22px] border border-red-200 bg-red-50 p-4 sm:rounded-[28px] sm:p-5">
-                <p className="text-xs font-black uppercase tracking-wide text-red-500">
-                  {t("memberRewardRedemptionDetail.cancellationReason")}
-                </p>
-
-                <p className="mt-2 text-sm font-bold leading-6 text-red-700">
-                  {item.cancelReason}
-                </p>
-              </div>
-            )}
           </div>
         </section>
       </div>
-    </main>
+      </main>
+    </MemberLayout>
   );
 }
 
@@ -1039,34 +1117,110 @@ function InfoCard({
   );
 }
 
-function CopyBox({
-  label,
-  value,
+function VoucherLifecycleCard({
+  item,
+  language,
   copied,
   onCopy,
+  used,
+  available,
+  expired,
+  disabled,
 }: {
-  label: string;
-  value: string;
+  item: MemberRewardRedemptionDetail;
+  language: string;
   copied: boolean;
   onCopy: () => void;
+  used: boolean;
+  available: boolean;
+  expired: boolean;
+  disabled: boolean;
 }) {
   const { t } =
     useLanguage();
+
+  const statusLabel =
+    used
+      ? language === "zh"
+        ? "已使用"
+        : language === "ms"
+          ? "Telah Digunakan"
+          : "Used"
+      : expired
+        ? language === "zh"
+          ? "已过期"
+          : language === "ms"
+            ? "Tamat Tempoh"
+            : "Expired"
+        : disabled
+          ? language === "zh"
+            ? "不可使用"
+            : language === "ms"
+              ? "Tidak Tersedia"
+              : "Unavailable"
+          : available
+            ? language === "zh"
+              ? "可使用"
+              : language === "ms"
+                ? "Boleh Digunakan"
+                : "Available"
+            : item.voucherStatus ||
+              (language === "zh"
+                ? "Voucher"
+                : language === "ms"
+                  ? "Baucar"
+                  : "Voucher");
+
+  const cardClasses =
+    used || disabled
+      ? "border-slate-200 bg-slate-100"
+      : expired
+        ? "border-red-200 bg-red-50"
+        : "border-emerald-200 bg-emerald-50";
+
+  const accentClasses =
+    used || disabled
+      ? "text-slate-700"
+      : expired
+        ? "text-red-700"
+        : "text-emerald-700";
+
+  const badgeClasses =
+    used || disabled
+      ? "border-slate-300 bg-white text-slate-700"
+      : expired
+        ? "border-red-200 bg-white text-red-700"
+        : "border-emerald-200 bg-white text-emerald-700";
+
   return (
-    <div className="rounded-[22px] border border-emerald-200 bg-emerald-50 p-4 sm:rounded-[28px] sm:p-6">
-      <p className="text-xs font-black uppercase tracking-wide text-emerald-700">
-        {label}
-      </p>
+    <section
+      className={`rounded-[22px] border p-4 sm:rounded-[28px] sm:p-6 ${cardClasses}`}
+    >
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p
+            className={`text-xs font-black uppercase tracking-wide ${accentClasses}`}
+          >
+            {t("memberRewardRedemptionDetail.voucherCode")}
+          </p>
 
-      <div className="mt-3 flex items-center justify-between gap-3">
-        <p className="min-w-0 break-all text-base font-black text-slate-950 sm:text-lg">
-          {value}
-        </p>
+          <p className="mt-2 break-all text-base font-black text-slate-950 sm:text-lg">
+            {item.voucherCode}
+          </p>
+        </div>
 
+        <span
+          className={`inline-flex shrink-0 rounded-full border px-3 py-1.5 text-[10px] font-black uppercase tracking-wide sm:text-xs ${badgeClasses}`}
+        >
+          {statusLabel}
+        </span>
+      </div>
+
+      <div className="mt-4 flex flex-wrap gap-2">
         <button
           type="button"
           onClick={onCopy}
-          className="inline-flex shrink-0 items-center gap-1.5 rounded-xl bg-slate-950 px-3 py-2.5 text-xs font-black text-white sm:gap-2 sm:px-4 sm:py-3 sm:text-sm"
+          className="inline-flex min-h-10 items-center gap-1.5 rounded-xl bg-slate-950 px-3 py-2.5 text-xs font-black text-white sm:min-h-11 sm:gap-2 sm:px-4 sm:py-3 sm:text-sm"
         >
           {copied ? (
             <>
@@ -1081,7 +1235,119 @@ function CopyBox({
           )}
         </button>
       </div>
-    </div>
+
+      {available && (
+        <div className="mt-4 rounded-2xl border border-emerald-200 bg-white/70 px-4 py-3">
+          <p className="text-xs font-bold leading-5 text-emerald-800">
+            {language === "zh"
+              ? "此 Voucher 目前可在符合条件的 RewardHub 商家使用。"
+              : language === "ms"
+                ? "Baucar ini boleh digunakan di peniaga RewardHub yang layak."
+                : "This voucher is currently available for use at eligible RewardHub merchants."}
+          </p>
+
+          {item.voucherExpiredAt && (
+            <p className="mt-2 text-[11px] font-bold text-slate-500 sm:text-xs">
+              {language === "zh"
+                ? "有效期至"
+                : language === "ms"
+                  ? "Sah sehingga"
+                  : "Valid until"}{" "}
+              {formatDateTime(
+                item.voucherExpiredAt,
+                language
+              )}
+            </p>
+          )}
+        </div>
+      )}
+
+      {used && (
+        <div className="mt-4 grid gap-3 border-t border-slate-300 pt-4 sm:grid-cols-2">
+          <InfoCard
+            label={
+              language === "zh"
+                ? "使用时间"
+                : language === "ms"
+                  ? "Digunakan Pada"
+                  : "Used At"
+            }
+            value={
+              item.voucherUsedAt
+                ? formatDateTime(
+                    item.voucherUsedAt,
+                    language
+                  )
+                : "-"
+            }
+          />
+
+          <InfoCard
+            label={
+              language === "zh"
+                ? "使用商家"
+                : language === "ms"
+                  ? "Digunakan Di"
+                  : "Used Merchant"
+            }
+            value={
+              item.voucherUsedMerchantName ||
+              item.voucherUsedMerchantId ||
+              "-"
+            }
+          />
+
+          <div className="sm:col-span-2">
+            <InfoCard
+              label={
+                language === "zh"
+                  ? "交易编号"
+                  : language === "ms"
+                    ? "ID Transaksi"
+                    : "Transaction ID"
+              }
+              value={
+                item.voucherUsedTransactionId ||
+                "-"
+              }
+            />
+          </div>
+        </div>
+      )}
+
+      {expired && (
+        <div className="mt-4 rounded-2xl border border-red-200 bg-white/70 px-4 py-3">
+          <p className="text-xs font-bold leading-5 text-red-700">
+            {language === "zh"
+              ? "此 Voucher 已过期，无法再用于付款。"
+              : language === "ms"
+                ? "Baucar ini telah tamat tempoh dan tidak boleh digunakan untuk pembayaran."
+                : "This voucher has expired and can no longer be used for payment."}
+          </p>
+
+          {item.voucherExpiredAt && (
+            <p className="mt-2 text-[11px] font-bold text-slate-500 sm:text-xs">
+              {formatDateTime(
+                item.voucherExpiredAt,
+                language
+              )}
+            </p>
+          )}
+        </div>
+      )}
+
+      {disabled && (
+        <div className="mt-4 rounded-2xl border border-slate-300 bg-white/70 px-4 py-3">
+          <p className="text-xs font-bold leading-5 text-slate-700">
+            {language === "zh"
+              ? "此 Voucher 当前不可使用。"
+              : language === "ms"
+                ? "Baucar ini tidak tersedia untuk digunakan."
+                : "This voucher is currently unavailable for use."}
+          </p>
+        </div>
+      )}
+    </section>
   );
 }
 
@@ -1144,6 +1410,67 @@ function StatusBadge({
           )
         : t("memberRewardRedemptionDetail.status.pending")}
     </span>
+  );
+}
+
+function CancelledTimeline({
+  reason,
+  date,
+  language,
+}: {
+  reason: string;
+  date: string;
+  language: string;
+}) {
+  const title =
+    language === "zh"
+      ? "已取消"
+      : language === "ms"
+        ? "Dibatalkan"
+        : "Cancelled";
+
+  const description =
+    reason
+      ? (
+          language === "zh"
+            ? `兑换已取消：${reason}`
+            : language === "ms"
+              ? `Penebusan dibatalkan: ${reason}`
+              : `Redemption cancelled: ${reason}`
+        )
+      : (
+          language === "zh"
+            ? "此奖励兑换已取消。"
+            : language === "ms"
+              ? "Penebusan ganjaran ini telah dibatalkan."
+              : "This reward redemption has been cancelled."
+        );
+
+  return (
+    <div className="relative flex gap-3 sm:gap-4">
+      <div className="relative z-10 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 border-red-500 bg-red-500 text-white sm:h-6 sm:w-6">
+        <CheckCircle2 className="h-3.5 w-3.5" />
+      </div>
+
+      <div className="-mt-0.5 min-w-0 flex-1">
+        <div className="flex flex-col gap-0.5 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between sm:gap-2">
+          <p className="text-[13px] font-black text-red-700 sm:text-sm">
+            {title}
+          </p>
+
+          <p className="text-[10px] font-bold text-slate-400 sm:text-xs">
+            {formatDateTime(
+              date,
+              language
+            )}
+          </p>
+        </div>
+
+        <p className="mt-1 text-[11px] font-semibold leading-4 text-red-600 sm:text-xs sm:leading-5">
+          {description}
+        </p>
+      </div>
+    </div>
   );
 }
 

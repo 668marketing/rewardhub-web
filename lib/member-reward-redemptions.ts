@@ -11,7 +11,17 @@ export type MemberRewardRedemptionDetail = {
   pointsUsed: number;
   quantity: number;
   status: string;
+
   voucherCode: string;
+  voucherId: string;
+  voucherStatus: string;
+  voucherAvailable: boolean;
+  voucherUsed: boolean;
+  voucherUsedAt: string;
+  voucherUsedTransactionId: string;
+  voucherUsedMerchantId: string;
+  voucherUsedMerchantName: string;
+  voucherExpiredAt: string;
 
   recipientName: string;
   phone: string;
@@ -24,10 +34,10 @@ export type MemberRewardRedemptionDetail = {
   adminNote: string;
 
   redeemedAt: string;
-processedAt: string;
-shippedAt: string;
-completedAt: string;
-updatedAt: string;
+  processedAt: string;
+  shippedAt: string;
+  completedAt: string;
+  updatedAt: string;
 };
 
 export async function getMemberRewardRedemptionDetail(
@@ -69,8 +79,8 @@ export async function getMemberRewardRedemptionDetail(
   ) {
     throw new Error(
       result.error ||
-      result.message ||
-      "Unable to load redemption."
+        result.message ||
+        "Unable to load redemption."
     );
   }
 

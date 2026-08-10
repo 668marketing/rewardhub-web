@@ -13,7 +13,7 @@ type RouteContext = {
   }>;
 };
 
-type BackendResponse<T> = {
+type BackendResponse<T = unknown> = {
   success?: boolean;
   data?: T;
   result?: T;
@@ -42,7 +42,10 @@ function clearAdminCookie(
 
 async function callBackend(
   request: NextRequest,
-  body: Record<string, unknown>
+  body: Record<
+    string,
+    unknown
+  >
 ) {
   const backendResponse =
     await fetch(
@@ -57,7 +60,8 @@ async function callBackend(
             "application/json",
         },
         cache: "no-store",
-        body: JSON.stringify(body),
+        body:
+          JSON.stringify(body),
       }
     );
 
@@ -65,7 +69,7 @@ async function callBackend(
     await backendResponse.text();
 
   let payload:
-    BackendResponse<unknown>;
+    BackendResponse;
 
   try {
     payload =
@@ -76,7 +80,7 @@ async function callBackend(
         .replace(/\s+/g, " ")
         .trim()
         .slice(0, 500) ||
-      "Settlement backend returned an invalid response."
+        "Settlement backend returned an invalid response."
     );
   }
 
@@ -228,15 +232,41 @@ export async function POST(
       );
     }
 
-    const body =
-      (await request.json()) as {
-        action?: string;
-        merchantId?: string;
-        rejectReason?: string;
-        paymentMethod?: string;
-        paymentNote?: string;
-        receiptUrl?: string;
-      };
+    let body: {
+      action?: string;
+      merchantId?: string;
+      rejectReason?: string;
+      paymentMethod?: string;
+      paymentNote?: string;
+      receiptUrl?: string;
+      fileName?: string;
+      mimeType?: string;
+      base64?: string;
+    };
+
+    try {
+      body =
+        (await request.json()) as {
+          action?: string;
+          merchantId?: string;
+          rejectReason?: string;
+          paymentMethod?: string;
+          paymentNote?: string;
+          receiptUrl?: string;
+          fileName?: string;
+          mimeType?: string;
+          base64?: string;
+        };
+    } catch {
+      return NextResponse.json(
+        {
+          success: false,
+          error:
+            "Invalid request body.",
+        },
+        { status: 400 }
+      );
+    }
 
     const action =
       String(
@@ -276,6 +306,12 @@ export async function POST(
     ) {
       backendAction =
         "markAdminSettlementPaid";
+    } else if (
+      action ===
+      "upload-payment-receipt"
+    ) {
+      backendAction =
+        "uploadAdminSettlementPaymentReceipt";
     } else {
       return NextResponse.json(
         {
@@ -327,15 +363,46 @@ export async function POST(
               body.paymentMethod ||
               "Bank Transfer"
             ).trim(),
+
+          /*
+           * IMPORTANT:
+           * Leave paymentNote empty when Admin did not enter one.
+           * The Apps Script backend now chooses the correct
+           * direction-aware default:
+           * - Merchant -> RewardHub
+           * - RewardHub -> Merchant
+           * - No Payment Required
+           */
           paymentNote:
             String(
               body.paymentNote ||
-              "Settlement payment completed."
+              ""
             ).trim(),
+
           receiptUrl:
             String(
-              body.receiptUrl || ""
+              body.receiptUrl ||
+              ""
             ).trim(),
+
+          fileName:
+            String(
+              body.fileName ||
+              ""
+            ).trim(),
+
+          mimeType:
+            String(
+              body.mimeType ||
+              ""
+            ).trim(),
+
+          base64:
+            String(
+              body.base64 ||
+              ""
+            ).trim(),
+
           userAgent:
             request.headers.get(
               "user-agent"
@@ -387,7 +454,7 @@ export async function POST(
 }
 
 function createErrorResponse(
-  payload: BackendResponse<unknown>
+  payload: BackendResponse
 ) {
   const message =
     payload.error ||
@@ -395,7 +462,7 @@ function createErrorResponse(
     "Settlement request failed.";
 
   const unauthorized =
-    /session|unauthorized|expired|inactive/i.test(
+    /session|unauthorized|expired|inactive|authentication/i.test(
       message
     );
 

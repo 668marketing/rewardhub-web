@@ -30,7 +30,7 @@ import {
   X,
   XCircle,
 } from "lucide-react";
-
+import MerchantNav from "@/components/layout/MerchantNav";
 import {
   confirmMerchantOrderPayment,
   getMerchantOrderDetail,
@@ -854,6 +854,9 @@ export default function MerchantOrderDetailPage() {
   );
 
   return (
+  <>
+    <MerchantNav />
+
     <main className="min-h-screen bg-slate-50 pb-32">
       <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
         <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
@@ -1485,6 +1488,7 @@ export default function MerchantOrderDetailPage() {
         </div>
       ) : null}
     </main>
+  </>
   );
 }
 

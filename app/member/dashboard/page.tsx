@@ -303,10 +303,22 @@
   />
 
               <ActionCard
-                title={t("memberDashboard.referralCenter")}
-                desc={t("memberDashboard.referralCenterDescription")}
-                href="/member/commission"
-              />
+  title={
+    language === "zh"
+      ? "我的奖励"
+      : language === "ms"
+        ? "Ganjaran Saya"
+        : "My Rewards"
+  }
+  desc={
+    language === "zh"
+      ? "查看已兑换的 Voucher、电子奖励和实体商品。"
+      : language === "ms"
+        ? "Lihat baucar, ganjaran digital dan barangan fizikal yang telah ditebus."
+        : "View your redeemed vouchers, digital rewards and physical items."
+  }
+  href="/member/points/redemptions"
+/>
             </div>
 
             <div className="mt-4 grid grid-cols-[minmax(0,1.7fr)_minmax(145px,0.8fr)] gap-3 sm:mt-6 sm:gap-6 lg:grid-cols-3">

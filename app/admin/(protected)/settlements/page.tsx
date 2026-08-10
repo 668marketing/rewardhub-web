@@ -35,6 +35,7 @@ import {
   getAdminSettlements,
   markAdminSettlementPaid,
   rejectAdminSettlement,
+  uploadAdminSettlementPaymentReceipt,
 } from "@/lib/admin-settlements";
 
 type Filters = {
@@ -101,6 +102,25 @@ export default function AdminSettlementsPage() {
 
   const [actionLoading, setActionLoading] =
     useState(false);
+
+  const [
+    paymentReceiptFile,
+    setPaymentReceiptFile,
+  ] = useState<File | null>(
+    null
+  );
+
+  const [
+    paymentMethod,
+    setPaymentMethod,
+  ] = useState(
+    "Bank Transfer"
+  );
+
+  const [
+    paymentNote,
+    setPaymentNote,
+  ] = useState("");
 
   const [showReject, setShowReject] =
     useState(false);
@@ -293,6 +313,13 @@ export default function AdminSettlementsPage() {
     setCustomRejectReason(
       ""
     );
+    setPaymentReceiptFile(
+      null
+    );
+    setPaymentMethod(
+      "Bank Transfer"
+    );
+    setPaymentNote("");
   }
 
   async function handleApprove() {
@@ -334,6 +361,87 @@ export default function AdminSettlementsPage() {
     }
   }
 
+  async function handleUploadPaymentReceipt() {
+    if (
+      !detail?.settlement
+    ) {
+      return;
+    }
+
+    if (
+      detail.settlement
+        .settlementDirection !==
+      "REWARDHUB_TO_MERCHANT"
+    ) {
+      setError(
+        "Admin payment receipt is only required when RewardHub pays the merchant."
+      );
+      return;
+    }
+
+    if (
+      !paymentReceiptFile
+    ) {
+      setError(
+        "Please select a payment receipt first."
+      );
+      return;
+    }
+
+    try {
+      setActionLoading(true);
+      setError("");
+
+      const base64 =
+        await fileToBase64(
+          paymentReceiptFile
+        );
+
+      await uploadAdminSettlementPaymentReceipt(
+        detail.settlement,
+        {
+          fileName:
+            paymentReceiptFile.name,
+          mimeType:
+            paymentReceiptFile.type ||
+            "application/octet-stream",
+          base64,
+          paymentMethod:
+            paymentMethod.trim() ||
+            "Bank Transfer",
+          paymentNote:
+            paymentNote.trim(),
+        }
+      );
+
+      setPaymentReceiptFile(
+        null
+      );
+
+      await Promise.all([
+        loadSettlements(
+          true
+        ),
+        getAdminSettlementDetail(
+          detail.settlement
+            .settlementId
+        ).then(
+          setDetail
+        ),
+      ]);
+    } catch (
+      actionError
+    ) {
+      setError(
+        actionError instanceof Error
+          ? actionError.message
+          : "Unable to upload payment receipt."
+      );
+    } finally {
+      setActionLoading(false);
+    }
+  }
+
   async function handleMarkPaid() {
     if (
       !detail?.settlement
@@ -341,9 +449,40 @@ export default function AdminSettlementsPage() {
       return;
     }
 
+    const settlement =
+      detail.settlement;
+
+    const direction =
+      settlement.settlementDirection;
+
+    if (
+      direction ===
+        "REWARDHUB_TO_MERCHANT" &&
+      !settlement.receiptUrl
+    ) {
+      setError(
+        "RewardHub payment receipt is required before marking this settlement as paid."
+      );
+      return;
+    }
+
+    if (
+      direction ===
+        "MERCHANT_TO_REWARDHUB" &&
+      !settlement.receiptUrl
+    ) {
+      setError(
+        "Merchant payment receipt is required before marking this settlement as paid."
+      );
+      return;
+    }
+
     const confirmed =
       window.confirm(
-        `Mark ${detail.settlement.settlementId} as paid?`
+        direction ===
+        "NO_PAYMENT"
+          ? `Complete ${settlement.settlementId} with no payment required?`
+          : `Mark ${settlement.settlementId} as paid?`
       );
 
     if (!confirmed) {
@@ -355,9 +494,20 @@ export default function AdminSettlementsPage() {
       setError("");
 
       await markAdminSettlementPaid(
-        detail.settlement,
-        "Bank Transfer",
-        "Settlement payment completed."
+        settlement,
+        paymentMethod.trim() ||
+          settlement.paymentMethod ||
+          "Bank Transfer",
+        paymentNote.trim() ||
+          settlement.paymentNote ||
+          (
+            direction ===
+            "NO_PAYMENT"
+              ? "No payment required."
+              : "Settlement payment completed."
+          ),
+        settlement.receiptUrl ||
+          ""
       );
 
       await Promise.all([
@@ -365,8 +515,7 @@ export default function AdminSettlementsPage() {
           true
         ),
         getAdminSettlementDetail(
-          detail.settlement
-            .settlementId
+          settlement.settlementId
         ).then(
           setDetail
         ),
@@ -457,7 +606,12 @@ export default function AdminSettlementsPage() {
         "Total Sales",
         "Total Cashback",
         "Total Reward Credits",
+        "Voucher Discount",
         "Marketing Budget",
+        "Merchant Due",
+        "RewardHub Due",
+        "Net Amount",
+        "Settlement Direction",
         "Amount Payable",
         "Status",
         "Payment Method",
@@ -483,7 +637,12 @@ export default function AdminSettlementsPage() {
           settlement.totalSales,
           settlement.totalCashback,
           settlement.totalRewardCredits,
+          settlement.totalVoucherDiscount,
           settlement.totalMarketingBudget,
+          settlement.merchantDue,
+          settlement.rewardHubDue,
+          settlement.netAmount,
+          settlement.settlementDirection,
           settlement.amountPayable,
           settlement.status,
           settlement.paymentMethod,
@@ -932,7 +1091,7 @@ export default function AdminSettlementsPage() {
           ) : (
             <>
               <div className="overflow-x-auto">
-                <table className="min-w-[1350px] w-full">
+                <table className="min-w-[1450px] w-full">
                   <thead>
                     <tr className="border-b border-white/[0.06] text-left text-[11px] uppercase tracking-[0.16em] text-slate-700">
                       <th className="px-6 py-4">
@@ -1087,6 +1246,27 @@ export default function AdminSettlementsPage() {
           onApprove={
             handleApprove
           }
+          paymentReceiptFile={
+            paymentReceiptFile
+          }
+          paymentMethod={
+            paymentMethod
+          }
+          paymentNote={
+            paymentNote
+          }
+          onPaymentReceiptFileChange={
+            setPaymentReceiptFile
+          }
+          onPaymentMethodChange={
+            setPaymentMethod
+          }
+          onPaymentNoteChange={
+            setPaymentNote
+          }
+          onUploadPaymentReceipt={
+            handleUploadPaymentReceipt
+          }
           onMarkPaid={
             handleMarkPaid
           }
@@ -1167,12 +1347,37 @@ function SettlementRow({
           )}{" "}
           credits
         </p>
+
+        <p className="mt-1 text-xs text-amber-300">
+          {formatCurrency(
+            settlement.totalVoucherDiscount
+          )}{" "}
+          vouchers
+        </p>
       </td>
 
-      <td className="px-4 py-4 font-semibold text-white">
-        {formatCurrency(
-          settlement.amountPayable
-        )}
+      <td className="px-4 py-4">
+        <p className="font-semibold text-white">
+          {formatCurrency(
+            settlement.amountPayable
+          )}
+        </p>
+
+        <p
+          className={`mt-1 text-xs ${
+            settlement.settlementDirection ===
+            "REWARDHUB_TO_MERCHANT"
+              ? "text-sky-300"
+              : settlement.settlementDirection ===
+                  "NO_PAYMENT"
+                ? "text-slate-500"
+                : "text-emerald-300"
+          }`}
+        >
+          {formatDirection(
+            settlement.settlementDirection
+          )}
+        </p>
       </td>
 
       <td className="px-4 py-4">
@@ -1230,6 +1435,13 @@ function SettlementDrawer({
   onOpenReject,
   onCancelReject,
   onApprove,
+  paymentReceiptFile,
+  paymentMethod,
+  paymentNote,
+  onPaymentReceiptFileChange,
+  onPaymentMethodChange,
+  onPaymentNoteChange,
+  onUploadPaymentReceipt,
   onMarkPaid,
   onReject,
   onClose,
@@ -1249,6 +1461,19 @@ function SettlementDrawer({
   onOpenReject: () => void;
   onCancelReject: () => void;
   onApprove: () => void;
+  paymentReceiptFile: File | null;
+  paymentMethod: string;
+  paymentNote: string;
+  onPaymentReceiptFileChange: (
+    file: File | null
+  ) => void;
+  onPaymentMethodChange: (
+    value: string
+  ) => void;
+  onPaymentNoteChange: (
+    value: string
+  ) => void;
+  onUploadPaymentReceipt: () => void;
   onMarkPaid: () => void;
   onReject: () => void;
   onClose: () => void;
@@ -1316,6 +1541,12 @@ function SettlementDrawer({
                     settlement.month
                   )}
                 </span>
+
+                <DirectionBadge
+                  direction={
+                    settlement.settlementDirection
+                  }
+                />
               </div>
 
               <DetailSection title="Settlement">
@@ -1446,20 +1677,149 @@ function SettlementDrawer({
                   />
 
                   <DetailItem
+                    label="Voucher Discount"
+                    value={formatCurrency(
+                      settlement.totalVoucherDiscount
+                    )}
+                  />
+
+                  <DetailItem
+                    label="Merchant Due"
+                    value={formatCurrency(
+                      settlement.merchantDue
+                    )}
+                  />
+
+                  <DetailItem
+                    label="RewardHub Due"
+                    value={formatCurrency(
+                      settlement.rewardHubDue
+                    )}
+                  />
+
+                  <DetailItem
+                    label="Net Amount"
+                    value={formatSignedCurrency(
+                      settlement.netAmount
+                    )}
+                  />
+
+                  <DetailItem
+                    label="Payment Direction"
+                    value={
+                      settlement.directionLabel ||
+                      formatDirection(
+                        settlement.settlementDirection
+                      )
+                    }
+                  />
+
+                  <DetailItem
                     label="Amount Payable"
                     value={formatCurrency(
                       settlement.amountPayable
                     )}
                   />
                 </DetailGrid>
+
+                <div className="mt-5 rounded-2xl border border-white/[0.07] bg-white/[0.025] px-4 py-3 text-xs leading-5 text-slate-500">
+                  Merchant Due = Marketing Budget. RewardHub Due = Reward Credits + Voucher Discount. Net Amount determines the payment direction.
+                </div>
               </DetailSection>
 
               <DetailSection title="Bank & Payment">
+                {detail.actions.requiresAdminPayment ? (
+                  <div className="mb-5 rounded-2xl border border-sky-400/15 bg-sky-400/[0.05] p-4 sm:p-5">
+                    <div className="flex items-start gap-3">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-sky-400/10 text-sky-300">
+                        <Banknote className="h-5 w-5" />
+                      </div>
+
+                      <div>
+                        <p className="text-sm font-semibold text-sky-100">
+                          Merchant Receiving Details
+                        </p>
+
+                        <p className="mt-1 text-xs leading-5 text-sky-200/60">
+                          Use the settlement bank snapshot below when RewardHub pays this merchant.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="mt-5 grid gap-4 sm:grid-cols-2">
+                      <BankDetailCard
+                        label="Bank Name"
+                        value={
+                          settlement.bankName ||
+                          "—"
+                        }
+                      />
+
+                      <BankDetailCard
+                        label="Account Name"
+                        value={
+                          settlement.bankAccountName ||
+                          "—"
+                        }
+                      />
+
+                      <div className="sm:col-span-2">
+                        <BankAccountCard
+                          accountNumber={
+                            settlement.bankAccount ||
+                            ""
+                          }
+                        />
+                      </div>
+                    </div>
+
+                    <div className="mt-5">
+                      <p className="text-[11px] uppercase tracking-[0.12em] text-sky-200/50">
+                        Merchant Payment QR
+                      </p>
+
+                      {settlement.bankQrUrl ? (
+                        <MerchantQrPreview
+                          url={
+                            settlement.bankQrUrl
+                          }
+                        />
+                      ) : (
+                        <div className="mt-3 rounded-2xl border border-white/[0.07] bg-slate-950/45 px-4 py-5 text-sm text-slate-500">
+                          No merchant payment QR was saved for this settlement.
+                        </div>
+                      )}
+
+                      {settlement.bankQrUrl ? (
+                        <a
+                          href={
+                            settlement.bankQrUrl
+                          }
+                          target="_blank"
+                          rel="noreferrer"
+                          className="mt-3 inline-flex h-10 items-center gap-2 rounded-xl border border-sky-400/20 bg-sky-400/[0.07] px-4 text-xs font-semibold text-sky-200 transition hover:bg-sky-400/[0.12]"
+                        >
+                          <Eye className="h-4 w-4" />
+                          Open QR Code
+                        </a>
+                      ) : null}
+                    </div>
+                  </div>
+                ) : null}
+
                 <DetailGrid>
                   <DetailItem
                     label="Bank Name"
                     value={
                       settlement.bankName ||
+                      "—"
+                    }
+                  />
+
+                  <DetailItem
+                    label="Account Name"
+                    value={
+                      settlement.bankAccountName ||
                       "—"
                     }
                   />
@@ -1523,6 +1883,134 @@ function SettlementDrawer({
                     </div>
                   )}
                 </div>
+
+                {detail.actions
+                  .requiresAdminPayment &&
+                detail.actions
+                  .canMarkPaid ? (
+                  <div className="mt-5 rounded-2xl border border-sky-400/15 bg-sky-400/[0.05] p-4">
+                    <div className="flex items-start gap-3">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-sky-400/10 text-sky-300">
+                        <Banknote className="h-5 w-5" />
+                      </div>
+
+                      <div>
+                        <p className="text-sm font-semibold text-sky-100">
+                          RewardHub Payment
+                        </p>
+
+                        <p className="mt-1 text-xs leading-5 text-sky-200/60">
+                          Pay the merchant first, then upload RewardHub&apos;s payment receipt here before marking the settlement as paid.
+                        </p>
+                      </div>
+                    </div>
+
+                    <label className="mt-4 block">
+                      <span className="text-xs font-medium text-slate-400">
+                        Payment Receipt
+                      </span>
+
+                      <input
+                        type="file"
+                        accept="image/*,application/pdf"
+                        disabled={
+                          actionLoading
+                        }
+                        onChange={(
+                          event
+                        ) =>
+                          onPaymentReceiptFileChange(
+                            event.target.files?.[0] ||
+                            null
+                          )
+                        }
+                        className="mt-2 block w-full rounded-xl border border-white/[0.08] bg-slate-950/65 px-3 py-3 text-xs text-slate-300 file:mr-3 file:rounded-lg file:border-0 file:bg-sky-400 file:px-3 file:py-2 file:text-xs file:font-semibold file:text-slate-950"
+                      />
+
+                      {paymentReceiptFile ? (
+                        <p className="mt-2 break-all text-xs text-sky-200">
+                          Selected:{" "}
+                          {
+                            paymentReceiptFile.name
+                          }
+                        </p>
+                      ) : null}
+                    </label>
+
+                    <label className="mt-4 block">
+                      <span className="text-xs font-medium text-slate-400">
+                        Payment Method
+                      </span>
+
+                      <input
+                        value={
+                          paymentMethod
+                        }
+                        disabled={
+                          actionLoading
+                        }
+                        onChange={(
+                          event
+                        ) =>
+                          onPaymentMethodChange(
+                            event.target.value
+                          )
+                        }
+                        placeholder="Bank Transfer"
+                        className={`${inputClass} mt-2`}
+                      />
+                    </label>
+
+                    <label className="mt-4 block">
+                      <span className="text-xs font-medium text-slate-400">
+                        Payment Note
+                      </span>
+
+                      <textarea
+                        value={
+                          paymentNote
+                        }
+                        disabled={
+                          actionLoading
+                        }
+                        onChange={(
+                          event
+                        ) =>
+                          onPaymentNoteChange(
+                            event.target.value
+                          )
+                        }
+                        placeholder="Optional payment note"
+                        rows={3}
+                        className="mt-2 w-full resize-none rounded-xl border border-white/[0.08] bg-slate-950/65 px-4 py-3 text-sm text-slate-200 outline-none transition placeholder:text-slate-700 focus:border-sky-400/35 focus:ring-4 focus:ring-sky-400/10 disabled:opacity-50"
+                      />
+                    </label>
+
+                    <button
+                      type="button"
+                      onClick={
+                        onUploadPaymentReceipt
+                      }
+                      disabled={
+                        actionLoading ||
+                        !paymentReceiptFile
+                      }
+                      className="mt-4 flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-sky-400 text-sm font-semibold text-slate-950 transition hover:bg-sky-300 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      {actionLoading ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <ReceiptText className="h-4 w-4" />
+                      )}
+
+                      {actionLoading
+                        ? "Uploading..."
+                        : settlement.receiptUrl
+                          ? "Replace Payment Receipt"
+                          : "Upload Payment Receipt"}
+                    </button>
+                  </div>
+                ) : null}
               </DetailSection>
 
               {(settlement.approvedAt ||
@@ -1716,24 +2204,57 @@ function SettlementDrawer({
                 </button>
               </div>
             ) : detail.actions.canMarkPaid ? (
-              <button
-                type="button"
-                onClick={
-                  onMarkPaid
-                }
-                disabled={
-                  actionLoading
-                }
-                className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-emerald-400 text-sm font-semibold text-slate-950 transition hover:bg-emerald-300 disabled:opacity-50"
-              >
-                {actionLoading ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Banknote className="h-4 w-4" />
-                )}
+              <div className="space-y-3">
+                {detail.actions
+                  .requiresAdminPayment &&
+                !settlement.receiptUrl ? (
+                  <div className="rounded-xl border border-sky-400/15 bg-sky-400/[0.06] px-4 py-3 text-xs text-sky-200">
+                    Upload RewardHub&apos;s payment receipt above before marking this settlement as paid.
+                  </div>
+                ) : null}
 
-                Mark as Paid
-              </button>
+                {detail.actions
+                  .requiresMerchantReceipt &&
+                !settlement.receiptUrl ? (
+                  <div className="rounded-xl border border-amber-400/15 bg-amber-400/[0.06] px-4 py-3 text-xs text-amber-200">
+                    Waiting for the merchant&apos;s payment receipt before this settlement can be marked as paid.
+                  </div>
+                ) : null}
+
+                {detail.actions
+                  .noPaymentRequired ? (
+                  <div className="rounded-xl border border-white/[0.08] bg-white/[0.025] px-4 py-3 text-xs text-slate-400">
+                    No transfer is required for this settlement.
+                  </div>
+                ) : null}
+
+                <button
+                  type="button"
+                  onClick={
+                    onMarkPaid
+                  }
+                  disabled={
+                    actionLoading ||
+                    (
+                      !detail.actions
+                        .noPaymentRequired &&
+                      !settlement.receiptUrl
+                    )
+                  }
+                  className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-emerald-400 text-sm font-semibold text-slate-950 transition hover:bg-emerald-300 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {actionLoading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Banknote className="h-4 w-4" />
+                  )}
+
+                  {detail.actions
+                    .noPaymentRequired
+                    ? "Complete Settlement"
+                    : "Mark as Paid"}
+                </button>
+              </div>
             ) : (
               <div className="rounded-xl border border-white/[0.07] bg-white/[0.025] px-4 py-3 text-center text-sm text-slate-500">
                 This settlement has been completed.
@@ -1810,6 +2331,226 @@ function DetailGrid({
   );
 }
 
+function getGoogleDriveImageUrl(
+  url: string
+) {
+  const value =
+    String(
+      url || ""
+    ).trim();
+
+  if (!value) {
+    return "";
+  }
+
+  let fileId = "";
+
+  const fileMatch =
+    value.match(
+      /\/file\/d\/([^/?#]+)/
+    );
+
+  if (
+    fileMatch?.[1]
+  ) {
+    fileId =
+      fileMatch[1];
+  }
+
+  if (!fileId) {
+    try {
+      const parsed =
+        new URL(
+          value
+        );
+
+      fileId =
+        parsed.searchParams.get(
+          "id"
+        ) || "";
+    } catch {
+      fileId = "";
+    }
+  }
+
+  if (!fileId) {
+    return value;
+  }
+
+  return (
+    "https://drive.google.com/thumbnail?id=" +
+    encodeURIComponent(
+      fileId
+    ) +
+    "&sz=w1000"
+  );
+}
+
+function MerchantQrPreview({
+  url,
+}: {
+  url: string;
+}) {
+  const [failed, setFailed] =
+    useState(false);
+
+  const previewUrl =
+    getGoogleDriveImageUrl(
+      url
+    );
+
+  if (
+    failed ||
+    !previewUrl
+  ) {
+    return (
+      <div className="mt-3 flex min-h-40 flex-col items-center justify-center rounded-2xl border border-white/[0.08] bg-slate-950/45 px-5 py-8 text-center">
+        <ReceiptText className="h-8 w-8 text-slate-700" />
+
+        <p className="mt-3 text-sm font-medium text-slate-400">
+          QR preview unavailable
+        </p>
+
+        <p className="mt-1 max-w-sm text-xs leading-5 text-slate-600">
+          The QR link is saved. Use Open QR Code below to view the original file.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mt-3 overflow-hidden rounded-2xl border border-white/[0.08] bg-white p-4">
+      <img
+        src={
+          previewUrl
+        }
+        alt="Merchant payment QR"
+        onError={() =>
+          setFailed(
+            true
+          )
+        }
+        className="mx-auto max-h-80 w-full max-w-sm object-contain"
+      />
+    </div>
+  );
+}
+
+function BankDetailCard({
+  label,
+  value,
+}: {
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="rounded-2xl border border-white/[0.07] bg-slate-950/45 p-4">
+      <p className="text-[11px] uppercase tracking-[0.12em] text-slate-600">
+        {label}
+      </p>
+
+      <p className="mt-2 break-words text-sm font-semibold text-white">
+        {value}
+      </p>
+    </div>
+  );
+}
+
+function BankAccountCard({
+  accountNumber,
+}: {
+  accountNumber: string;
+}) {
+  const [copied, setCopied] =
+    useState(false);
+
+  async function handleCopy() {
+    if (!accountNumber) {
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(
+        accountNumber
+      );
+
+      setCopied(true);
+
+      window.setTimeout(
+        () => {
+          setCopied(false);
+        },
+        1500
+      );
+    } catch {
+      const textarea =
+        document.createElement(
+          "textarea"
+        );
+
+      textarea.value =
+        accountNumber;
+
+      textarea.style.position =
+        "fixed";
+      textarea.style.opacity =
+        "0";
+
+      document.body.appendChild(
+        textarea
+      );
+
+      textarea.focus();
+      textarea.select();
+
+      document.execCommand(
+        "copy"
+      );
+
+      textarea.remove();
+
+      setCopied(true);
+
+      window.setTimeout(
+        () => {
+          setCopied(false);
+        },
+        1500
+      );
+    }
+  }
+
+  return (
+    <div className="rounded-2xl border border-white/[0.07] bg-slate-950/45 p-4">
+      <p className="text-[11px] uppercase tracking-[0.12em] text-slate-600">
+        Account Number
+      </p>
+
+      <div className="mt-2 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <p className="break-all text-base font-semibold tracking-wide text-white">
+          {accountNumber ||
+            "—"}
+        </p>
+
+        <button
+          type="button"
+          onClick={
+            handleCopy
+          }
+          disabled={
+            !accountNumber
+          }
+          className="inline-flex h-9 shrink-0 items-center justify-center rounded-xl border border-sky-400/20 bg-sky-400/[0.07] px-3 text-xs font-semibold text-sky-200 transition hover:bg-sky-400/[0.12] disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          {copied
+            ? "Copied"
+            : "Copy Account Number"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function DetailItem({
   label,
   value,
@@ -1827,6 +2568,32 @@ function DetailItem({
         {value}
       </p>
     </div>
+  );
+}
+
+function DirectionBadge({
+  direction,
+}: {
+  direction:
+    AdminSettlement["settlementDirection"];
+}) {
+  const className =
+    direction ===
+    "REWARDHUB_TO_MERCHANT"
+      ? "border-sky-400/20 bg-sky-400/10 text-sky-300"
+      : direction ===
+          "NO_PAYMENT"
+        ? "border-white/[0.08] bg-white/[0.03] text-slate-400"
+        : "border-emerald-400/20 bg-emerald-400/10 text-emerald-300";
+
+  return (
+    <span
+      className={`inline-flex rounded-full border px-2.5 py-1 text-[11px] font-semibold ${className}`}
+    >
+      {formatDirection(
+        direction
+      )}
+    </span>
   );
 }
 
@@ -1868,6 +2635,85 @@ const inputClass =
 
 const pageButtonClass =
   "flex h-10 items-center gap-2 rounded-xl border border-white/[0.08] px-3 text-sm text-slate-400 transition hover:bg-white/[0.05] hover:text-white disabled:cursor-not-allowed disabled:opacity-30";
+
+function formatDirection(
+  value:
+    AdminSettlement["settlementDirection"]
+) {
+  if (
+    value ===
+    "REWARDHUB_TO_MERCHANT"
+  ) {
+    return "RewardHub Pays Merchant";
+  }
+
+  if (
+    value ===
+    "NO_PAYMENT"
+  ) {
+    return "No Payment Required";
+  }
+
+  return "Merchant Pays RewardHub";
+}
+
+function formatSignedCurrency(
+  value: number
+) {
+  const number =
+    Number(
+      value || 0
+    );
+
+  if (
+    number < 0
+  ) {
+    return `− ${formatCurrency(
+      Math.abs(
+        number
+      )
+    )}`;
+  }
+
+  return formatCurrency(
+    number
+  );
+}
+
+function fileToBase64(
+  file: File
+): Promise<string> {
+  return new Promise(
+    (
+      resolve,
+      reject
+    ) => {
+      const reader =
+        new FileReader();
+
+      reader.onload =
+        () => {
+          const result =
+            String(
+              reader.result || ""
+            );
+
+          resolve(
+            result.includes(",")
+              ? result.split(",")[1]
+              : result
+          );
+        };
+
+      reader.onerror =
+        reject;
+
+      reader.readAsDataURL(
+        file
+      );
+    }
+  );
+}
 
 function formatCurrency(
   value: number

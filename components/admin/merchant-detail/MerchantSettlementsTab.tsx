@@ -123,6 +123,11 @@ export default function MerchantSettlementsTab({
             settlement.bankAccount,
             settlement.paymentMethod,
             settlement.amountPayable,
+            settlement.merchantDue,
+            settlement.rewardHubDue,
+            settlement.netAmount,
+            settlement.settlementDirection,
+            settlement.directionLabel,
           ]
             .join(" ")
             .toLowerCase();
@@ -146,9 +151,12 @@ export default function MerchantSettlementsTab({
         settlement
       ) =>
         total +
-        Number(
-          settlement.amountPayable ||
-            0
+        Math.abs(
+          Number(
+            settlement.netAmount ??
+              settlement.amountPayable ??
+              0
+          )
         ),
       0
     );
@@ -290,7 +298,7 @@ export default function MerchantSettlementsTab({
               </div>
 
               <div className="hidden overflow-x-auto lg:block">
-                <table className="w-full min-w-[1480px] border-collapse text-left">
+                <table className="w-full min-w-[1720px] border-collapse text-left">
                   <thead>
                     <tr className="border-b border-white/[0.07] text-[11px] uppercase tracking-[0.15em] text-slate-600">
                       <th className="px-5 py-4">
@@ -310,11 +318,19 @@ export default function MerchantSettlementsTab({
                       </th>
 
                       <th className="px-5 py-4">
+                        Reward Credits
+                      </th>
+
+                      <th className="px-5 py-4">
                         Marketing
                       </th>
 
                       <th className="px-5 py-4">
-                        Payable
+                        Net Amount
+                      </th>
+
+                      <th className="px-5 py-4">
+                        Direction
                       </th>
 
                       <th className="px-5 py-4">
@@ -546,14 +562,28 @@ function SettlementTableRow({
 
       <td className="px-5 py-4 text-slate-400">
         {formatMoney(
+          settlement.totalRewardCredits
+        )}
+      </td>
+
+      <td className="px-5 py-4 text-slate-400">
+        {formatMoney(
           settlement.totalMarketingBudget
         )}
       </td>
 
       <td className="px-5 py-4 font-semibold text-emerald-300">
         {formatMoney(
-          settlement.amountPayable
+          getSettlementNetAmount(
+            settlement
+          )
         )}
+      </td>
+
+      <td className="px-5 py-4">
+        <SettlementDirectionBadge
+          settlement={settlement}
+        />
       </td>
 
       <td className="px-5 py-4">
@@ -669,6 +699,13 @@ function SettlementMobileCard({
         />
 
         <MobileValue
+          label="Reward Credits"
+          value={formatMoney(
+            settlement.totalRewardCredits
+          )}
+        />
+
+        <MobileValue
           label="Marketing"
           value={formatMoney(
             settlement.totalMarketingBudget
@@ -676,11 +713,20 @@ function SettlementMobileCard({
         />
 
         <MobileValue
-          label="Payable"
+          label="Net Amount"
           value={formatMoney(
-            settlement.amountPayable
+            getSettlementNetAmount(
+              settlement
+            )
           )}
           highlight
+        />
+
+        <MobileValue
+          label="Direction"
+          value={getSettlementDirectionLabel(
+            settlement
+          )}
         />
       </div>
 
@@ -800,6 +846,42 @@ function SettlementStatusBadge({
 }
 
 /* ============================================================
+ * Settlement Direction
+ * ============================================================
+ */
+
+function SettlementDirectionBadge({
+  settlement,
+}: {
+  settlement: AdminMerchantSettlement;
+}) {
+  const direction =
+    normalizeSettlementDirection(
+      settlement.settlementDirection
+    );
+
+  const label =
+    getSettlementDirectionLabel(
+      settlement
+    );
+
+  const classes =
+    direction === "MERCHANT_PAYS_REWARDHUB"
+      ? "border-amber-400/20 bg-amber-400/10 text-amber-300"
+      : direction === "REWARDHUB_PAYS_MERCHANT"
+        ? "border-cyan-400/20 bg-cyan-400/10 text-cyan-300"
+        : "border-slate-400/20 bg-slate-400/10 text-slate-300";
+
+  return (
+    <span
+      className={`inline-flex max-w-[220px] items-center rounded-full border px-3 py-1 text-[11px] font-semibold leading-4 ${classes}`}
+    >
+      {label}
+    </span>
+  );
+}
+
+/* ============================================================
  * Empty State
  * ============================================================
  */
@@ -838,6 +920,147 @@ function SettlementEmptyState({
  * Helpers
  * ============================================================
  */
+
+function getSettlementNetAmount(
+  settlement: AdminMerchantSettlement
+) {
+  const netAmount =
+    Number(settlement.netAmount);
+
+  if (
+    Number.isFinite(netAmount)
+  ) {
+    return Math.abs(netAmount);
+  }
+
+  const merchantDue =
+    Number(
+      settlement.merchantDue || 0
+    );
+
+  const rewardHubDue =
+    Number(
+      settlement.rewardHubDue || 0
+    );
+
+  if (
+    merchantDue !== 0 ||
+    rewardHubDue !== 0
+  ) {
+    return Math.abs(
+      merchantDue - rewardHubDue
+    );
+  }
+
+  return Math.abs(
+    Number(
+      settlement.amountPayable || 0
+    )
+  );
+}
+
+function normalizeSettlementDirection(
+  value: string
+) {
+  const normalized =
+    String(value || "")
+      .trim()
+      .toUpperCase()
+      .replace(/[\s-]+/g, "_");
+
+  if (
+    normalized ===
+      "MERCHANT_PAYS_REWARDHUB" ||
+    normalized ===
+      "MERCHANT_TO_REWARDHUB" ||
+    normalized ===
+      "MERCHANT_PAYS"
+  ) {
+    return "MERCHANT_PAYS_REWARDHUB";
+  }
+
+  if (
+    normalized ===
+      "REWARDHUB_PAYS_MERCHANT" ||
+    normalized ===
+      "REWARDHUB_TO_MERCHANT" ||
+    normalized ===
+      "REWARDHUB_PAYS"
+  ) {
+    return "REWARDHUB_PAYS_MERCHANT";
+  }
+
+  if (
+    normalized ===
+      "NO_PAYMENT_REQUIRED" ||
+    normalized === "BALANCED" ||
+    normalized === "NONE"
+  ) {
+    return "NO_PAYMENT_REQUIRED";
+  }
+
+  return normalized;
+}
+
+function getSettlementDirectionLabel(
+  settlement: AdminMerchantSettlement
+) {
+  if (
+    String(
+      settlement.directionLabel || ""
+    ).trim()
+  ) {
+    return String(
+      settlement.directionLabel
+    ).trim();
+  }
+
+  const direction =
+    normalizeSettlementDirection(
+      settlement.settlementDirection
+    );
+
+  if (
+    direction ===
+    "MERCHANT_PAYS_REWARDHUB"
+  ) {
+    return "Merchant Pays RewardHub";
+  }
+
+  if (
+    direction ===
+    "REWARDHUB_PAYS_MERCHANT"
+  ) {
+    return "RewardHub Pays Merchant";
+  }
+
+  if (
+    direction ===
+    "NO_PAYMENT_REQUIRED"
+  ) {
+    return "No Payment Required";
+  }
+
+  const merchantDue =
+    Number(
+      settlement.merchantDue || 0
+    );
+
+  const rewardHubDue =
+    Number(
+      settlement.rewardHubDue || 0
+    );
+
+  if (merchantDue > rewardHubDue) {
+    return "RewardHub Pays Merchant";
+  }
+
+  if (rewardHubDue > merchantDue) {
+    return "Merchant Pays RewardHub";
+  }
+
+  return "No Payment Required";
+}
 
 function normalizeStatus(
   value: string

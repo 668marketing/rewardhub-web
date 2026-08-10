@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   merchantPayment,
+  getMemberAvailableVouchers,
   getMemberByCardId,
   getMerchantDetail,
   getMerchantMarketingSummary,
@@ -22,6 +23,24 @@ type CardStatusKey =
   | "memberFound"
   | "cardNotFound";
 type PaymentMethod = "Cash" | "DuitNow" | "TNG" | "Bank" | "Card";
+
+type AvailableVoucher = {
+  voucherId: string;
+  voucherCode: string;
+  rewardId: string;
+  redemptionId: string;
+  title: string;
+  description: string;
+  imageUrl: string;
+  discountType: string;
+  discountValue: number;
+  minSpend: number;
+  merchantScope: string;
+  meetsMinSpend: boolean;
+  estimatedDiscount: number;
+  expiredAt: string;
+  status: string;
+};
 
 type Translation = {
   collectPayment: string;
@@ -46,6 +65,18 @@ type Translation = {
   pointsUnit: string;
   pointsEarned: string;
   customerPays: string;
+  voucher: string;
+  voucherDescription: string;
+  loadingVouchers: string;
+  noAvailableVouchers: string;
+  useVoucher: string;
+  removeVoucher: string;
+  selectedVoucher: string;
+  minSpend: string;
+  discount: string;
+  available: string;
+  notEligible: string;
+  voucherPreviewOnly: string;
   rewardCredits: string;
   rewardCreditsDescription: string;
   doNotUseCredits: string;
@@ -112,7 +143,21 @@ const translations: Record<LanguageCode, Translation> = {
     pointsUnit: "pts",
     pointsEarned: "Points Earned",
     customerPays: "Customer Pays",
-    rewardCredits: "3. Reward Credits",
+    voucher: "3. Voucher",
+    voucherDescription:
+      "Select an eligible voucher redeemed by this member.",
+    loadingVouchers: "Loading vouchers...",
+    noAvailableVouchers: "No available vouchers",
+    useVoucher: "Use Voucher",
+    removeVoucher: "Remove Voucher",
+    selectedVoucher: "Selected Voucher",
+    minSpend: "Min. Spend",
+    discount: "Voucher Discount",
+    available: "Available",
+    notEligible: "Not Eligible",
+    voucherPreviewOnly:
+      "Voucher selection is in preview mode. Complete payment without a voucher until voucher redemption is activated.",
+    rewardCredits: "4. Reward Credits",
     rewardCreditsDescription:
       "Reward Credits are redemption credits. Payment method remains separate.",
     doNotUseCredits: "Do Not Use Credits",
@@ -122,7 +167,7 @@ const translations: Record<LanguageCode, Translation> = {
     maxRedeem: "Max Redeem",
     creditsUsed: "Credits Used",
     disabled: "Disabled",
-    selectPaymentMethod: "4. Select Payment Method",
+    selectPaymentMethod: "5. Select Payment Method",
     cash: "Cash",
     duitNow: "DuitNow",
     tng: "TNG eWallet",
@@ -175,7 +220,20 @@ const translations: Record<LanguageCode, Translation> = {
     pointsUnit: "分",
     pointsEarned: "获得积分",
     customerPays: "顾客需支付",
-    rewardCredits: "3. 奖励金",
+    voucher: "3. Voucher",
+    voucherDescription: "选择该会员已经兑换并符合使用条件的 Voucher。",
+    loadingVouchers: "正在读取 Voucher...",
+    noAvailableVouchers: "目前没有可使用的 Voucher",
+    useVoucher: "使用 Voucher",
+    removeVoucher: "取消 Voucher",
+    selectedVoucher: "已选择 Voucher",
+    minSpend: "最低消费",
+    discount: "Voucher 抵扣",
+    available: "可使用",
+    notEligible: "不符合条件",
+    voucherPreviewOnly:
+      "Voucher 目前处于预览测试阶段。正式核销启用前，请取消 Voucher 后再确认收款。",
+    rewardCredits: "4. 奖励金",
     rewardCreditsDescription: "奖励金用于消费抵扣，不属于付款方式。",
     doNotUseCredits: "不使用奖励金",
     useRewardCredits: "使用奖励金",
@@ -184,7 +242,7 @@ const translations: Record<LanguageCode, Translation> = {
     maxRedeem: "最高可抵扣",
     creditsUsed: "已使用奖励金",
     disabled: "未启用",
-    selectPaymentMethod: "4. 选择付款方式",
+    selectPaymentMethod: "5. 选择付款方式",
     cash: "现金",
     duitNow: "DuitNow",
     tng: "Touch 'n Go",
@@ -237,7 +295,21 @@ const translations: Record<LanguageCode, Translation> = {
     pointsUnit: "mata",
     pointsEarned: "Mata Diperoleh",
     customerPays: "Pelanggan Bayar",
-    rewardCredits: "3. Kredit Ganjaran",
+    voucher: "3. Baucar",
+    voucherDescription:
+      "Pilih baucar yang telah ditebus oleh ahli dan layak digunakan.",
+    loadingVouchers: "Memuatkan baucar...",
+    noAvailableVouchers: "Tiada baucar yang tersedia",
+    useVoucher: "Guna Baucar",
+    removeVoucher: "Batalkan Baucar",
+    selectedVoucher: "Baucar Dipilih",
+    minSpend: "Perbelanjaan Minimum",
+    discount: "Diskaun Baucar",
+    available: "Tersedia",
+    notEligible: "Tidak Layak",
+    voucherPreviewOnly:
+      "Pemilihan baucar masih dalam mod pratonton. Batalkan baucar sebelum menerima bayaran sehingga penebusan baucar diaktifkan.",
+    rewardCredits: "4. Kredit Ganjaran",
     rewardCreditsDescription:
       "Kredit Ganjaran digunakan untuk penebusan dan bukan kaedah pembayaran.",
     doNotUseCredits: "Jangan Guna Kredit",
@@ -247,7 +319,7 @@ const translations: Record<LanguageCode, Translation> = {
     maxRedeem: "Maksimum Tebus",
     creditsUsed: "Kredit Digunakan",
     disabled: "Tidak Diaktifkan",
-    selectPaymentMethod: "4. Pilih Kaedah Bayaran",
+    selectPaymentMethod: "5. Pilih Kaedah Bayaran",
     cash: "Tunai",
     duitNow: "DuitNow",
     tng: "Touch 'n Go",
@@ -308,6 +380,9 @@ export default function MerchantCollectPage() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<any>(null);
   const [uploadingReceipt, setUploadingReceipt] = useState(false);
+  const [availableVouchers, setAvailableVouchers] = useState<AvailableVoucher[]>([]);
+  const [selectedVoucherId, setSelectedVoucherId] = useState("");
+  const [loadingVouchers, setLoadingVouchers] = useState(false);
 
   const t = translations[language];
 
@@ -412,6 +487,8 @@ export default function MerchantCollectPage() {
         setMemberTier("");
         setRewardCreditBalance(0);
         setUseRewardCredits(false);
+        setAvailableVouchers([]);
+        setSelectedVoucherId("");
         setCardStatusKey("cardNotFound");
       }
     }, 500);
@@ -430,6 +507,102 @@ export default function MerchantCollectPage() {
     t.merchant;
 
   const originalAmount = Number(amount || 0);
+
+  useEffect(() => {
+    if (
+      !memberId ||
+      !merchantId ||
+      merchantId === "-"
+    ) {
+      setAvailableVouchers([]);
+      setSelectedVoucherId("");
+      return;
+    }
+
+    let cancelled = false;
+
+    const timer = window.setTimeout(async () => {
+      try {
+        setLoadingVouchers(true);
+
+        const response =
+          await getMemberAvailableVouchers({
+            memberId,
+            merchantId,
+            amount: originalAmount,
+          });
+
+        const payload =
+          unwrapResponse(response);
+
+        const vouchers =
+          Array.isArray(payload?.vouchers)
+            ? payload.vouchers
+            : [];
+
+        if (!cancelled) {
+          setAvailableVouchers(vouchers);
+
+          setSelectedVoucherId((current) => {
+            if (!current) return "";
+
+            const stillValid =
+              vouchers.some(
+                (voucher: AvailableVoucher) =>
+                  voucher.voucherId === current &&
+                  voucher.meetsMinSpend
+              );
+
+            return stillValid ? current : "";
+          });
+        }
+      } catch (error) {
+        console.error(
+          "Unable to load member vouchers:",
+          error
+        );
+
+        if (!cancelled) {
+          setAvailableVouchers([]);
+          setSelectedVoucherId("");
+        }
+      } finally {
+        if (!cancelled) {
+          setLoadingVouchers(false);
+        }
+      }
+    }, 350);
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [
+    memberId,
+    merchantId,
+    originalAmount,
+  ]);
+
+  const selectedVoucher =
+    availableVouchers.find(
+      (voucher) =>
+        voucher.voucherId ===
+        selectedVoucherId
+    ) || null;
+
+  const voucherDiscount =
+    selectedVoucher &&
+    selectedVoucher.meetsMinSpend
+      ? Number(
+          Math.max(
+            0,
+            Math.min(
+              selectedVoucher.estimatedDiscount || 0,
+              originalAmount
+            )
+          ).toFixed(2)
+        )
+      : 0;
 
   const memberTierRate =
     memberTier.toLowerCase() === "platinum"
@@ -452,7 +625,13 @@ export default function MerchantCollectPage() {
   const points = Math.floor(originalAmount);
 
   const maxRewardCreditsByLimit = Number(
-    ((originalAmount * redemptionLimit) / 100).toFixed(2)
+    Math.min(
+      (originalAmount * redemptionLimit) / 100,
+      Math.max(
+        originalAmount - cashback - voucherDiscount,
+        0
+      )
+    ).toFixed(2)
   );
 
   const rewardCreditsUsed =
@@ -461,13 +640,22 @@ export default function MerchantCollectPage() {
           Math.min(
             rewardCreditBalance,
             maxRewardCreditsByLimit,
-            Math.max(originalAmount - cashback, 0)
+            Math.max(
+              originalAmount - cashback - voucherDiscount,
+              0
+            )
           ).toFixed(2)
         )
       : 0;
 
   const customerPays = Number(
-    Math.max(originalAmount - cashback - rewardCreditsUsed, 0).toFixed(2)
+    Math.max(
+      originalAmount -
+        cashback -
+        voucherDiscount -
+        rewardCreditsUsed,
+      0
+    ).toFixed(2)
   );
 
   const paymentMethods = useMemo(
@@ -505,6 +693,8 @@ export default function MerchantCollectPage() {
     setMemberTier("");
     setRewardCreditBalance(0);
     setUseRewardCredits(false);
+    setAvailableVouchers([]);
+    setSelectedVoucherId("");
     setCardStatusKey("clickCardBox");
   }
 
@@ -534,6 +724,8 @@ export default function MerchantCollectPage() {
         paymentMethod,
         cardId,
         rewardCreditsUsed,
+        voucherId:
+          selectedVoucher?.voucherId || "",
       });
 
       setResult(unwrapResponse(res));
@@ -595,6 +787,8 @@ export default function MerchantCollectPage() {
     setAmount("");
     setPaymentMethod("Cash");
     setUseRewardCredits(false);
+    setAvailableVouchers([]);
+    setSelectedVoucherId("");
     setShowCardInput(false);
     setCardStatusKey("tapMemberCardToStart");
     setResult(null);
@@ -635,6 +829,14 @@ export default function MerchantCollectPage() {
                 </p>
                 <p>
                   {t.cashback}: RM{cashback.toFixed(2)}
+                </p>
+                <p>
+                  {t.discount}: RM
+                  {Number(
+                    result?.voucherDiscount ??
+                      voucherDiscount ??
+                      0
+                  ).toFixed(2)}
                 </p>
                 <p>
                   {t.creditsUsed}: RM{rewardCreditsUsed.toFixed(2)}
@@ -845,6 +1047,146 @@ export default function MerchantCollectPage() {
 
           <div className="mt-6 rounded-[2rem] bg-white p-6 shadow-sm">
             <h2 className="text-xl font-black text-slate-950 sm:text-2xl">
+              {t.voucher}
+            </h2>
+
+            <p className="mt-2 text-[11px] font-bold text-slate-500 sm:text-sm">
+              {t.voucherDescription}
+            </p>
+
+            {!memberId ? (
+              <div className="mt-5 rounded-2xl bg-slate-50 p-4 text-sm font-bold text-slate-400">
+                {t.scanOrTapFirst}
+              </div>
+            ) : loadingVouchers ? (
+              <div className="mt-5 rounded-2xl bg-slate-50 p-4 text-sm font-bold text-slate-500">
+                {t.loadingVouchers}
+              </div>
+            ) : availableVouchers.length === 0 ? (
+              <div className="mt-5 rounded-2xl bg-slate-50 p-4 text-sm font-bold text-slate-400">
+                {t.noAvailableVouchers}
+              </div>
+            ) : (
+              <div className="mt-5 grid gap-3 md:grid-cols-2">
+                {availableVouchers.map((voucher) => {
+                  const selected =
+                    selectedVoucherId ===
+                    voucher.voucherId;
+
+                  const discountLabel =
+                    voucher.discountType ===
+                    "PERCENTAGE"
+                      ? `${voucher.discountValue}% OFF`
+                      : `RM${Number(
+                          voucher.discountValue || 0
+                        ).toFixed(2)} OFF`;
+
+                  return (
+                    <div
+                      key={voucher.voucherId}
+                      className={`rounded-2xl border p-4 ${
+                        selected
+                          ? "border-emerald-500 bg-emerald-50"
+                          : "border-slate-200 bg-slate-50"
+                      }`}
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="break-words text-sm font-black text-slate-950">
+                            {voucher.title}
+                          </p>
+
+                          <p className="mt-1 text-lg font-black text-emerald-700">
+                            {discountLabel}
+                          </p>
+
+                          <p className="mt-2 text-[11px] font-bold text-slate-500">
+                            {t.minSpend}: RM
+                            {Number(
+                              voucher.minSpend || 0
+                            ).toFixed(2)}
+                          </p>
+
+                          <p
+                            className={`mt-2 text-[11px] font-black ${
+                              voucher.meetsMinSpend
+                                ? "text-emerald-600"
+                                : "text-amber-600"
+                            }`}
+                          >
+                            {voucher.meetsMinSpend
+                              ? t.available
+                              : t.notEligible}
+                          </p>
+                        </div>
+
+                        <div className="shrink-0 rounded-xl bg-white px-3 py-2 text-[10px] font-black text-slate-500">
+                          {voucher.voucherCode}
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        disabled={
+                          !voucher.meetsMinSpend
+                        }
+                        onClick={() =>
+                          setSelectedVoucherId(
+                            selected
+                              ? ""
+                              : voucher.voucherId
+                          )
+                        }
+                        className={`mt-4 w-full rounded-xl py-3 text-xs font-black ${
+                          selected
+                            ? "bg-slate-950 text-white"
+                            : "bg-emerald-600 text-white"
+                        } disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-400`}
+                      >
+                        {selected
+                          ? t.removeVoucher
+                          : t.useVoucher}
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {selectedVoucher ? (
+              <div className="mt-5 rounded-2xl bg-slate-950 p-4 text-white">
+                <p className="text-[10px] font-black uppercase tracking-[0.15em] text-slate-400">
+                  {t.selectedVoucher}
+                </p>
+
+                <div className="mt-3 flex items-center justify-between gap-4">
+                  <div className="min-w-0">
+                    <p className="break-words text-sm font-black">
+                      {selectedVoucher.title}
+                    </p>
+                    <p className="mt-1 text-xs font-bold text-slate-400">
+                      {selectedVoucher.voucherCode}
+                    </p>
+                  </div>
+
+                  <p className="shrink-0 text-lg font-black text-amber-300">
+                    -RM{voucherDiscount.toFixed(2)}
+                  </p>
+                </div>
+
+                <div className="mt-4 rounded-xl bg-emerald-400/10 p-3 text-[11px] font-bold leading-5 text-emerald-200">
+                  {language === "zh"
+                    ? "付款成功后，此 Voucher 会自动核销并标记为已使用。"
+                    : language === "ms"
+                      ? "Selepas bayaran berjaya, baucar ini akan ditebus secara automatik dan ditandakan sebagai telah digunakan."
+                      : "After successful payment, this voucher will be redeemed automatically and marked as used."}
+                </div>
+              </div>
+            ) : null}
+          </div>
+
+          <div className="mt-6 rounded-[2rem] bg-white p-6 shadow-sm">
+            <h2 className="text-xl font-black text-slate-950 sm:text-2xl">
               {t.rewardCredits}
             </h2>
 
@@ -942,7 +1284,11 @@ export default function MerchantCollectPage() {
                   value={`-RM${cashback.toFixed(2)}`}
                 />
                 <SummaryLine
-                  label={t.rewardCredits.replace(/^3\.\s*/, "")}
+                  label={t.discount}
+                  value={`-RM${voucherDiscount.toFixed(2)}`}
+                />
+                <SummaryLine
+                  label={t.rewardCredits.replace(/^4\.\s*/, "")}
                   value={`-RM${rewardCreditsUsed.toFixed(2)}`}
                 />
                 <SummaryLine
@@ -961,7 +1307,7 @@ export default function MerchantCollectPage() {
               type="button"
               onClick={() => void handlePaymentDone()}
               disabled={loading}
-              className="mt-6 w-full rounded-xl bg-slate-950 py-3 text-xs font-black text-white disabled:opacity-50 sm:rounded-2xl sm:py-5 sm:text-sm"
+              className="mt-6 w-full rounded-xl bg-slate-950 py-3 text-xs font-black text-white disabled:cursor-not-allowed disabled:opacity-50 sm:rounded-2xl sm:py-5 sm:text-sm"
             >
               {loading ? t.recording : t.paymentReceived}
             </button>

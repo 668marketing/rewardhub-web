@@ -7,7 +7,7 @@ import type {
 } from "@/lib/webauthn";
 
 const API_URL =
-  "https://script.google.com/macros/s/AKfycbwZukKlv976yMLEA3Ap-_h6z4pyD8fTHzgpwHZlxAPGjfAjFYxRB6VdJXDK_zTJZmLs/exec";
+  "https://script.google.com/macros/s/AKfycbxE13CXpQyQ34by5GX3xUFb8tXL5imSWE2cyaTDHrxLaDOz5kuLLeYPqideoU2ROf8X/exec";
 
 export async function apiPost(
   action: string,
@@ -99,6 +99,52 @@ export async function resetMemberPassword(data: {
 }) {
   return apiPost(
     "resetMemberPassword",
+    data
+  );
+}
+
+/* ============================================================
+ * Member Voucher / Merchant Payment
+ * ============================================================
+ */
+
+export type MemberAvailableVoucher = {
+  voucherId: string;
+  voucherCode: string;
+  rewardId: string;
+  redemptionId: string;
+
+  title: string;
+  description: string;
+  imageUrl: string;
+
+  discountType: string;
+  discountValue: number;
+  minSpend: number;
+  merchantScope: string;
+
+  meetsMinSpend: boolean;
+  estimatedDiscount: number;
+
+  expiredAt: string;
+  status: string;
+};
+
+export type MemberAvailableVouchersResult = {
+  memberId: string;
+  merchantId: string;
+  amount: number;
+  count: number;
+  vouchers: MemberAvailableVoucher[];
+};
+
+export async function getMemberAvailableVouchers(data: {
+  memberId: string;
+  merchantId: string;
+  amount?: number;
+}) {
+  return apiPost(
+    "getMemberAvailableVouchersForMerchant",
     data
   );
 }
@@ -507,6 +553,38 @@ export async function updateMerchantProfile(data: {
   description?: string;
 }) {
   return apiPost("updateMerchantProfile", data);
+}
+
+export type UpdateMerchantBankDetailsPayload = {
+  merchantId: string;
+  bankName: string;
+  bankAccountName: string;
+  bankAccountNo: string;
+};
+
+export async function updateMerchantBankDetails(
+  data: UpdateMerchantBankDetailsPayload
+) {
+  return apiPost(
+    "updateMerchantBankDetails",
+    data
+  );
+}
+
+export type UploadMerchantBankQrPayload = {
+  merchantId: string;
+  fileName: string;
+  mimeType: string;
+  base64: string;
+};
+
+export async function uploadMerchantBankQr(
+  data: UploadMerchantBankQrPayload
+) {
+  return apiPost(
+    "uploadMerchantBankQr",
+    data
+  );
 }
 
 export async function uploadMerchantLogo(data: any) {
@@ -1015,6 +1093,109 @@ export async function updateMemberProfile(data: {
 }) {
   return apiPost(
     "updateMemberProfile",
+    data
+  );
+}
+
+
+/* ============================================================
+ * Merchant Terminal Applications
+ * ============================================================
+ */
+
+export type MerchantTerminalApplicationType =
+  | "FIRST_APPLICATION"
+  | "REPLACEMENT"
+  | "ADDITIONAL_PURCHASE";
+
+export type MerchantTerminalApplicationStatus =
+  | "Pending"
+  | "Approved"
+  | "Shipped"
+  | "Completed"
+  | "Rejected"
+  | "Cancelled"
+  | string;
+
+export type MerchantTerminalApplication = {
+  applicationId: string;
+  merchantId: string;
+  businessName: string;
+  contactName: string;
+  phone: string;
+  shippingAddress: string;
+  applicationType: MerchantTerminalApplicationType | string;
+  machinePrice: number;
+  shippingFee: number;
+  totalAmount: number;
+  reason: string;
+  paymentStatus: string;
+  paymentReceiptUrl: string;
+  paymentNote: string;
+  paymentSubmittedAt: string;
+  paymentVerifiedAt: string;
+  status: MerchantTerminalApplicationStatus;
+  trackingNumber: string;
+  courier: string;
+  adminNote: string;
+  reviewedBy: string;
+  reviewedAt: string;
+  shippedAt: string;
+  completedAt: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type MerchantTerminalPricing = {
+  applicationType: MerchantTerminalApplicationType | string;
+  machinePrice: number;
+  shippingFee: number;
+  totalAmount: number;
+  isFirstTerminal: boolean;
+};
+
+export async function getMerchantTerminalApplication(data: {
+  merchantId: string;
+}) {
+  return apiPost(
+    "getMerchantTerminalApplication",
+    data
+  );
+}
+
+export async function submitMerchantTerminalApplication(data: {
+  merchantId: string;
+  contactName: string;
+  phone: string;
+  shippingAddress: string;
+  reason?: string;
+}) {
+  return apiPost(
+    "submitMerchantTerminalApplication",
+    data
+  );
+}
+
+export async function uploadMerchantTerminalPaymentReceipt(data: {
+  merchantId: string;
+  applicationId: string;
+  fileName: string;
+  mimeType: string;
+  base64: string;
+  paymentNote?: string;
+}) {
+  return apiPost(
+    "uploadMerchantTerminalPaymentReceipt",
+    data
+  );
+}
+
+export async function cancelMerchantTerminalApplication(data: {
+  merchantId: string;
+  applicationId: string;
+}) {
+  return apiPost(
+    "cancelMerchantTerminalApplication",
     data
   );
 }

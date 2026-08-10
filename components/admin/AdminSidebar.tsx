@@ -13,6 +13,7 @@ import {
   LayoutDashboard,
   Megaphone,
   Package,
+  PackageCheck,
   ReceiptText,
   Settings,
   ShieldCheck,
@@ -141,6 +142,16 @@ const navigationGroups: NavigationGroup[] =
           href:
             "/admin/card-applications",
           icon: CreditCard,
+          permission:
+            "cards.view",
+          available: true,
+        },
+        {
+          label:
+            "Terminal Applications",
+          href:
+            "/admin/terminal-applications",
+          icon: PackageCheck,
           permission:
             "cards.view",
           available: true,

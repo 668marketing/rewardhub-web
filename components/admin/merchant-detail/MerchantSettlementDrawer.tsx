@@ -31,6 +31,12 @@ import {
   type AdminMerchantSettlement,
 } from "@/lib/admin-merchant-detail";
 
+import {
+  markAdminSettlementPaid,
+  uploadAdminSettlementPaymentReceipt,
+  type AdminSettlementDirection,
+} from "@/lib/admin-settlements";
+
 type MerchantSettlementDrawerProps = {
   settlement:
     AdminMerchantSettlement | null;
@@ -42,24 +48,65 @@ type MerchantSettlementDrawerProps = {
   onUpdated: () => Promise<void>;
 };
 
+type ActionLoading =
+  | "approve"
+  | "reject"
+  | "upload"
+  | "mark-paid"
+  | null;
+
 export default function MerchantSettlementDrawer({
   settlement,
   open,
   onClose,
   onUpdated,
 }: MerchantSettlementDrawerProps) {
-  const [actionLoading, setActionLoading] =
-    useState<
-      "approve" | "reject" | null
-    >(null);
+  const [
+    actionLoading,
+    setActionLoading,
+  ] =
+    useState<ActionLoading>(
+      null
+    );
 
-  const [rejecting, setRejecting] =
+  const [
+    rejecting,
+    setRejecting,
+  ] =
     useState(false);
 
-  const [rejectReason, setRejectReason] =
+  const [
+    rejectReason,
+    setRejectReason,
+  ] =
     useState("");
 
-  const [error, setError] =
+  const [
+    error,
+    setError,
+  ] =
+    useState("");
+
+  const [
+    paymentReceiptFile,
+    setPaymentReceiptFile,
+  ] =
+    useState<File | null>(
+      null
+    );
+
+  const [
+    paymentMethod,
+    setPaymentMethod,
+  ] =
+    useState(
+      "Bank Transfer"
+    );
+
+  const [
+    paymentNote,
+    setPaymentNote,
+  ] =
     useState("");
 
   useEffect(() => {
@@ -68,16 +115,19 @@ export default function MerchantSettlementDrawer({
     }
 
     const previousOverflow =
-      document.body.style.overflow;
+      document.body.style
+        .overflow;
 
-    document.body.style.overflow =
+    document.body.style
+      .overflow =
       "hidden";
 
     function handleEscape(
       event: KeyboardEvent
     ) {
       if (
-        event.key === "Escape" &&
+        event.key ===
+          "Escape" &&
         !actionLoading
       ) {
         onClose();
@@ -90,7 +140,8 @@ export default function MerchantSettlementDrawer({
     );
 
     return () => {
-      document.body.style.overflow =
+      document.body.style
+        .overflow =
         previousOverflow;
 
       window.removeEventListener(
@@ -110,33 +161,131 @@ export default function MerchantSettlementDrawer({
       setRejectReason("");
       setError("");
       setActionLoading(null);
+      setPaymentReceiptFile(
+        null
+      );
+      setPaymentMethod(
+        "Bank Transfer"
+      );
+      setPaymentNote("");
     }
   }, [
     open,
     settlement?.settlementId,
   ]);
 
-  if (!open || !settlement) {
+  if (
+    !open ||
+    !settlement
+  ) {
     return null;
   }
 
+  /*
+   * TypeScript does not preserve prop null-narrowing inside
+   * nested async handlers. Keep a stable non-null reference
+   * after the guard so every handler can safely use it.
+   */
+  const currentSettlement =
+    settlement;
+
   const status =
     normalizeStatus(
-      settlement.status
+      currentSettlement.status
+    );
+
+  const direction =
+    normalizeDirection(
+      currentSettlement
     );
 
   const canReview =
     status === "PENDING" ||
     status === "SUBMITTED";
 
-  async function handleApprove() {
-    if (!settlement) {
-      return;
-    }
+  const canMarkPaid =
+    status === "APPROVED";
 
+  const merchantPaysRewardHub =
+    direction ===
+    "MERCHANT_TO_REWARDHUB";
+
+  const rewardHubPaysMerchant =
+    direction ===
+    "REWARDHUB_TO_MERCHANT";
+
+  const noPaymentRequired =
+    direction ===
+    "NO_PAYMENT";
+
+  const hasReceipt =
+    Boolean(
+      currentSettlement.receiptUrl
+    );
+
+  const amountPayable =
+    Number(
+      currentSettlement.amountPayable ||
+        0
+    );
+
+  const directionLabel =
+    getDirectionLabel(
+      direction
+    );
+
+  const directionDescription =
+    getDirectionDescription(
+      direction
+    );
+
+  const merchantDue =
+    Number(
+      (
+        settlement as any
+      ).merchantDue ??
+        Math.max(
+          Number(
+            currentSettlement.totalMarketingBudget ||
+              0
+          ) -
+            Number(
+              currentSettlement.totalCashback ||
+                0
+            ),
+          0
+        )
+    );
+
+  const rewardHubDue =
+    Number(
+      (
+        settlement as any
+      ).rewardHubDue ??
+        currentSettlement.totalRewardCredits ??
+        0
+    );
+
+  const netAmount =
+    Number(
+      (
+        settlement as any
+      ).netAmount ??
+        (
+          direction ===
+          "REWARDHUB_TO_MERCHANT"
+            ? -amountPayable
+            : direction ===
+                "NO_PAYMENT"
+              ? 0
+              : amountPayable
+        )
+    );
+
+  async function handleApprove() {
     const confirmed =
       window.confirm(
-        `Approve settlement ${settlement.settlementId}?`
+        `Approve settlement ${currentSettlement.settlementId}?`
       );
 
     if (!confirmed) {
@@ -150,31 +299,28 @@ export default function MerchantSettlementDrawer({
       );
 
       await approveMerchantSettlement(
-  settlement.merchantId,
-  settlement.settlementId
-);
+        currentSettlement.merchantId,
+        currentSettlement.settlementId
+      );
 
-// 操作成功后先关闭旧 Drawer
-onClose();
+      onClose();
 
-// 再重新读取最新资料
-await onUpdated();
+      await onUpdated();
     } catch (approveError) {
       setError(
-        approveError instanceof Error
+        approveError instanceof
+          Error
           ? approveError.message
-          : "Unable to approve settlement."
+          : "Unable to approve currentSettlement."
       );
     } finally {
-      setActionLoading(null);
+      setActionLoading(
+        null
+      );
     }
   }
 
   async function handleReject() {
-    if (!settlement) {
-      return;
-    }
-
     const normalizedReason =
       rejectReason.trim();
 
@@ -186,7 +332,8 @@ await onUpdated();
     }
 
     if (
-      normalizedReason.length < 3
+      normalizedReason.length <
+      3
     ) {
       setError(
         "Rejection reason must contain at least 3 characters."
@@ -196,7 +343,7 @@ await onUpdated();
 
     const confirmed =
       window.confirm(
-        `Reject settlement ${settlement.settlementId}?`
+        `Reject settlement ${currentSettlement.settlementId}?`
       );
 
     if (!confirmed) {
@@ -210,24 +357,160 @@ await onUpdated();
       );
 
       await rejectMerchantSettlement(
-  settlement.merchantId,
-  settlement.settlementId,
-  normalizedReason
-);
+        currentSettlement.merchantId,
+        currentSettlement.settlementId,
+        normalizedReason
+      );
 
-// 操作成功后先关闭旧 Drawer
-onClose();
+      onClose();
 
-// 再重新读取最新资料
-await onUpdated();
+      await onUpdated();
     } catch (rejectError) {
       setError(
-        rejectError instanceof Error
+        rejectError instanceof
+          Error
           ? rejectError.message
-          : "Unable to reject settlement."
+          : "Unable to reject currentSettlement."
       );
     } finally {
-      setActionLoading(null);
+      setActionLoading(
+        null
+      );
+    }
+  }
+
+  async function handleUploadAdminPaymentReceipt() {
+    if (
+      !paymentReceiptFile
+    ) {
+      setError(
+        "Please select RewardHub payment receipt."
+      );
+      return;
+    }
+
+    try {
+      setError("");
+      setActionLoading(
+        "upload"
+      );
+
+      const base64 =
+        await fileToBase64(
+          paymentReceiptFile
+        );
+
+      await uploadAdminSettlementPaymentReceipt(
+        {
+          settlementId:
+            currentSettlement.settlementId,
+
+          merchantId:
+            currentSettlement.merchantId,
+        },
+        {
+          fileName:
+            paymentReceiptFile.name,
+
+          mimeType:
+            paymentReceiptFile.type ||
+            "image/jpeg",
+
+          base64,
+
+          paymentMethod:
+            paymentMethod.trim() ||
+            "Bank Transfer",
+
+          paymentNote:
+            paymentNote.trim(),
+        }
+      );
+
+      setPaymentReceiptFile(
+        null
+      );
+
+      await onUpdated();
+
+      onClose();
+    } catch (uploadError) {
+      setError(
+        uploadError instanceof
+          Error
+          ? uploadError.message
+          : "Unable to upload RewardHub payment receipt."
+      );
+    } finally {
+      setActionLoading(
+        null
+      );
+    }
+  }
+
+  async function handleMarkPaid() {
+    if (
+      rewardHubPaysMerchant &&
+      !hasReceipt
+    ) {
+      setError(
+        "Upload RewardHub payment receipt before marking this settlement as paid."
+      );
+      return;
+    }
+
+    const confirmMessage =
+      noPaymentRequired
+        ? `Complete settlement ${currentSettlement.settlementId} with no payment required?`
+        : `Mark settlement ${currentSettlement.settlementId} as paid?`;
+
+    if (
+      !window.confirm(
+        confirmMessage
+      )
+    ) {
+      return;
+    }
+
+    try {
+      setError("");
+      setActionLoading(
+        "mark-paid"
+      );
+
+      await markAdminSettlementPaid(
+        {
+          settlementId:
+            currentSettlement.settlementId,
+
+          merchantId:
+            currentSettlement.merchantId,
+        },
+
+        paymentMethod.trim() ||
+          currentSettlement.paymentMethod ||
+          "Bank Transfer",
+
+        paymentNote.trim(),
+
+        currentSettlement.receiptUrl ||
+          ""
+      );
+
+      onClose();
+
+      await onUpdated();
+    } catch (paidError) {
+      setError(
+        paidError instanceof
+          Error
+          ? paidError.message
+          : "Unable to mark settlement as paid."
+      );
+    } finally {
+      setActionLoading(
+        null
+      );
     }
   }
 
@@ -244,11 +527,13 @@ await onUpdated();
       <button
         type="button"
         aria-label="Close settlement details"
-        onClick={handleClose}
+        onClick={
+          handleClose
+        }
         className="absolute inset-0 bg-slate-950/75 backdrop-blur-sm"
       />
 
-      <aside className="absolute right-0 top-0 flex h-full w-full max-w-[620px] flex-col border-l border-white/[0.08] bg-[#071022] shadow-2xl">
+      <aside className="absolute right-0 top-0 flex h-full w-full max-w-[680px] flex-col border-l border-white/[0.08] bg-[#071022] shadow-2xl">
         <header className="flex items-start justify-between gap-5 border-b border-white/[0.08] px-5 py-5 sm:px-6">
           <div className="flex min-w-0 items-center gap-3">
             <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-emerald-400/10 text-emerald-300">
@@ -261,7 +546,7 @@ await onUpdated();
               </h2>
 
               <p className="mt-1 truncate text-xs text-slate-500">
-                {settlement.settlementId ||
+                {currentSettlement.settlementId ||
                   "Settlement"}
               </p>
             </div>
@@ -270,9 +555,13 @@ await onUpdated();
           <button
             type="button"
             disabled={
-              Boolean(actionLoading)
+              Boolean(
+                actionLoading
+              )
             }
-            onClick={handleClose}
+            onClick={
+              handleClose
+            }
             className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/[0.08] text-slate-500 transition hover:bg-white/[0.05] hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
           >
             <X className="h-5 w-5" />
@@ -285,27 +574,59 @@ await onUpdated();
               <div className="flex items-start gap-3 rounded-2xl border border-red-400/20 bg-red-400/10 px-4 py-3 text-sm text-red-200">
                 <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
 
-                <span>{error}</span>
+                <span>
+                  {error}
+                </span>
               </div>
             ) : null}
 
-            <section className="rounded-3xl border border-emerald-400/15 bg-gradient-to-br from-emerald-400/[0.11] to-slate-900/50 p-5">
+            <section
+              className={[
+                "rounded-3xl border p-5",
+                rewardHubPaysMerchant
+                  ? "border-blue-400/15 bg-gradient-to-br from-blue-400/[0.11] to-slate-900/50"
+                  : noPaymentRequired
+                    ? "border-white/[0.08] bg-slate-900/50"
+                    : "border-amber-400/15 bg-gradient-to-br from-amber-400/[0.10] to-slate-900/50",
+              ].join(" ")}
+            >
               <div className="flex items-start justify-between gap-5">
                 <div>
                   <p className="text-sm text-slate-400">
-                    Amount Payable
+                    Settlement Amount
                   </p>
 
                   <p className="mt-2 text-3xl font-semibold text-white">
                     {formatMoney(
-                      settlement.amountPayable
+                      amountPayable
                     )}
                   </p>
 
-                  <p className="mt-2 text-xs text-slate-500">
+                  <p
+                    className={[
+                      "mt-3 inline-flex rounded-full px-3 py-1 text-xs font-semibold",
+                      rewardHubPaysMerchant
+                        ? "bg-blue-400/10 text-blue-300"
+                        : noPaymentRequired
+                          ? "bg-white/[0.06] text-slate-300"
+                          : "bg-amber-400/10 text-amber-300",
+                    ].join(" ")}
+                  >
+                    {
+                      directionLabel
+                    }
+                  </p>
+
+                  <p className="mt-3 max-w-md text-xs leading-5 text-slate-500">
+                    {
+                      directionDescription
+                    }
+                  </p>
+
+                  <p className="mt-2 text-xs text-slate-600">
                     Settlement month:{" "}
                     {formatMonth(
-                      settlement.month
+                      currentSettlement.month
                     )}
                   </p>
                 </div>
@@ -325,7 +646,7 @@ await onUpdated();
                 <DetailField
                   label="Settlement ID"
                   value={
-                    settlement.settlementId ||
+                    currentSettlement.settlementId ||
                     "—"
                   }
                 />
@@ -333,14 +654,14 @@ await onUpdated();
                 <DetailField
                   label="Month"
                   value={formatMonth(
-                    settlement.month
+                    currentSettlement.month
                   )}
                 />
 
                 <DetailField
                   label="Merchant"
                   value={
-                    settlement.merchantName ||
+                    currentSettlement.merchantName ||
                     "—"
                   }
                 />
@@ -348,7 +669,7 @@ await onUpdated();
                 <DetailField
                   label="Merchant ID"
                   value={
-                    settlement.merchantId ||
+                    currentSettlement.merchantId ||
                     "—"
                   }
                 />
@@ -356,7 +677,7 @@ await onUpdated();
                 <DetailField
                   label="Requested At"
                   value={formatDateTime(
-                    settlement.createdAt
+                    currentSettlement.createdAt
                   )}
                 />
 
@@ -364,49 +685,98 @@ await onUpdated();
                   label="Status"
                   value={status}
                 />
+
+                <DetailField
+                  label="Payment Direction"
+                  value={
+                    directionLabel
+                  }
+                />
+
+                <DetailField
+                  label="Net Amount"
+                  value={formatSignedMoney(
+                    netAmount
+                  )}
+                />
               </DetailGrid>
             </DrawerSection>
 
             <DrawerSection
-              icon={CircleDollarSign}
+              icon={
+                CircleDollarSign
+              }
               title="Financial Breakdown"
-              description="Settlement calculation"
+              description="Reward Credits are included in the net settlement"
             >
               <div className="space-y-1">
                 <MoneyRow
                   label="Total Sales"
                   value={
-                    settlement.totalSales
+                    currentSettlement.totalSales
                   }
                 />
 
                 <MoneyRow
                   label="Total Marketing Budget"
                   value={
-                    settlement.totalMarketingBudget
+                    currentSettlement.totalMarketingBudget
                   }
                 />
 
                 <MoneyRow
                   label="Cashback Issued"
                   value={
-                    settlement.totalCashback
+                    currentSettlement.totalCashback
                   }
                   negative
                 />
 
                 <MoneyRow
+                  label="Merchant Due"
+                  value={
+                    merchantDue
+                  }
+                  highlight={
+                    merchantPaysRewardHub
+                  }
+                />
+
+                <MoneyRow
                   label="Reward Credits Used"
                   value={
-                    settlement.totalRewardCredits
+                    currentSettlement.totalRewardCredits
+                  }
+                />
+
+                <MoneyRow
+                  label="RewardHub Due"
+                  value={
+                    rewardHubDue
+                  }
+                  highlight={
+                    rewardHubPaysMerchant
                   }
                 />
 
                 <div className="mt-4 border-t border-white/[0.08] pt-4">
                   <MoneyRow
-                    label="Amount Payable"
+                    label="Net Settlement"
                     value={
-                      settlement.amountPayable
+                      Math.abs(
+                        netAmount
+                      )
+                    }
+                    negative={
+                      netAmount < 0
+                    }
+                    highlight
+                  />
+
+                  <MoneyRow
+                    label="Settlement Amount"
+                    value={
+                      amountPayable
                     }
                     highlight
                   />
@@ -417,13 +787,17 @@ await onUpdated();
             <DrawerSection
               icon={Landmark}
               title="Bank Information"
-              description="Merchant settlement account"
+              description={
+                rewardHubPaysMerchant
+                  ? "Merchant bank account for RewardHub payout"
+                  : "Settlement payment information"
+              }
             >
               <DetailGrid>
                 <DetailField
                   label="Bank Name"
                   value={
-                    settlement.bankName ||
+                    currentSettlement.bankName ||
                     "—"
                   }
                 />
@@ -431,7 +805,7 @@ await onUpdated();
                 <DetailField
                   label="Bank Account"
                   value={
-                    settlement.bankAccount ||
+                    currentSettlement.bankAccount ||
                     "—"
                   }
                 />
@@ -439,7 +813,7 @@ await onUpdated();
                 <DetailField
                   label="Payment Method"
                   value={
-                    settlement.paymentMethod ||
+                    currentSettlement.paymentMethod ||
                     "—"
                   }
                 />
@@ -447,7 +821,7 @@ await onUpdated();
                 <DetailField
                   label="Paid At"
                   value={formatDateTime(
-                    settlement.paidAt
+                    currentSettlement.paidAt
                   )}
                 />
               </DetailGrid>
@@ -456,9 +830,13 @@ await onUpdated();
             <DrawerSection
               icon={ReceiptText}
               title="Payment Receipt"
-              description="Submitted payment evidence"
+              description={
+                rewardHubPaysMerchant
+                  ? "RewardHub payout receipt"
+                  : "Merchant payment evidence"
+              }
             >
-              {settlement.receiptUrl ? (
+              {currentSettlement.receiptUrl ? (
                 <div className="rounded-2xl border border-white/[0.07] bg-slate-950/30 p-4">
                   <div className="flex items-center justify-between gap-4">
                     <div className="flex min-w-0 items-center gap-3">
@@ -468,7 +846,9 @@ await onUpdated();
 
                       <div className="min-w-0">
                         <p className="text-sm font-medium text-white">
-                          Settlement Receipt
+                          {rewardHubPaysMerchant
+                            ? "RewardHub Payment Receipt"
+                            : "Settlement Receipt"}
                         </p>
 
                         <p className="mt-1 truncate text-xs text-slate-600">
@@ -479,7 +859,7 @@ await onUpdated();
 
                     <a
                       href={
-                        settlement.receiptUrl
+                        currentSettlement.receiptUrl
                       }
                       target="_blank"
                       rel="noreferrer"
@@ -493,11 +873,129 @@ await onUpdated();
                 </div>
               ) : (
                 <EmptyInformation
-                  icon={ReceiptText}
+                  icon={
+                    ReceiptText
+                  }
                   title="No receipt uploaded"
-                  description="No receipt is currently attached to this settlement."
+                  description={
+                    rewardHubPaysMerchant
+                      ? "RewardHub has not uploaded a payout receipt yet."
+                      : "No merchant payment receipt is currently attached to this currentSettlement."
+                  }
                 />
               )}
+
+              {canMarkPaid &&
+              rewardHubPaysMerchant &&
+              !hasReceipt ? (
+                <div className="mt-4 rounded-2xl border border-blue-400/15 bg-blue-400/[0.05] p-4">
+                  <p className="text-sm font-semibold text-blue-100">
+                    Upload RewardHub Payment Receipt
+                  </p>
+
+                  <p className="mt-1 text-xs leading-5 text-blue-200/60">
+                    Transfer the settlement amount to the merchant bank account above, then upload the payment evidence here.
+                  </p>
+
+                  <input
+                    type="file"
+                    accept="image/*,application/pdf"
+                    disabled={
+                      Boolean(
+                        actionLoading
+                      )
+                    }
+                    onChange={(
+                      event
+                    ) =>
+                      setPaymentReceiptFile(
+                        event.target
+                          .files?.[0] ||
+                          null
+                      )
+                    }
+                    className="mt-4 w-full rounded-xl border border-white/[0.08] bg-slate-950/35 px-3 py-3 text-xs text-slate-300"
+                  />
+
+                  {paymentReceiptFile ? (
+                    <p className="mt-2 break-all text-xs text-blue-200">
+                      Selected:{" "}
+                      {
+                        paymentReceiptFile.name
+                      }
+                    </p>
+                  ) : null}
+
+                  <input
+                    value={
+                      paymentMethod
+                    }
+                    disabled={
+                      Boolean(
+                        actionLoading
+                      )
+                    }
+                    onChange={(
+                      event
+                    ) =>
+                      setPaymentMethod(
+                        event.target
+                          .value
+                      )
+                    }
+                    placeholder="Payment Method"
+                    className="mt-3 h-11 w-full rounded-xl border border-white/[0.08] bg-slate-950/35 px-4 text-sm text-white outline-none placeholder:text-slate-700"
+                  />
+
+                  <textarea
+                    value={
+                      paymentNote
+                    }
+                    disabled={
+                      Boolean(
+                        actionLoading
+                      )
+                    }
+                    onChange={(
+                      event
+                    ) =>
+                      setPaymentNote(
+                        event.target
+                          .value
+                      )
+                    }
+                    placeholder="Payment note (optional)"
+                    rows={3}
+                    className="mt-3 w-full resize-none rounded-xl border border-white/[0.08] bg-slate-950/35 px-4 py-3 text-sm text-white outline-none placeholder:text-slate-700"
+                  />
+
+                  <button
+                    type="button"
+                    disabled={
+                      Boolean(
+                        actionLoading
+                      ) ||
+                      !paymentReceiptFile
+                    }
+                    onClick={() =>
+                      void handleUploadAdminPaymentReceipt()
+                    }
+                    className="mt-3 inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-blue-400 px-4 text-sm font-semibold text-slate-950 transition hover:bg-blue-300 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {actionLoading ===
+                    "upload" ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <ReceiptText className="h-4 w-4" />
+                    )}
+
+                    {actionLoading ===
+                    "upload"
+                      ? "Uploading..."
+                      : "Upload RewardHub Receipt"}
+                  </button>
+                </div>
+              ) : null}
             </DrawerSection>
 
             <DrawerSection
@@ -507,7 +1005,10 @@ await onUpdated();
             >
               <SettlementTimeline
                 settlement={
-                  settlement
+                  currentSettlement
+                }
+                direction={
+                  direction
                 }
               />
             </DrawerSection>
@@ -520,7 +1021,7 @@ await onUpdated();
               <NoteBlock
                 label="Payment Note"
                 value={
-                  settlement.paymentNote
+                  currentSettlement.paymentNote
                 }
               />
 
@@ -528,11 +1029,11 @@ await onUpdated();
                 <NoteBlock
                   label="Rejection Reason"
                   value={
-                    settlement.rejectReason
+                    currentSettlement.rejectReason
                   }
                   danger={
                     Boolean(
-                      settlement.rejectReason
+                      currentSettlement.rejectReason
                     )
                   }
                 />
@@ -572,18 +1073,23 @@ await onUpdated();
                         actionLoading
                       )
                     }
-                    maxLength={1000}
+                    maxLength={
+                      1000
+                    }
                     rows={5}
                     onChange={(
                       event
                     ) => {
                       setRejectReason(
-                        event.target.value
+                        event.target
+                          .value
                       );
 
-                      setError("");
+                      setError(
+                        ""
+                      );
                     }}
-                    placeholder="Example: Bank account details do not match the merchant profile."
+                    placeholder="Example: Settlement information is incorrect."
                     className="mt-2 w-full resize-none rounded-2xl border border-red-400/20 bg-slate-950/45 px-4 py-3 text-sm leading-6 text-white outline-none placeholder:text-slate-700 focus:border-red-400/40 focus:ring-4 focus:ring-red-400/10 disabled:cursor-not-allowed disabled:opacity-50"
                   />
 
@@ -625,7 +1131,9 @@ await onUpdated();
                       ""
                     );
 
-                    setError("");
+                    setError(
+                      ""
+                    );
                   }}
                   className="inline-flex h-11 items-center justify-center rounded-xl border border-white/[0.09] px-5 text-sm font-medium text-slate-400 transition hover:bg-white/[0.05] hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
                 >
@@ -674,7 +1182,9 @@ await onUpdated();
                       true
                     );
 
-                    setError("");
+                    setError(
+                      ""
+                    );
                   }}
                   className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-red-400/20 px-5 text-sm font-semibold text-red-300 transition hover:bg-red-400/10 disabled:cursor-not-allowed disabled:opacity-50"
                 >
@@ -709,15 +1219,72 @@ await onUpdated();
                 </button>
               </div>
             )
+          ) : canMarkPaid ? (
+            <div className="space-y-3">
+              {merchantPaysRewardHub &&
+              !hasReceipt ? (
+                <div className="rounded-xl border border-amber-400/20 bg-amber-400/10 px-4 py-3 text-xs text-amber-200">
+                  Waiting for merchant payment receipt before marking this settlement as paid.
+                </div>
+              ) : null}
+
+              {rewardHubPaysMerchant &&
+              !hasReceipt ? (
+                <div className="rounded-xl border border-blue-400/20 bg-blue-400/10 px-4 py-3 text-xs text-blue-200">
+                  Upload RewardHub payment receipt above before marking this settlement as paid.
+                </div>
+              ) : null}
+
+              {noPaymentRequired ? (
+                <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 py-3 text-xs text-slate-400">
+                  No transfer is required. Confirm to complete this currentSettlement.
+                </div>
+              ) : null}
+
+              <div className="flex justify-end">
+                <button
+                  type="button"
+                  disabled={
+                    Boolean(
+                      actionLoading
+                    ) ||
+                    (
+                      !noPaymentRequired &&
+                      !hasReceipt
+                    )
+                  }
+                  onClick={() =>
+                    void handleMarkPaid()
+                  }
+                  className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-emerald-400 px-5 text-sm font-semibold text-slate-950 transition hover:bg-emerald-300 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
+                >
+                  {actionLoading ===
+                  "mark-paid" ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <CheckCircle2 className="h-4 w-4" />
+                  )}
+
+                  {actionLoading ===
+                  "mark-paid"
+                    ? "Saving..."
+                    : noPaymentRequired
+                      ? "Complete Settlement"
+                      : "Mark Paid"}
+                </button>
+              </div>
+            </div>
           ) : (
             <div className="flex items-center justify-between gap-4">
               <p className="text-xs text-slate-600">
-                No review action is available for this status.
+                No action is available for this status.
               </p>
 
               <button
                 type="button"
-                onClick={handleClose}
+                onClick={
+                  handleClose
+                }
                 className="inline-flex h-11 items-center justify-center rounded-xl border border-white/[0.09] px-5 text-sm font-medium text-slate-400 transition hover:bg-white/[0.05] hover:text-white"
               >
                 Close
@@ -730,16 +1297,15 @@ await onUpdated();
   );
 }
 
-/* ============================================================
- * Timeline
- * ============================================================
- */
-
 function SettlementTimeline({
   settlement,
+  direction,
 }: {
   settlement:
     AdminMerchantSettlement;
+
+  direction:
+    AdminSettlementDirection;
 }) {
   const status =
     normalizeStatus(
@@ -752,11 +1318,14 @@ function SettlementTimeline({
     );
 
   const submittedComplete =
-    [
-      "SUBMITTED",
-      "APPROVED",
-      "PAID",
-    ].includes(status);
+    direction ===
+    "MERCHANT_TO_REWARDHUB"
+      ? [
+          "SUBMITTED",
+          "APPROVED",
+          "PAID",
+        ].includes(status)
+      : true;
 
   const approvedComplete =
     [
@@ -770,10 +1339,37 @@ function SettlementTimeline({
   const rejected =
     status === "REJECTED";
 
+  const submittedLabel =
+    direction ===
+    "MERCHANT_TO_REWARDHUB"
+      ? "Merchant Receipt"
+      : direction ===
+          "REWARDHUB_TO_MERCHANT"
+        ? "RewardHub Payment"
+        : "No Payment";
+
+  const submittedValue =
+    direction ===
+    "MERCHANT_TO_REWARDHUB"
+      ? submittedComplete
+        ? settlement.paymentMethod ||
+          "Submitted"
+        : "Not submitted"
+      : direction ===
+          "REWARDHUB_TO_MERCHANT"
+        ? settlement.receiptUrl
+          ? "RewardHub receipt uploaded"
+          : approvedComplete
+            ? "Waiting for RewardHub payment"
+            : "Pending approval"
+        : "No transfer required";
+
   return (
     <div className="space-y-1">
       <TimelineItem
-        icon={CalendarDays}
+        icon={
+          CalendarDays
+        }
         label="Requested"
         value={formatDateTime(
           settlement.createdAt
@@ -785,20 +1381,29 @@ function SettlementTimeline({
 
       <TimelineItem
         icon={ReceiptText}
-        label="Submitted"
+        label={
+          submittedLabel
+        }
         value={
-          submittedComplete
-            ? settlement.paymentMethod ||
-              "Submitted"
-            : "Not submitted"
+          submittedValue
         }
         complete={
-          submittedComplete
+          direction ===
+          "NO_PAYMENT"
+            ? approvedComplete
+            : direction ===
+                "REWARDHUB_TO_MERCHANT"
+              ? Boolean(
+                  settlement.receiptUrl
+                )
+              : submittedComplete
         }
       />
 
       <TimelineItem
-        icon={ShieldCheck}
+        icon={
+          ShieldCheck
+        }
         label="Approved"
         value={
           approvedComplete
@@ -814,13 +1419,13 @@ function SettlementTimeline({
 
       <TimelineItem
         icon={Banknote}
-        label="Paid"
+        label="Paid / Completed"
         value={
           paidComplete
             ? formatDateTime(
                 settlement.paidAt
               )
-            : "Not paid"
+            : "Not completed"
         }
         complete={
           paidComplete
@@ -908,11 +1513,6 @@ function TimelineItem({
   );
 }
 
-/* ============================================================
- * Shared Components
- * ============================================================
- */
-
 function DrawerSection({
   icon: Icon,
   title,
@@ -940,7 +1540,9 @@ function DrawerSection({
           </h3>
 
           <p className="mt-1 text-xs text-slate-600">
-            {description}
+            {
+              description
+            }
           </p>
         </div>
       </div>
@@ -955,7 +1557,8 @@ function DrawerSection({
 function DetailGrid({
   children,
 }: {
-  children: ReactNode;
+  children:
+    ReactNode;
 }) {
   return (
     <div className="grid gap-3 sm:grid-cols-2">
@@ -1018,7 +1621,9 @@ function MoneyRow({
         ].join(" ")}
       >
         {negative ? "− " : ""}
-        {formatMoney(value)}
+        {formatMoney(
+          value
+        )}
       </span>
     </div>
   );
@@ -1090,7 +1695,9 @@ function EmptyInformation({
       </p>
 
       <p className="mt-2 max-w-sm text-xs leading-5 text-slate-600">
-        {description}
+        {
+          description
+        }
       </p>
     </div>
   );
@@ -1104,11 +1711,14 @@ function SettlementStatusBadge({
   const classes =
     status === "PAID"
       ? "border-emerald-400/20 bg-emerald-400/10 text-emerald-300"
-      : status === "APPROVED"
+      : status ===
+          "APPROVED"
         ? "border-blue-400/20 bg-blue-400/10 text-blue-300"
-        : status === "SUBMITTED"
+        : status ===
+            "SUBMITTED"
           ? "border-violet-400/20 bg-violet-400/10 text-violet-300"
-          : status === "REJECTED"
+          : status ===
+              "REJECTED"
             ? "border-red-400/20 bg-red-400/10 text-red-300"
             : "border-amber-400/20 bg-amber-400/10 text-amber-300";
 
@@ -1123,46 +1733,154 @@ function SettlementStatusBadge({
   );
 }
 
-/* ============================================================
- * Formatters
- * ============================================================
- */
-
 function normalizeStatus(
   value: string
 ) {
   const status =
-    String(value || "")
+    String(
+      value || ""
+    )
       .trim()
       .toUpperCase();
 
   if (
-    status === "REQUESTED" ||
-    status === "PROCESSING"
+    status ===
+      "REQUESTED" ||
+    status ===
+      "PROCESSING"
   ) {
     return "PENDING";
   }
 
   if (
-    status === "PAYMENT_SUBMITTED" ||
-    status === "SUBMIT"
+    status ===
+      "PAYMENT_SUBMITTED" ||
+    status ===
+      "SUBMIT"
   ) {
     return "SUBMITTED";
   }
 
   if (
-    status === "COMPLETED"
+    status ===
+    "COMPLETED"
   ) {
     return "PAID";
   }
 
   if (
-    status === "DECLINED"
+    status ===
+    "DECLINED"
   ) {
     return "REJECTED";
   }
 
-  return status || "PENDING";
+  return (
+    status ||
+    "PENDING"
+  );
+}
+
+function normalizeDirection(
+  settlement:
+    AdminMerchantSettlement
+): AdminSettlementDirection {
+  const raw =
+    String(
+      (
+        settlement as any
+      ).settlementDirection ||
+        ""
+    )
+      .trim()
+      .toUpperCase()
+      .replace(
+        /[\s-]+/g,
+        "_"
+      );
+
+  if (
+    raw ===
+      "MERCHANT_TO_REWARDHUB" ||
+    raw ===
+      "REWARDHUB_TO_MERCHANT" ||
+    raw ===
+      "NO_PAYMENT"
+  ) {
+    return raw;
+  }
+
+  const netAmount =
+    Number(
+      (
+        settlement as any
+      ).netAmount ??
+        0
+    );
+
+  if (
+    netAmount > 0
+  ) {
+    return "MERCHANT_TO_REWARDHUB";
+  }
+
+  if (
+    netAmount < 0
+  ) {
+    return "REWARDHUB_TO_MERCHANT";
+  }
+
+  const legacyAmount =
+    Number(
+      settlement.amountPayable ||
+        0
+    );
+
+  return legacyAmount > 0
+    ? "MERCHANT_TO_REWARDHUB"
+    : "NO_PAYMENT";
+}
+
+function getDirectionLabel(
+  direction:
+    AdminSettlementDirection
+) {
+  if (
+    direction ===
+    "REWARDHUB_TO_MERCHANT"
+  ) {
+    return "RewardHub Pays Merchant";
+  }
+
+  if (
+    direction ===
+    "NO_PAYMENT"
+  ) {
+    return "No Payment Required";
+  }
+
+  return "Merchant Pays RewardHub";
+}
+
+function getDirectionDescription(
+  direction:
+    AdminSettlementDirection
+) {
+  if (
+    direction ===
+    "REWARDHUB_TO_MERCHANT"
+  ) {
+    return "Reward Credits accepted by the merchant are higher than the merchant's net Marketing Budget obligation. RewardHub needs to pay the difference to the merchant.";
+  }
+
+  if (
+    direction ===
+    "NO_PAYMENT"
+  ) {
+    return "The merchant obligation and RewardHub Reward Credit obligation are fully offset. No transfer is required.";
+  }
+
+  return "The merchant's net Marketing Budget obligation is higher than RewardHub's Reward Credit obligation. The merchant needs to pay the difference to RewardHub.";
 }
 
 function formatMoney(
@@ -1171,13 +1889,42 @@ function formatMoney(
   return new Intl.NumberFormat(
     "en-MY",
     {
-      style: "currency",
-      currency: "MYR",
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
+      style:
+        "currency",
+      currency:
+        "MYR",
+      minimumFractionDigits:
+        2,
+      maximumFractionDigits:
+        2,
     }
   ).format(
-    Number(value || 0)
+    Number(
+      value || 0
+    )
+  );
+}
+
+function formatSignedMoney(
+  value: number
+) {
+  const number =
+    Number(
+      value || 0
+    );
+
+  if (
+    number < 0
+  ) {
+    return `− ${formatMoney(
+      Math.abs(
+        number
+      )
+    )}`;
+  }
+
+  return formatMoney(
+    number
   );
 }
 
@@ -1185,28 +1932,41 @@ function formatMonth(
   value: string
 ) {
   const match =
-    String(value || "").match(
+    String(
+      value || ""
+    ).match(
       /^(\d{4})-(\d{2})/
     );
 
   if (!match) {
-    return value || "—";
+    return (
+      value ||
+      "—"
+    );
   }
 
   const date =
     new Date(
-      Number(match[1]),
-      Number(match[2]) - 1,
+      Number(
+        match[1]
+      ),
+      Number(
+        match[2]
+      ) - 1,
       1
     );
 
   return new Intl.DateTimeFormat(
     "en-MY",
     {
-      month: "long",
-      year: "numeric",
+      month:
+        "long",
+      year:
+        "numeric",
     }
-  ).format(date);
+  ).format(
+    date
+  );
 }
 
 function formatDateTime(
@@ -1217,7 +1977,9 @@ function formatDateTime(
   }
 
   const date =
-    new Date(value);
+    new Date(
+      value
+    );
 
   if (
     Number.isNaN(
@@ -1230,12 +1992,60 @@ function formatDateTime(
   return new Intl.DateTimeFormat(
     "en-MY",
     {
-      day: "numeric",
-      month: "short",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: true,
+      day:
+        "numeric",
+      month:
+        "short",
+      year:
+        "numeric",
+      hour:
+        "2-digit",
+      minute:
+        "2-digit",
+      hour12:
+        true,
     }
-  ).format(date);
+  ).format(
+    date
+  );
+}
+
+function fileToBase64(
+  file: File
+): Promise<string> {
+  return new Promise(
+    (
+      resolve,
+      reject
+    ) => {
+      const reader =
+        new FileReader();
+
+      reader.onload =
+        () => {
+          const result =
+            String(
+              reader.result ||
+                ""
+            );
+
+          resolve(
+            result.includes(
+              ","
+            )
+              ? result.split(
+                  ","
+                )[1]
+              : result
+          );
+        };
+
+      reader.onerror =
+        reject;
+
+      reader.readAsDataURL(
+        file
+      );
+    }
+  );
 }

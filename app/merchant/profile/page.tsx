@@ -9,6 +9,8 @@ import {
   getMerchantDetail,
   getMerchantMarketingSummary,
   updateMerchantProfile,
+  updateMerchantBankDetails,
+  uploadMerchantBankQr,
   uploadMerchantLogo,
   uploadMerchantBanner,
 } from "@/lib/api";
@@ -76,6 +78,33 @@ const translations = {
     characters: "{{count}} characters",
     savingChanges: "Saving Changes...",
     saveBusinessInformation: "Save Business Information",
+    bankSettlementDetails: "Bank & Settlement Details",
+    bankSettlementDetailsDescription:
+      "Manage the bank account and QR code used for RewardHub settlement payments.",
+    bankName: "Bank Name",
+    bankNamePlaceholder: "e.g. MAYBANK",
+    bankAccountName: "Account Name",
+    bankAccountNamePlaceholder: "Bank account holder name",
+    bankAccountNo: "Account Number",
+    bankAccountNoPlaceholder: "Bank account number",
+    bankQrCode: "Payment QR Code",
+    bankQrDescription:
+      "Upload the merchant bank QR used for settlement payments. PNG, JPG or WebP, under 5MB.",
+    bankQrAlt: "Merchant Bank QR",
+    noBankQr: "No bank QR uploaded yet.",
+    chooseBankQr: "Please choose a bank QR image",
+    bankQrTooLarge: "Bank QR image must be smaller than 5MB",
+    bankQrUploaded: "Bank QR uploaded successfully",
+    bankQrUploadFailed: "Bank QR upload failed",
+    bankQrUrlMissing: "Bank QR URL missing",
+    uploadBankQr: "Upload / Replace QR",
+    savingBankDetails: "Saving Bank Details...",
+    saveBankDetails: "Save Bank Details",
+    bankNameRequired: "Bank Name is required",
+    bankAccountNameRequired: "Account Name is required",
+    bankAccountNoRequired: "Account Number is required",
+    bankDetailsUpdated: "Bank details updated successfully",
+    bankDetailsUpdateFailed: "Unable to update bank details",
     merchantSettings: "Merchant Settings",
     merchantSettingsDescription: "Important account and reward settings.",
     merchantId: "Merchant ID",
@@ -151,6 +180,33 @@ const translations = {
     characters: "{{count}} 个字符",
     savingChanges: "正在保存修改……",
     saveBusinessInformation: "保存商家资料",
+    bankSettlementDetails: "银行与结算资料",
+    bankSettlementDetailsDescription:
+      "管理 RewardHub 结算付款使用的银行账户和 QR Code。",
+    bankName: "银行名称",
+    bankNamePlaceholder: "例如 MAYBANK",
+    bankAccountName: "账户名称",
+    bankAccountNamePlaceholder: "银行账户持有人名称",
+    bankAccountNo: "银行账号",
+    bankAccountNoPlaceholder: "输入银行账号",
+    bankQrCode: "付款 QR Code",
+    bankQrDescription:
+      "上传用于结算付款的银行 QR Code。支持 PNG、JPG 或 WebP，大小不超过 5MB。",
+    bankQrAlt: "商家银行 QR Code",
+    noBankQr: "还没有上传银行 QR Code。",
+    chooseBankQr: "请选择银行 QR Code 图片",
+    bankQrTooLarge: "银行 QR Code 图片必须小于 5MB",
+    bankQrUploaded: "银行 QR Code 上传成功",
+    bankQrUploadFailed: "银行 QR Code 上传失败",
+    bankQrUrlMissing: "找不到银行 QR Code URL",
+    uploadBankQr: "上传 / 更换 QR Code",
+    savingBankDetails: "正在保存银行资料……",
+    saveBankDetails: "保存银行资料",
+    bankNameRequired: "必须填写银行名称",
+    bankAccountNameRequired: "必须填写账户名称",
+    bankAccountNoRequired: "必须填写银行账号",
+    bankDetailsUpdated: "银行资料更新成功",
+    bankDetailsUpdateFailed: "无法更新银行资料",
     merchantSettings: "商家设置",
     merchantSettingsDescription: "重要的账户和奖励设置。",
     merchantId: "商家 ID",
@@ -225,6 +281,33 @@ const translations = {
     characters: "{{count}} aksara",
     savingChanges: "Sedang Menyimpan Perubahan...",
     saveBusinessInformation: "Simpan Maklumat Perniagaan",
+    bankSettlementDetails: "Butiran Bank & Penyelesaian",
+    bankSettlementDetailsDescription:
+      "Urus akaun bank dan kod QR yang digunakan untuk bayaran penyelesaian RewardHub.",
+    bankName: "Nama Bank",
+    bankNamePlaceholder: "cth. MAYBANK",
+    bankAccountName: "Nama Akaun",
+    bankAccountNamePlaceholder: "Nama pemegang akaun bank",
+    bankAccountNo: "Nombor Akaun",
+    bankAccountNoPlaceholder: "Nombor akaun bank",
+    bankQrCode: "Kod QR Pembayaran",
+    bankQrDescription:
+      "Muat naik kod QR bank pedagang untuk bayaran penyelesaian. PNG, JPG atau WebP, bawah 5MB.",
+    bankQrAlt: "QR Bank Pedagang",
+    noBankQr: "Belum ada kod QR bank dimuat naik.",
+    chooseBankQr: "Sila pilih imej kod QR bank",
+    bankQrTooLarge: "Imej kod QR bank mesti lebih kecil daripada 5MB",
+    bankQrUploaded: "Kod QR bank berjaya dimuat naik",
+    bankQrUploadFailed: "Muat naik kod QR bank gagal",
+    bankQrUrlMissing: "URL kod QR bank tidak ditemui",
+    uploadBankQr: "Muat Naik / Ganti QR",
+    savingBankDetails: "Sedang Menyimpan Butiran Bank...",
+    saveBankDetails: "Simpan Butiran Bank",
+    bankNameRequired: "Nama Bank diperlukan",
+    bankAccountNameRequired: "Nama Akaun diperlukan",
+    bankAccountNoRequired: "Nombor Akaun diperlukan",
+    bankDetailsUpdated: "Butiran bank berjaya dikemas kini",
+    bankDetailsUpdateFailed: "Tidak dapat mengemas kini butiran bank",
     merchantSettings: "Tetapan Pedagang",
     merchantSettingsDescription: "Tetapan akaun dan ganjaran penting.",
     merchantId: "ID Pedagang",
@@ -294,6 +377,15 @@ export default function MerchantProfilePage() {
   const [closeTime, setCloseTime] = useState("");
   const [restDay, setRestDay] = useState("");
   const [description, setdescription] = useState("");
+
+  const [bankName, setBankName] = useState("");
+  const [bankAccountName, setBankAccountName] = useState("");
+  const [bankAccountNo, setBankAccountNo] = useState("");
+  const [bankQrUrl, setBankQrUrl] = useState("");
+  const [bankQrFile, setBankQrFile] = useState<File | null>(null);
+  const [bankQrPreview, setBankQrPreview] = useState("");
+  const [savingBank, setSavingBank] = useState(false);
+  const [uploadingBankQr, setUploadingBankQr] = useState(false);
 
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [bannerFile, setBannerFile] = useState<File | null>(null);
@@ -449,6 +541,48 @@ export default function MerchantProfilePage() {
           )
         );
 
+        setBankName(
+          toText(
+            data?.bankName ||
+              data?.BANK_NAME ||
+              stored?.bankName ||
+              stored?.BANK_NAME
+          )
+        );
+
+        setBankAccountName(
+          toText(
+            data?.bankAccountName ||
+              data?.BANK_ACCOUNT_NAME ||
+              stored?.bankAccountName ||
+              stored?.BANK_ACCOUNT_NAME
+          )
+        );
+
+        setBankAccountNo(
+          toText(
+            data?.bankAccountNo ||
+              data?.BANK_ACCOUNT_NO ||
+              stored?.bankAccountNo ||
+              stored?.BANK_ACCOUNT_NO
+          )
+        );
+
+        const loadedBankQrUrl =
+          toText(
+            data?.bankQrUrl ||
+              data?.BANK_QR_URL ||
+              stored?.bankQrUrl ||
+              stored?.BANK_QR_URL
+          );
+
+        setBankQrUrl(
+          loadedBankQrUrl
+        );
+        setBankQrPreview(
+          loadedBankQrUrl
+        );
+
         const marketingRes =
           await getMerchantMarketingSummary(storedMerchantId);
 
@@ -478,8 +612,12 @@ export default function MerchantProfilePage() {
       if (bannerPreview.startsWith("blob:")) {
         URL.revokeObjectURL(bannerPreview);
       }
+
+      if (bankQrPreview.startsWith("blob:")) {
+        URL.revokeObjectURL(bankQrPreview);
+      }
     };
-  }, [logoPreview, bannerPreview]);
+  }, [logoPreview, bannerPreview, bankQrPreview]);
 
   function fileToBase64(file: File): Promise<string> {
     return new Promise((resolve, reject) => {
@@ -726,6 +864,258 @@ export default function MerchantProfilePage() {
       alert(error?.message || t.updateFailed);
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function handleSaveBankDetails() {
+    const cleanBankName =
+      toText(bankName).trim();
+
+    const cleanBankAccountName =
+      toText(
+        bankAccountName
+      ).trim();
+
+    const cleanBankAccountNo =
+      toText(
+        bankAccountNo
+      ).trim();
+
+    if (!cleanBankName) {
+      alert(
+        t.bankNameRequired
+      );
+      return;
+    }
+
+    if (
+      !cleanBankAccountName
+    ) {
+      alert(
+        t.bankAccountNameRequired
+      );
+      return;
+    }
+
+    if (
+      !cleanBankAccountNo
+    ) {
+      alert(
+        t.bankAccountNoRequired
+      );
+      return;
+    }
+
+    if (
+      !merchantId ||
+      merchantId === "-"
+    ) {
+      alert(
+        t.merchantIdMissing
+      );
+      return;
+    }
+
+    try {
+      setSavingBank(true);
+
+      await updateMerchantBankDetails({
+  merchantId,
+  bankName:
+    cleanBankName,
+  bankAccountName:
+    cleanBankAccountName,
+  bankAccountNo:
+    cleanBankAccountNo,
+});
+
+      const nextMerchant = {
+        ...merchant,
+
+        bankName:
+          cleanBankName,
+        BANK_NAME:
+          cleanBankName,
+
+        bankAccountName:
+          cleanBankAccountName,
+        BANK_ACCOUNT_NAME:
+          cleanBankAccountName,
+
+        bankAccountNo:
+          cleanBankAccountNo,
+        BANK_ACCOUNT_NO:
+          cleanBankAccountNo,
+
+        bankQrUrl:
+          bankQrUrl,
+        BANK_QR_URL:
+          bankQrUrl,
+      };
+
+      setMerchant(
+        nextMerchant
+      );
+
+      let stored: any = {};
+
+      try {
+        stored =
+          JSON.parse(
+            localStorage.getItem(
+              "merchant"
+            ) || "{}"
+          );
+      } catch {
+        stored = {};
+      }
+
+      localStorage.setItem(
+        "merchant",
+        JSON.stringify({
+          ...stored,
+          ...nextMerchant,
+        })
+      );
+
+      alert(
+        t.bankDetailsUpdated
+      );
+    } catch (
+      error: any
+    ) {
+      alert(
+        error?.message ||
+        t.bankDetailsUpdateFailed
+      );
+    } finally {
+      setSavingBank(false);
+    }
+  }
+
+  async function handleUploadBankQr() {
+    if (!bankQrFile) {
+      alert(
+        t.chooseBankQr
+      );
+      return;
+    }
+
+    if (
+      !merchantId ||
+      merchantId === "-"
+    ) {
+      alert(
+        t.merchantIdMissing
+      );
+      return;
+    }
+
+    try {
+      setUploadingBankQr(
+        true
+      );
+
+      const base64 =
+        await fileToBase64(
+          bankQrFile
+        );
+
+      const res =
+        await uploadMerchantBankQr({
+          merchantId,
+          fileName:
+            bankQrFile.name,
+          mimeType:
+            bankQrFile.type ||
+            "image/jpeg",
+          base64,
+        });
+
+      const data =
+        res?.data?.data ||
+        res?.data ||
+        res?.result ||
+        res;
+
+        console.log(
+  "BANK QR DEBUG:",
+  data?.debug
+);
+
+      const imageUrl =
+        data?.bankQrUrl ||
+        data?.BANK_QR_URL ||
+        data?.data
+          ?.bankQrUrl ||
+        "";
+
+      if (!imageUrl) {
+        throw new Error(
+          t.bankQrUrlMissing
+        );
+      }
+
+      setBankQrUrl(
+        imageUrl
+      );
+      setBankQrPreview(
+        imageUrl
+      );
+      setBankQrFile(
+        null
+      );
+
+      const nextMerchant = {
+        ...merchant,
+        bankQrUrl:
+          imageUrl,
+        BANK_QR_URL:
+          imageUrl,
+      };
+
+      setMerchant(
+        nextMerchant
+      );
+
+      let stored: any = {};
+
+      try {
+        stored =
+          JSON.parse(
+            localStorage.getItem(
+              "merchant"
+            ) || "{}"
+          );
+      } catch {
+        stored = {};
+      }
+
+      localStorage.setItem(
+        "merchant",
+        JSON.stringify({
+          ...stored,
+          bankQrUrl:
+            imageUrl,
+          BANK_QR_URL:
+            imageUrl,
+        })
+      );
+
+      alert(
+        t.bankQrUploaded
+      );
+    } catch (
+      error: any
+    ) {
+      alert(
+        error?.message ||
+        t.bankQrUploadFailed
+      );
+    } finally {
+      setUploadingBankQr(
+        false
+      );
     }
   }
 
@@ -1033,6 +1423,217 @@ export default function MerchantProfilePage() {
               className="mt-5 w-full rounded-xl bg-slate-950 py-3 text-xs font-black text-white shadow-xl transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50 sm:mt-6 sm:rounded-2xl sm:py-5 sm:text-sm"
             >
               {saving ? t.savingChanges : t.saveBusinessInformation}
+            </button>
+          </SectionCard>
+
+          <SectionCard
+            title={t.bankSettlementDetails}
+            description={t.bankSettlementDetailsDescription}
+          >
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
+              <FieldCard label={t.bankName}>
+                <input
+                  value={bankName}
+                  onChange={(event) =>
+                    setBankName(
+                      event.target.value
+                    )
+                  }
+                  className={fieldClass}
+                  placeholder={
+                    t.bankNamePlaceholder
+                  }
+                />
+              </FieldCard>
+
+              <FieldCard
+                label={
+                  t.bankAccountName
+                }
+              >
+                <input
+                  value={
+                    bankAccountName
+                  }
+                  onChange={(event) =>
+                    setBankAccountName(
+                      event.target.value
+                    )
+                  }
+                  className={fieldClass}
+                  placeholder={
+                    t.bankAccountNamePlaceholder
+                  }
+                />
+              </FieldCard>
+
+              <FieldCard
+                label={
+                  t.bankAccountNo
+                }
+              >
+                <input
+                  value={
+                    bankAccountNo
+                  }
+                  onChange={(event) =>
+                    setBankAccountNo(
+                      event.target.value
+                    )
+                  }
+                  className={fieldClass}
+                  placeholder={
+                    t.bankAccountNoPlaceholder
+                  }
+                  inputMode="numeric"
+                  autoComplete="off"
+                />
+              </FieldCard>
+
+              <div className="sm:row-span-2">
+                <FieldCard
+                  label={
+                    t.bankQrCode
+                  }
+                >
+                  <div className="mt-3 flex min-h-56 items-center justify-center overflow-hidden rounded-2xl border border-slate-200 bg-white p-4">
+                    {bankQrPreview ||
+                    bankQrUrl ? (
+                      <SmartImage
+                        src={
+                          bankQrPreview ||
+                          bankQrUrl
+                        }
+                        alt={
+                          t.bankQrAlt
+                        }
+                        fallbackLabel="QR"
+                        width={800}
+                        className="max-h-72 w-full object-contain"
+                        fallbackClassName="text-2xl text-slate-300"
+                      />
+                    ) : (
+                      <div className="text-center">
+                        <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-2xl border-2 border-dashed border-slate-200 text-xl font-black text-slate-300">
+                          QR
+                        </div>
+
+                        <p className="mt-3 text-[10px] font-bold text-slate-400 sm:text-xs">
+                          {
+                            t.noBankQr
+                          }
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
+                  <input
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp"
+                    onChange={(
+                      event
+                    ) => {
+                      const selectedFile =
+                        event
+                          .target
+                          .files?.[0] ||
+                        null;
+
+                      if (
+                        selectedFile &&
+                        selectedFile.size >
+                          5 *
+                            1024 *
+                            1024
+                      ) {
+                        alert(
+                          t.bankQrTooLarge
+                        );
+                        event.target.value =
+                          "";
+                        return;
+                      }
+
+                      if (
+                        bankQrPreview.startsWith(
+                          "blob:"
+                        )
+                      ) {
+                        URL.revokeObjectURL(
+                          bankQrPreview
+                        );
+                      }
+
+                      setBankQrFile(
+                        selectedFile
+                      );
+
+                      if (
+                        selectedFile
+                      ) {
+                        setBankQrPreview(
+                          URL.createObjectURL(
+                            selectedFile
+                          )
+                        );
+                      } else {
+                        setBankQrPreview(
+                          bankQrUrl
+                        );
+                      }
+                    }}
+                    className="mt-4 block w-full text-[10px] font-bold text-slate-600 file:mr-2 file:rounded-lg file:border-0 file:bg-slate-950 file:px-3 file:py-2 file:text-[10px] file:font-black file:text-white sm:text-sm sm:file:rounded-xl sm:file:px-4 sm:file:text-xs"
+                  />
+
+                  <button
+                    type="button"
+                    onClick={
+                      handleUploadBankQr
+                    }
+                    disabled={
+                      !bankQrFile ||
+                      uploadingBankQr
+                    }
+                    className="mt-4 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-xs font-black text-slate-950 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 sm:rounded-2xl sm:px-5 sm:py-4 sm:text-sm"
+                  >
+                    {uploadingBankQr
+                      ? t.uploading
+                      : t.uploadBankQr}
+                  </button>
+
+                  <p className="mt-3 text-[9px] font-bold leading-4 text-slate-400 sm:text-xs">
+                    {
+                      t.bankQrDescription
+                    }
+                  </p>
+                </FieldCard>
+              </div>
+
+              <div>
+                <InfoFieldCard
+                  label={
+                    t.merchantId
+                  }
+                  value={
+                    merchantId
+                  }
+                />
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={
+                handleSaveBankDetails
+              }
+              disabled={
+                savingBank
+              }
+              className="mt-5 w-full rounded-xl bg-slate-950 py-3 text-xs font-black text-white shadow-xl transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50 sm:mt-6 sm:rounded-2xl sm:py-5 sm:text-sm"
+            >
+              {savingBank
+                ? t.savingBankDetails
+                : t.saveBankDetails}
             </button>
           </SectionCard>
 

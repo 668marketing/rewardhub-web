@@ -7,6 +7,11 @@ export type AdminSettlementStatus =
   | "UNKNOWN"
   | string;
 
+export type AdminSettlementDirection =
+  | "MERCHANT_TO_REWARDHUB"
+  | "REWARDHUB_TO_MERCHANT"
+  | "NO_PAYMENT";
+
 export type AdminSettlement = {
   settlementId: string;
   merchantId: string;
@@ -15,12 +20,24 @@ export type AdminSettlement = {
   totalSales: number;
   totalCashback: number;
   totalRewardCredits: number;
+  totalVoucherDiscount: number;
   totalMarketingBudget: number;
+
+  merchantDue: number;
+  rewardHubDue: number;
+  netAmount: number;
+
+  settlementDirection:
+    AdminSettlementDirection;
+  directionLabel: string;
+
   amountPayable: number;
 
   bankName: string;
-  bankAccount: string;
-  merchantName: string;
+bankAccount: string;
+bankAccountName: string;
+bankQrUrl: string;
+merchantName: string;
 
   status: AdminSettlementStatus;
 
@@ -56,6 +73,18 @@ export type AdminSettlementSummary = {
   approvedAmount: number;
   paidAmount: number;
   rejectedAmount: number;
+
+  merchantToRewardHubCount:
+    number;
+  merchantToRewardHubAmount:
+    number;
+
+  rewardHubToMerchantCount:
+    number;
+  rewardHubToMerchantAmount:
+    number;
+
+  noPaymentCount: number;
 };
 
 export type AdminSettlementPagination = {
@@ -90,8 +119,11 @@ export type AdminSettlementListData = {
     dateTo: string;
   };
 
-  pagination: AdminSettlementPagination;
-  settlements: AdminSettlement[];
+  pagination:
+    AdminSettlementPagination;
+
+  settlements:
+    AdminSettlement[];
 };
 
 export type AdminSettlementDetailData = {
@@ -104,7 +136,8 @@ export type AdminSettlementDetailData = {
     role: string;
   };
 
-  settlement: AdminSettlement;
+  settlement:
+    AdminSettlement;
 
   merchant: {
     merchantId: string;
@@ -123,6 +156,19 @@ export type AdminSettlementDetailData = {
     canApprove: boolean;
     canReject: boolean;
     canMarkPaid: boolean;
+
+    paymentDirection:
+      AdminSettlementDirection;
+
+    requiresMerchantReceipt:
+      boolean;
+
+    requiresAdminPayment:
+      boolean;
+
+    noPaymentRequired:
+      boolean;
+
     locked: boolean;
   };
 };
@@ -144,9 +190,11 @@ export type GetAdminSettlementsInput = {
 };
 
 export async function getAdminSettlements(
-  input: GetAdminSettlementsInput = {}
+  input:
+    GetAdminSettlementsInput = {}
 ): Promise<AdminSettlementListData> {
-  const params = new URLSearchParams();
+  const params =
+    new URLSearchParams();
 
   params.set(
     "search",
@@ -155,7 +203,9 @@ export async function getAdminSettlements(
 
   params.set(
     "status",
-    String(input.status || "ALL")
+    String(
+      input.status || "ALL"
+    )
   );
 
   params.set(
@@ -165,7 +215,9 @@ export async function getAdminSettlements(
 
   params.set(
     "dateFrom",
-    String(input.dateFrom || "")
+    String(
+      input.dateFrom || ""
+    )
   );
 
   params.set(
@@ -180,16 +232,19 @@ export async function getAdminSettlements(
 
   params.set(
     "pageSize",
-    String(input.pageSize || 25)
+    String(
+      input.pageSize || 25
+    )
   );
 
-  const response = await fetch(
-    `/api/admin/settlements?${params.toString()}`,
-    {
-      method: "GET",
-      cache: "no-store",
-    }
-  );
+  const response =
+    await fetch(
+      `/api/admin/settlements?${params.toString()}`,
+      {
+        method: "GET",
+        cache: "no-store",
+      }
+    );
 
   let result:
     ApiResponse<AdminSettlementListData>;
@@ -222,15 +277,16 @@ export async function getAdminSettlements(
 export async function getAdminSettlementDetail(
   settlementId: string
 ): Promise<AdminSettlementDetailData> {
-  const response = await fetch(
-    `/api/admin/settlements/${encodeURIComponent(
-      settlementId
-    )}`,
-    {
-      method: "GET",
-      cache: "no-store",
-    }
-  );
+  const response =
+    await fetch(
+      `/api/admin/settlements/${encodeURIComponent(
+        settlementId
+      )}`,
+      {
+        method: "GET",
+        cache: "no-store",
+      }
+    );
 
   let result:
     ApiResponse<AdminSettlementDetailData>;
@@ -255,13 +311,16 @@ export async function getAdminSettlementDetail(
     );
   }
 
-  return result.data;
+  return normalizeDetailData(
+    result.data
+  );
 }
 
 export async function approveAdminSettlement(
   settlement: Pick<
     AdminSettlement,
-    "settlementId" | "merchantId"
+    | "settlementId"
+    | "merchantId"
   >
 ): Promise<void> {
   await runSettlementAction(
@@ -277,16 +336,19 @@ export async function approveAdminSettlement(
 export async function markAdminSettlementPaid(
   settlement: Pick<
     AdminSettlement,
-    "settlementId" | "merchantId"
+    | "settlementId"
+    | "merchantId"
   >,
-  paymentMethod = "Bank Transfer",
-  paymentNote = "Settlement payment completed.",
+  paymentMethod =
+    "Bank Transfer",
+  paymentNote = "",
   receiptUrl = ""
 ): Promise<void> {
   await runSettlementAction(
     settlement.settlementId,
     {
-      action: "mark-paid",
+      action:
+        "mark-paid",
       merchantId:
         settlement.merchantId,
       paymentMethod,
@@ -296,10 +358,55 @@ export async function markAdminSettlementPaid(
   );
 }
 
+
+export async function uploadAdminSettlementPaymentReceipt(
+  settlement: Pick<
+    AdminSettlement,
+    | "settlementId"
+    | "merchantId"
+  >,
+  input: {
+    fileName: string;
+    mimeType: string;
+    base64: string;
+    paymentMethod?: string;
+    paymentNote?: string;
+  }
+): Promise<void> {
+  await runSettlementAction(
+    settlement.settlementId,
+    {
+      action:
+        "upload-payment-receipt",
+
+      merchantId:
+        settlement.merchantId,
+
+      fileName:
+        input.fileName,
+
+      mimeType:
+        input.mimeType,
+
+      base64:
+        input.base64,
+
+      paymentMethod:
+        input.paymentMethod ||
+        "Bank Transfer",
+
+      paymentNote:
+        input.paymentNote ||
+        "",
+    }
+  );
+}
+
 export async function rejectAdminSettlement(
   settlement: Pick<
     AdminSettlement,
-    "settlementId" | "merchantId"
+    | "settlementId"
+    | "merchantId"
   >,
   rejectReason: string
 ): Promise<void> {
@@ -316,22 +423,27 @@ export async function rejectAdminSettlement(
 
 async function runSettlementAction(
   settlementId: string,
-  body: Record<string, unknown>
+  body: Record<
+    string,
+    unknown
+  >
 ): Promise<void> {
-  const response = await fetch(
-    `/api/admin/settlements/${encodeURIComponent(
-      settlementId
-    )}`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type":
-          "application/json",
-      },
-      cache: "no-store",
-      body: JSON.stringify(body),
-    }
-  );
+  const response =
+    await fetch(
+      `/api/admin/settlements/${encodeURIComponent(
+        settlementId
+      )}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type":
+            "application/json",
+        },
+        cache: "no-store",
+        body:
+          JSON.stringify(body),
+      }
+    );
 
   let result:
     ApiResponse<unknown>;
@@ -357,12 +469,234 @@ async function runSettlementAction(
   }
 }
 
+function normalizeDirection(
+  value: unknown,
+  netAmount: number
+): AdminSettlementDirection {
+  const direction =
+    String(value || "")
+      .trim()
+      .toUpperCase()
+      .replace(
+        /[\s-]+/g,
+        "_"
+      );
+
+  if (
+    direction ===
+      "MERCHANT_TO_REWARDHUB" ||
+    direction ===
+      "REWARDHUB_TO_MERCHANT" ||
+    direction ===
+      "NO_PAYMENT"
+  ) {
+    return direction;
+  }
+
+  if (netAmount > 0) {
+    return "MERCHANT_TO_REWARDHUB";
+  }
+
+  if (netAmount < 0) {
+    return "REWARDHUB_TO_MERCHANT";
+  }
+
+  return "NO_PAYMENT";
+}
+
+function normalizeSettlement(
+  settlement:
+    AdminSettlement
+): AdminSettlement {
+  const totalMarketingBudget =
+    Number(
+      settlement.totalMarketingBudget ||
+        0
+    );
+
+  const totalCashback =
+    Number(
+      settlement.totalCashback ||
+        0
+    );
+
+  const totalRewardCredits =
+    Number(
+      settlement.totalRewardCredits ||
+        0
+    );
+
+  const totalVoucherDiscount =
+    Number(
+      settlement.totalVoucherDiscount ||
+        0
+    );
+
+  /*
+   * Cashback is funded from the merchant's Marketing Budget,
+   * so Merchant Due is the remaining Marketing Budget after Cashback.
+   */
+  const merchantDue =
+    Number(
+      settlement.merchantDue ??
+        Math.max(
+          totalMarketingBudget -
+            totalCashback,
+          0
+        )
+    );
+
+  /*
+   * RewardHub funds both Reward Credits and RewardHub Vouchers.
+   */
+  const rewardHubDue =
+    Number(
+      settlement.rewardHubDue ??
+        (
+          totalRewardCredits +
+          totalVoucherDiscount
+        )
+    );
+
+  const fallbackNet =
+    merchantDue -
+    rewardHubDue;
+
+  const netAmount =
+    Number(
+      settlement.netAmount ??
+        fallbackNet
+    );
+
+  const direction =
+    normalizeDirection(
+      settlement.settlementDirection,
+      netAmount
+    );
+
+  const amountPayable =
+    Number(
+      settlement.amountPayable ??
+        Math.abs(netAmount)
+    );
+
+  return {
+    ...settlement,
+
+    totalSales:
+      Number(
+        settlement.totalSales ||
+          0
+      ),
+
+    totalCashback,
+
+    totalRewardCredits,
+
+    totalVoucherDiscount,
+
+    totalMarketingBudget,
+
+    merchantDue,
+    rewardHubDue,
+    netAmount,
+
+    settlementDirection:
+      direction,
+
+    directionLabel:
+      settlement.directionLabel ||
+      (
+        direction ===
+          "REWARDHUB_TO_MERCHANT"
+          ? "RewardHub to Merchant"
+          : direction ===
+              "NO_PAYMENT"
+            ? "No Payment Required"
+            : "Merchant to RewardHub"
+      ),
+
+    amountPayable,
+  };
+}
+
+function normalizeDetailData(
+  data:
+    AdminSettlementDetailData
+): AdminSettlementDetailData {
+  const settlement =
+    normalizeSettlement(
+      data.settlement
+    );
+
+  const direction =
+    settlement.settlementDirection;
+
+  return {
+    ...data,
+
+    settlement,
+
+    actions: {
+      canApprove:
+        Boolean(
+          data.actions
+            ?.canApprove
+        ),
+
+      canReject:
+        Boolean(
+          data.actions
+            ?.canReject
+        ),
+
+      canMarkPaid:
+        Boolean(
+          data.actions
+            ?.canMarkPaid
+        ),
+
+      paymentDirection:
+        (
+          data.actions
+            ?.paymentDirection ||
+          direction
+        ) as AdminSettlementDirection,
+
+      requiresMerchantReceipt:
+        data.actions
+          ?.requiresMerchantReceipt ??
+        direction ===
+          "MERCHANT_TO_REWARDHUB",
+
+      requiresAdminPayment:
+        data.actions
+          ?.requiresAdminPayment ??
+        direction ===
+          "REWARDHUB_TO_MERCHANT",
+
+      noPaymentRequired:
+        data.actions
+          ?.noPaymentRequired ??
+        direction ===
+          "NO_PAYMENT",
+
+      locked:
+        Boolean(
+          data.actions?.locked
+        ),
+    },
+  };
+}
+
 function normalizeListData(
-  data: AdminSettlementListData
+  data:
+    AdminSettlementListData
 ): AdminSettlementListData {
   return {
     generatedAt:
       data.generatedAt || "",
+
     timezone:
       data.timezone ||
       "Asia/Kuala_Lumpur",
@@ -377,57 +711,120 @@ function normalizeListData(
     summary: {
       total:
         Number(
-          data.summary?.total || 0
+          data.summary?.total ||
+            0
         ),
+
       pending:
         Number(
-          data.summary?.pending || 0
+          data.summary
+            ?.pending || 0
         ),
+
       submitted:
         Number(
-          data.summary?.submitted || 0
+          data.summary
+            ?.submitted || 0
         ),
+
       approved:
         Number(
-          data.summary?.approved || 0
+          data.summary
+            ?.approved || 0
         ),
+
       paid:
         Number(
-          data.summary?.paid || 0
+          data.summary?.paid ||
+            0
         ),
+
       rejected:
         Number(
-          data.summary?.rejected || 0
+          data.summary
+            ?.rejected || 0
         ),
 
       totalAmount:
         Number(
-          data.summary?.totalAmount || 0
+          data.summary
+            ?.totalAmount || 0
         ),
+
       pendingAmount:
         Number(
-          data.summary?.pendingAmount || 0
+          data.summary
+            ?.pendingAmount ||
+            0
         ),
+
       submittedAmount:
         Number(
-          data.summary?.submittedAmount || 0
+          data.summary
+            ?.submittedAmount ||
+            0
         ),
+
       approvedAmount:
         Number(
-          data.summary?.approvedAmount || 0
+          data.summary
+            ?.approvedAmount ||
+            0
         ),
+
       paidAmount:
         Number(
-          data.summary?.paidAmount || 0
+          data.summary
+            ?.paidAmount || 0
         ),
+
       rejectedAmount:
         Number(
-          data.summary?.rejectedAmount || 0
+          data.summary
+            ?.rejectedAmount ||
+            0
+        ),
+
+      merchantToRewardHubCount:
+        Number(
+          data.summary
+            ?.merchantToRewardHubCount ||
+            0
+        ),
+
+      merchantToRewardHubAmount:
+        Number(
+          data.summary
+            ?.merchantToRewardHubAmount ||
+            0
+        ),
+
+      rewardHubToMerchantCount:
+        Number(
+          data.summary
+            ?.rewardHubToMerchantCount ||
+            0
+        ),
+
+      rewardHubToMerchantAmount:
+        Number(
+          data.summary
+            ?.rewardHubToMerchantAmount ||
+            0
+        ),
+
+      noPaymentCount:
+        Number(
+          data.summary
+            ?.noPaymentCount ||
+            0
         ),
     },
 
     months:
-      Array.isArray(data.months)
+      Array.isArray(
+        data.months
+      )
         ? data.months
         : [],
 
@@ -443,44 +840,63 @@ function normalizeListData(
     pagination: {
       page:
         Number(
-          data.pagination?.page || 1
+          data.pagination?.page ||
+            1
         ),
+
       pageSize:
         Number(
-          data.pagination?.pageSize || 25
+          data.pagination
+            ?.pageSize || 25
         ),
+
       totalItems:
         Number(
-          data.pagination?.totalItems || 0
+          data.pagination
+            ?.totalItems || 0
         ),
+
       totalPages:
         Math.max(
           1,
           Number(
-            data.pagination?.totalPages || 1
+            data.pagination
+              ?.totalPages || 1
           )
         ),
+
       showingFrom:
         Number(
-          data.pagination?.showingFrom || 0
+          data.pagination
+            ?.showingFrom || 0
         ),
+
       showingTo:
         Number(
-          data.pagination?.showingTo || 0
+          data.pagination
+            ?.showingTo || 0
         ),
+
       hasPrevious:
         Boolean(
-          data.pagination?.hasPrevious
+          data.pagination
+            ?.hasPrevious
         ),
+
       hasNext:
         Boolean(
-          data.pagination?.hasNext
+          data.pagination
+            ?.hasNext
         ),
     },
 
     settlements:
-      Array.isArray(data.settlements)
-        ? data.settlements
+      Array.isArray(
+        data.settlements
+      )
+        ? data.settlements.map(
+            normalizeSettlement
+          )
         : [],
   };
 }

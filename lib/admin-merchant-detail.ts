@@ -185,7 +185,16 @@ export type AdminMerchantSettlement = {
   totalCashback: number;
   totalRewardCredits: number;
   totalMarketingBudget: number;
+
+  // Legacy settlement amount kept for compatibility.
   amountPayable: number;
+
+  // Final two-way settlement calculation.
+  merchantDue: number;
+  rewardHubDue: number;
+  netAmount: number;
+  settlementDirection: string;
+  directionLabel: string;
 
   bankName: string;
   bankAccount: string;

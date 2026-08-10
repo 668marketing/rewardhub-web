@@ -22,12 +22,24 @@ import {
   getMerchantUnreadNotificationCount,
 } from "@/lib/api";
 
+type NavLabelKey =
+  | "marketing"
+  | "collect"
+  | "dashboard"
+  | "orders"
+  | "transactions"
+  | "settlement"
+  | "products"
+  | "gallery"
+  | "reviews"
+  | "terminal"
+  | "profile";
+
 type NavItem = {
-  label: string;
+  labelKey: NavLabelKey;
   href: string;
   icon: string;
 };
-
 
 type LanguageCode = "en" | "zh" | "ms";
 
@@ -58,69 +70,134 @@ const languageOptions: LanguageOption[] = [
   },
 ];
 
+const navCopy = {
+  en: {
+    marketing: "Marketing",
+    collect: "Collect",
+    dashboard: "Dashboard",
+    orders: "Orders",
+    transactions: "Transactions",
+    settlement: "Settlement",
+    products: "Products",
+    gallery: "Gallery",
+    reviews: "Reviews",
+    terminal: "Terminal",
+    profile: "Profile",
+    more: "More",
+    moreTools: "More tools",
+    merchantTools: "Merchant tools",
+    openMore: "Open more merchant tools",
+    changeLanguage: "Change language",
+    language: "Language",
+    customerSupport: "Customer Support",
+    openCustomerSupport: "Open customer support",
+    notifications: "Notifications",
+    unreadNotifications: "{{count}} unread notifications",
+  },
+  zh: {
+    marketing: "营销",
+    collect: "收款",
+    dashboard: "主页",
+    orders: "订单",
+    transactions: "交易记录",
+    settlement: "结算",
+    products: "商品",
+    gallery: "图片库",
+    reviews: "评价",
+    terminal: "感应机",
+    profile: "商家资料",
+    more: "更多",
+    moreTools: "更多功能",
+    merchantTools: "商家功能",
+    openMore: "打开更多商家功能",
+    changeLanguage: "切换语言",
+    language: "语言",
+    customerSupport: "客户服务",
+    openCustomerSupport: "打开客户服务",
+    notifications: "通知",
+    unreadNotifications: "{{count}} 条未读通知",
+  },
+  ms: {
+    marketing: "Pemasaran",
+    collect: "Terima Bayaran",
+    dashboard: "Papan Pemuka",
+    orders: "Pesanan",
+    transactions: "Transaksi",
+    settlement: "Penyelesaian",
+    products: "Produk",
+    gallery: "Galeri",
+    reviews: "Ulasan",
+    terminal: "Terminal",
+    profile: "Profil",
+    more: "Lagi",
+    moreTools: "Lebih banyak fungsi",
+    merchantTools: "Fungsi peniaga",
+    openMore: "Buka lebih banyak fungsi peniaga",
+    changeLanguage: "Tukar bahasa",
+    language: "Bahasa",
+    customerSupport: "Khidmat Pelanggan",
+    openCustomerSupport: "Buka khidmat pelanggan",
+    notifications: "Notifikasi",
+    unreadNotifications: "{{count}} notifikasi belum dibaca",
+  },
+} as const;
+
 const primaryItems: NavItem[] = [
   {
-    label: "Marketing",
+    labelKey: "marketing",
     href: "/merchant/marketing-fund",
     icon: "📢",
   },
   {
-    label: "Collect",
+    labelKey: "collect",
     href: "/merchant/collect",
     icon: "💳",
   },
   {
-    label: "Dashboard",
+    labelKey: "dashboard",
     href: "/merchant/dashboard",
     icon: "🏠",
   },
   {
-    label: "Orders",
+    labelKey: "orders",
     href: "/merchant/orders",
     icon: "🛍️",
   },
   {
-    label: "Transactions",
+    labelKey: "transactions",
     href: "/merchant/transactions",
     icon: "📄",
   },
   {
-    label: "Settlement",
+    labelKey: "settlement",
     href: "/merchant/settlement",
     icon: "💰",
   },
   {
-    label: "Products",
+    labelKey: "products",
     href: "/merchant/products",
     icon: "📦",
   },
-  
-  
 ];
 
 const moreItems: NavItem[] = [
   {
-    label: "Orders",
-    href: "/merchant/orders",
-    icon: "🛍️",
-  },
-  {
-    label: "Products",
-    href: "/merchant/products",
-    icon: "📦",
-  },
-  {
-    label: "Gallery",
+    labelKey: "gallery",
     href: "/merchant/gallery",
     icon: "🖼️",
   },
   {
-    label: "Reviews",
+    labelKey: "reviews",
     href: "/merchant/reviews",
     icon: "⭐",
   },
   {
-    label: "Profile",
+    labelKey: "terminal",
+    href: "/merchant/terminal",
+    icon: "📟",
+  },
+  {
+    labelKey: "profile",
     href: "/merchant/profile",
     icon: "⚙️",
   },
@@ -128,27 +205,27 @@ const moreItems: NavItem[] = [
 
 const mobilePrimaryItems: NavItem[] = [
   {
-    label: "Marketing",
+    labelKey: "marketing",
     href: "/merchant/marketing-fund",
     icon: "📢",
   },
   {
-    label: "Collect",
+    labelKey: "collect",
     href: "/merchant/collect",
     icon: "💳",
   },
   {
-    label: "Dashboard",
+    labelKey: "dashboard",
     href: "/merchant/dashboard",
     icon: "🏠",
   },
   {
-    label: "Transactions",
+    labelKey: "transactions",
     href: "/merchant/transactions",
     icon: "📄",
   },
   {
-    label: "Settlement",
+    labelKey: "settlement",
     href: "/merchant/settlement",
     icon: "💰",
   },
@@ -306,6 +383,8 @@ export default function MerchantNav() {
     currentLanguage,
     setCurrentLanguage,
   ] = useState<LanguageCode>("en");
+
+  const copy = navCopy[currentLanguage];
 
   const desktopMoreRef =
     useRef<HTMLDivElement>(null);
@@ -587,7 +666,7 @@ export default function MerchantNav() {
                     </span>
 
                     <span>
-                      {item.label}
+                      {copy[item.labelKey]}
                     </span>
                   </Link>
                 );
@@ -609,7 +688,7 @@ export default function MerchantNav() {
                 aria-expanded={
                   desktopMoreOpen
                 }
-                aria-label="Open more merchant tools"
+                aria-label={copy.openMore}
                 className={`inline-flex items-center gap-1.5 rounded-xl border px-2.5 py-2 text-[12px] font-black transition xl:px-3 xl:text-[13px] ${
                   moreActive
                     ? "border-slate-950 bg-slate-950 text-white shadow-sm"
@@ -618,7 +697,7 @@ export default function MerchantNav() {
               >
                 <MoreHorizontal className="h-4 w-4" />
 
-                <span>More</span>
+                <span>{copy.more}</span>
 
                 <span
                   className={`text-[10px] transition ${
@@ -635,7 +714,7 @@ export default function MerchantNav() {
                 <div className="absolute right-0 top-[calc(100%+10px)] w-56 overflow-hidden rounded-2xl border border-slate-200 bg-white p-2 shadow-[0_20px_60px_rgba(15,23,42,0.16)]">
                   <div className="px-3 pb-2 pt-1">
                     <p className="text-[10px] font-black uppercase tracking-[0.18em] text-slate-400">
-                      More tools
+                      {copy.moreTools}
                     </p>
                   </div>
 
@@ -668,7 +747,7 @@ export default function MerchantNav() {
 
                           <span>
                             {
-                              item.label
+                              copy[item.labelKey]
                             }
                           </span>
                         </Link>
@@ -697,8 +776,8 @@ export default function MerchantNav() {
                   languageOpen
                 }
                 aria-haspopup="menu"
-                aria-label="Change language"
-                title="Language"
+                aria-label={copy.changeLanguage}
+                title={copy.language}
                 className={
                   headerIconClass
                 }
@@ -769,8 +848,8 @@ export default function MerchantNav() {
               onClick={
                 openCustomerSupport
               }
-              aria-label="Open customer support"
-              title="Customer Support"
+              aria-label={copy.openCustomerSupport}
+              title={copy.customerSupport}
               className={
                 headerIconClass
               }
@@ -783,8 +862,8 @@ export default function MerchantNav() {
               href="/merchant/notifications"
               aria-label={
                 unreadCount > 0
-                  ? `${unreadCount} unread notifications`
-                  : "Notifications"
+                  ? copy.unreadNotifications.replace("{{count}}", String(unreadCount))
+                  : copy.notifications
               }
               aria-current={
                 notificationActive
@@ -826,8 +905,8 @@ export default function MerchantNav() {
                   languageOpen
                 }
                 aria-haspopup="menu"
-                aria-label="Change language"
-                title="Language"
+                aria-label={copy.changeLanguage}
+                title={copy.language}
                 className={
                   headerIconClass
                 }
@@ -897,8 +976,8 @@ export default function MerchantNav() {
               onClick={
                 openCustomerSupport
               }
-              aria-label="Open customer support"
-              title="Customer Support"
+              aria-label={copy.openCustomerSupport}
+              title={copy.customerSupport}
               className={
                 headerIconClass
               }
@@ -910,8 +989,8 @@ export default function MerchantNav() {
               href="/merchant/notifications"
               aria-label={
                 unreadCount > 0
-                  ? `${unreadCount} unread notifications`
-                  : "Notifications"
+                  ? copy.unreadNotifications.replace("{{count}}", String(unreadCount))
+                  : copy.notifications
               }
               aria-current={
                 notificationActive
@@ -964,7 +1043,7 @@ export default function MerchantNav() {
                   </span>
 
                   <span className="mt-1 block w-full truncate text-[9px] font-black leading-none sm:text-[10px]">
-                    {item.label}
+                    {copy[item.labelKey]}
                   </span>
                 </Link>
               );
@@ -986,7 +1065,7 @@ export default function MerchantNav() {
               aria-expanded={
                 mobileMoreOpen
               }
-              aria-label="Open more merchant tools"
+              aria-label={copy.openMore}
               className={`flex h-full w-full min-w-0 flex-col items-center justify-center rounded-2xl px-1 py-2 text-center transition active:scale-95 ${
                 moreActive ||
                 mobileMoreOpen
@@ -997,7 +1076,7 @@ export default function MerchantNav() {
               <MoreHorizontal className="h-[18px] w-[18px]" />
 
               <span className="mt-1 block w-full truncate text-[9px] font-black leading-none sm:text-[10px]">
-                More
+                {copy.more}
               </span>
             </button>
 
@@ -1005,7 +1084,7 @@ export default function MerchantNav() {
               <div className="absolute bottom-[calc(100%+12px)] right-0 w-60 overflow-hidden rounded-3xl border border-slate-200 bg-white p-2 shadow-[0_20px_60px_rgba(15,23,42,0.22)]">
                 <div className="px-3 pb-2 pt-1 text-left">
                   <p className="text-[10px] font-black uppercase tracking-[0.18em] text-slate-400">
-                    Merchant tools
+                    {copy.merchantTools}
                   </p>
                 </div>
 
@@ -1032,7 +1111,7 @@ export default function MerchantNav() {
                       </span>
 
                       <span>
-                        {item.label}
+                        {copy[item.labelKey]}
                       </span>
                     </Link>
                   );
