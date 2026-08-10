@@ -220,9 +220,9 @@ const mobilePrimaryItems: NavItem[] = [
     icon: "🏠",
   },
   {
-    labelKey: "transactions",
-    href: "/merchant/transactions",
-    icon: "📄",
+    labelKey: "orders",
+    href: "/merchant/orders",
+    icon: "🛍️",
   },
   {
     labelKey: "settlement",
@@ -1089,6 +1089,16 @@ export default function MerchantNav() {
                 </div>
 
                 {[
+                  {
+                    labelKey: "transactions" as NavLabelKey,
+                    href: "/merchant/transactions",
+                    icon: "📄",
+                  },
+                  {
+                    labelKey: "products" as NavLabelKey,
+                    href: "/merchant/products",
+                    icon: "📦",
+                  },
                   ...moreItems,
                 ].map((item) => {
                   const active =
