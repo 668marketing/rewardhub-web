@@ -11,11 +11,6 @@ import {
   ArrowLeft,
   ArrowRight,
   CheckCircle2,
-  Home,
-  Megaphone,
-  MoreHorizontal,
-  ReceiptText,
-  ScanLine,
   Clock3,
   Loader2,
   PackageSearch,
@@ -81,12 +76,6 @@ const copy = {
     viewDetails: "View details",
     items: "Items",
     payment: "Payment",
-    navMarketing: "Marketing",
-    navCollect: "Collect",
-    navHome: "Home",
-    navTransactions: "Transactions",
-    navSettlement: "Settlement",
-    navMore: "More",
     loadError: "Unable to load online orders.",
   },
   zh: {
@@ -113,12 +102,6 @@ const copy = {
     viewDetails: "查看详情",
     items: "商品数量",
     payment: "付款状态",
-    navMarketing: "营销",
-    navCollect: "收款",
-    navHome: "主页",
-    navTransactions: "交易记录",
-    navSettlement: "结算",
-    navMore: "更多",
     loadError: "无法读取线上订单。",
   },
   ms: {
@@ -145,12 +128,6 @@ const copy = {
     viewDetails: "Lihat butiran",
     items: "Item",
     payment: "Status Bayaran",
-    navMarketing: "Pemasaran",
-    navCollect: "Kutip",
-    navHome: "Utama",
-    navTransactions: "Transaksi",
-    navSettlement: "Penyelesaian",
-    navMore: "Lagi",
     loadError: "Tidak dapat memuatkan pesanan dalam talian.",
   },
 } satisfies Record<LanguageCode, Record<string, string>>;
@@ -933,71 +910,6 @@ export default function MerchantOrdersPage() {
         </div>
       </main>
 
-      {/* Mobile bottom navigation only */}
-      <nav className="fixed inset-x-0 bottom-3 z-50 px-3 sm:hidden">
-        <div className="mx-auto flex max-w-md items-center justify-between rounded-[1.7rem] border border-slate-200 bg-white/95 px-2 py-2 shadow-2xl backdrop-blur">
-          <MobileNavItem
-            href="/merchant/marketing-fund"
-            label={t.navMarketing}
-            icon={<Megaphone className="h-5 w-5" />}
-          />
-
-          <MobileNavItem
-            href="/merchant/collect"
-            label={t.navCollect}
-            icon={<ScanLine className="h-5 w-5" />}
-          />
-
-          <MobileNavItem
-            href="/merchant/dashboard"
-            label={t.navHome}
-            icon={<Home className="h-5 w-5" />}
-          />
-
-          <MobileNavItem
-            href="/merchant/transactions"
-            label={t.navTransactions}
-            icon={<ReceiptText className="h-5 w-5" />}
-          />
-
-          <MobileNavItem
-            href="/merchant/settlement"
-            label={t.navSettlement}
-            icon={<WalletCards className="h-5 w-5" />}
-          />
-
-          <MobileNavItem
-            href="/merchant/profile"
-            label={t.navMore}
-            icon={<MoreHorizontal className="h-5 w-5" />}
-          />
-        </div>
-      </nav>
     </>
-  );
-}
-
-function MobileNavItem({
-  href,
-  label,
-  icon,
-}: {
-  href: string;
-  label: string;
-  icon: React.ReactNode;
-}) {
-  return (
-    <Link
-      href={href}
-      className="flex min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-2xl px-1 py-2 text-[9px] font-black text-slate-500 no-underline transition active:bg-slate-100 active:text-slate-950"
-    >
-      <span className="flex h-6 items-center justify-center">
-        {icon}
-      </span>
-
-      <span className="max-w-full truncate">
-        {label}
-      </span>
-    </Link>
   );
 }
