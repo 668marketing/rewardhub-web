@@ -34,6 +34,12 @@ const translations = {
     today: "Today",
     yesterday: "Yesterday",
     thisMonth: "This Month",
+    customRange: "Custom Range",
+    dateFrom: "From",
+    dateTo: "To",
+    previous: "Previous",
+    next: "Next",
+    pageOf: "Page {{page}} of {{total}}",
     allMethods: "All Methods",
     cash: "Cash",
     duitNow: "DuitNow",
@@ -92,6 +98,12 @@ const translations = {
     today: "今天",
     yesterday: "昨天",
     thisMonth: "本月",
+    customRange: "自定义日期",
+    dateFrom: "开始日期",
+    dateTo: "结束日期",
+    previous: "上一页",
+    next: "下一页",
+    pageOf: "第 {{page}} / {{total}} 页",
     allMethods: "全部付款方式",
     cash: "现金",
     duitNow: "DuitNow",
@@ -150,6 +162,12 @@ const translations = {
     today: "Hari Ini",
     yesterday: "Semalam",
     thisMonth: "Bulan Ini",
+    customRange: "Julat Tarikh",
+    dateFrom: "Dari",
+    dateTo: "Hingga",
+    previous: "Sebelum",
+    next: "Seterusnya",
+    pageOf: "Halaman {{page}} daripada {{total}}",
     allMethods: "Semua Kaedah",
     cash: "Tunai",
     duitNow: "DuitNow",
@@ -254,13 +272,39 @@ export default function MerchantTransactionsPage() {
   const [search, setSearch] = useState("");
   const [method, setMethod] = useState("All");
   const [dateFilter, setDateFilter] = useState("All");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
+
+  const [page, setPage] = useState(1);
+  const [pageSize] = useState(50);
+  const [pagination, setPagination] = useState({
+    page: 1,
+    pageSize: 50,
+    totalItems: 0,
+    totalPages: 1,
+    showingFrom: 0,
+    showingTo: 0,
+    hasPrevious: false,
+    hasNext: false,
+  });
+  const [serverSummary, setServerSummary] = useState({
+    totalOriginal: 0,
+    totalPayAmount: 0,
+    totalCashback: 0,
+    totalRewardCredits: 0,
+    totalPoints: 0,
+  });
 
   const [selectedTx, setSelectedTx] = useState<any>(null);
   const [previewReceipt, setPreviewReceipt] = useState("");
 
   useEffect(() => {
-    loadTransactions();
-  }, []);
+    const timer = window.setTimeout(() => {
+      loadTransactions();
+    }, 250);
+
+    return () => window.clearTimeout(timer);
+  }, [page, search, method, dateFilter, dateFrom, dateTo]);
 
   async function loadTransactions() {
     let merchant: any = {};
@@ -279,12 +323,55 @@ export default function MerchantTransactionsPage() {
     }
 
     try {
+      setLoading(true);
+
+      const range = resolveDateRange(
+        dateFilter,
+        dateFrom,
+        dateTo
+      );
+
       const res = await getMerchantTransactionHistory({
         merchantId,
-        limit: 200,
+        page,
+        pageSize,
+        search: search.trim(),
+        paymentMethod: method,
+        dateFrom: range.dateFrom,
+        dateTo: range.dateTo,
       });
 
-      setTransactions(res?.data?.data?.transactions || []);
+      const payload =
+        res?.data?.data ||
+        res?.data ||
+        {};
+
+      setTransactions(
+        payload.transactions || []
+      );
+
+      setPagination(
+        payload.pagination || {
+          page: 1,
+          pageSize,
+          totalItems: 0,
+          totalPages: 1,
+          showingFrom: 0,
+          showingTo: 0,
+          hasPrevious: false,
+          hasNext: false,
+        }
+      );
+
+      setServerSummary(
+        payload.summary || {
+          totalOriginal: 0,
+          totalPayAmount: 0,
+          totalCashback: 0,
+          totalRewardCredits: 0,
+          totalPoints: 0,
+        }
+      );
     } catch (err) {
       console.error(err);
       alert(t.loadFailed);
@@ -331,47 +418,18 @@ export default function MerchantTransactionsPage() {
     reader.readAsDataURL(file);
   }
 
-  const filtered = useMemo(() => {
-    return transactions.filter((tx) => {
-      const keyword = search.toLowerCase();
+  const filtered = transactions;
 
-      const matchSearch =
-        !keyword ||
-        String(tx.transactionId || "").toLowerCase().includes(keyword) ||
-        String(tx.memberId || "").toLowerCase().includes(keyword);
-
-      const matchMethod =
-        method === "All" || String(tx.paymentMethod || "") === method;
-
-      const txDate = new Date(tx.createdAt);
-      const today = new Date();
-
-      const yesterday = new Date();
-      yesterday.setDate(today.getDate() - 1);
-
-      const isToday = txDate.toDateString() === today.toDateString();
-      const isYesterday =
-        txDate.toDateString() === yesterday.toDateString();
-
-      const isThisMonth =
-        txDate.getFullYear() === today.getFullYear() &&
-        txDate.getMonth() === today.getMonth();
-
-      const matchDate =
-        dateFilter === "All" ||
-        (dateFilter === "Today" && isToday) ||
-        (dateFilter === "Yesterday" && isYesterday) ||
-        (dateFilter === "This Month" && isThisMonth);
-
-      return matchSearch && matchMethod && matchDate;
-    });
-  }, [transactions, search, method, dateFilter]);
-
-  const totalOriginal = sum(filtered, "amount");
-  const totalPayAmount = sum(filtered, "payAmount");
-  const totalCashback = sum(filtered, "cashback");
-  const totalRewardCredits = sum(filtered, "rewardCreditsUsed");
-  const totalPoints = sum(filtered, "pointsEarned");
+  const totalOriginal =
+    Number(serverSummary.totalOriginal || 0);
+  const totalPayAmount =
+    Number(serverSummary.totalPayAmount || 0);
+  const totalCashback =
+    Number(serverSummary.totalCashback || 0);
+  const totalRewardCredits =
+    Number(serverSummary.totalRewardCredits || 0);
+  const totalPoints =
+    Number(serverSummary.totalPoints || 0);
 
   return (
     <>
@@ -415,32 +473,33 @@ export default function MerchantTransactionsPage() {
                   {t.allTransactions}
                 </h2>
                 <p className="mt-1 text-[11px] font-bold text-slate-500 sm:text-sm">
-                  {fillText(t.showingTransactions, { count: filtered.length })}
+                  {fillText(t.showingTransactions, { count: pagination.totalItems })}
                 </p>
               </div>
 
               <div className="grid grid-cols-2 gap-3 lg:flex lg:flex-row">
                 <input
                   value={search}
-                  onChange={(e) => setSearch(e.target.value)}
+                  onChange={(e) => { setSearch(e.target.value); setPage(1); }}
                   placeholder={t.searchPlaceholder}
                   className="col-span-2 rounded-xl border border-slate-200 px-4 py-3 text-xs font-bold outline-none focus:border-slate-950 sm:rounded-2xl sm:px-5 sm:py-4 sm:text-sm lg:col-span-1"
                 />
 
                 <select
                   value={dateFilter}
-                  onChange={(e) => setDateFilter(e.target.value)}
+                  onChange={(e) => { setDateFilter(e.target.value); setPage(1); }}
                   className="min-w-0 rounded-xl border border-slate-200 px-3 py-3 text-xs font-bold outline-none focus:border-slate-950 sm:rounded-2xl sm:px-5 sm:py-4 sm:text-sm"
                 >
                   <option value="All">{t.allDates}</option>
                   <option value="Today">{t.today}</option>
                   <option value="Yesterday">{t.yesterday}</option>
                   <option value="This Month">{t.thisMonth}</option>
+                  <option value="Custom">{t.customRange}</option>
                 </select>
 
                 <select
                   value={method}
-                  onChange={(e) => setMethod(e.target.value)}
+                  onChange={(e) => { setMethod(e.target.value); setPage(1); }}
                   className="min-w-0 rounded-xl border border-slate-200 px-3 py-3 text-xs font-bold outline-none focus:border-slate-950 sm:rounded-2xl sm:px-5 sm:py-4 sm:text-sm"
                 >
                   <option value="All">{t.allMethods}</option>
@@ -452,6 +511,40 @@ export default function MerchantTransactionsPage() {
                 </select>
               </div>
             </div>
+
+            {dateFilter === "Custom" && (
+              <div className="mt-4 grid grid-cols-2 gap-3 rounded-2xl bg-slate-50 p-3 sm:max-w-xl sm:p-4">
+                <label className="min-w-0">
+                  <span className="mb-1.5 block text-[10px] font-black uppercase tracking-wide text-slate-400 sm:text-xs">
+                    {t.dateFrom}
+                  </span>
+                  <input
+                    type="date"
+                    value={dateFrom}
+                    onChange={(e) => {
+                      setDateFrom(e.target.value);
+                      setPage(1);
+                    }}
+                    className="w-full min-w-0 rounded-xl border border-slate-200 bg-white px-3 py-3 text-xs font-bold text-slate-950 outline-none focus:border-slate-950 sm:text-sm"
+                  />
+                </label>
+
+                <label className="min-w-0">
+                  <span className="mb-1.5 block text-[10px] font-black uppercase tracking-wide text-slate-400 sm:text-xs">
+                    {t.dateTo}
+                  </span>
+                  <input
+                    type="date"
+                    value={dateTo}
+                    onChange={(e) => {
+                      setDateTo(e.target.value);
+                      setPage(1);
+                    }}
+                    className="w-full min-w-0 rounded-xl border border-slate-200 bg-white px-3 py-3 text-xs font-bold text-slate-950 outline-none focus:border-slate-950 sm:text-sm"
+                  />
+                </label>
+              </div>
+            )}
 
             {/* Mobile cards */}
             <div className="mt-5 space-y-3 lg:hidden">
@@ -560,6 +653,48 @@ export default function MerchantTransactionsPage() {
 
               {loading && <EmptyState text={t.loadingTransactions} />}
             </div>
+
+            {!loading && pagination.totalItems > 0 && (
+              <div className="mt-5 flex items-center justify-between gap-3 border-t border-slate-100 pt-4">
+                <button
+                  type="button"
+                  disabled={!pagination.hasPrevious}
+                  onClick={() =>
+                    setPage((current) =>
+                      Math.max(1, current - 1)
+                    )
+                  }
+                  className="rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-xs font-black text-slate-700 disabled:cursor-not-allowed disabled:opacity-40 sm:px-5 sm:py-3 sm:text-sm"
+                >
+                  {t.previous}
+                </button>
+
+                <div className="text-center">
+                  <p className="text-[11px] font-black text-slate-700 sm:text-sm">
+                    {fillText(t.pageOf, {
+                      page: pagination.page,
+                      total: pagination.totalPages,
+                    })}
+                  </p>
+                  <p className="mt-1 text-[9px] font-bold text-slate-400 sm:text-xs">
+                    {pagination.showingFrom}-{pagination.showingTo} / {pagination.totalItems}
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  disabled={!pagination.hasNext}
+                  onClick={() =>
+                    setPage((current) =>
+                      current + 1
+                    )
+                  }
+                  className="rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-xs font-black text-slate-700 disabled:cursor-not-allowed disabled:opacity-40 sm:px-5 sm:py-3 sm:text-sm"
+                >
+                  {t.next}
+                </button>
+              </div>
+            )}
           </div>
         </section>
 
@@ -885,6 +1020,60 @@ function EmptyState({ text }: { text: string }) {
       {text}
     </div>
   );
+}
+
+
+function toLocalDateInput(date: Date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function resolveDateRange(
+  filter: string,
+  customFrom: string,
+  customTo: string
+) {
+  const today = new Date();
+
+  if (filter === "Today") {
+    const value = toLocalDateInput(today);
+    return { dateFrom: value, dateTo: value };
+  }
+
+  if (filter === "Yesterday") {
+    const yesterday = new Date(today);
+    yesterday.setDate(today.getDate() - 1);
+    const value = toLocalDateInput(yesterday);
+    return { dateFrom: value, dateTo: value };
+  }
+
+  if (filter === "This Month") {
+    const firstDay =
+      new Date(
+        today.getFullYear(),
+        today.getMonth(),
+        1
+      );
+
+    return {
+      dateFrom: toLocalDateInput(firstDay),
+      dateTo: toLocalDateInput(today),
+    };
+  }
+
+  if (filter === "Custom") {
+    return {
+      dateFrom: customFrom,
+      dateTo: customTo,
+    };
+  }
+
+  return {
+    dateFrom: "",
+    dateTo: "",
+  };
 }
 
 function sum(list: any[], key: string) {

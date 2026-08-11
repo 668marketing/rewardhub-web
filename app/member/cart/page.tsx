@@ -41,10 +41,13 @@ const copyMap = {
     remove: "Remove",
     subtotal: "Subtotal",
     totalItems: "Total Items",
-    orderTotal: "Order Total",
+    orderTotal: "Product Subtotal",
+    shipping: "Shipping",
+    shippingAtCheckout: "Calculated at checkout",
+    estimatedTotal: "Final total includes shipping after delivery method is selected.",
     checkout: "Continue to Checkout",
     checkoutNotice:
-      "Checkout and merchant payment will be connected in the next step.",
+      "Shipping, member benefits and final payment amount will be confirmed at checkout.",
     oneMerchant:
       "Each order can contain products from one merchant only.",
     points: "Estimated Points",
@@ -61,10 +64,13 @@ const copyMap = {
     remove: "删除",
     subtotal: "小计",
     totalItems: "商品数量",
-    orderTotal: "订单总额",
+    orderTotal: "商品小计",
+    shipping: "运费",
+    shippingAtCheckout: "结账时计算",
+    estimatedTotal: "选择送货方式后，系统会把运费加入最终订单总额。",
     checkout: "继续结账",
     checkoutNotice:
-      "结账和直接付款给商家的流程会在下一步连接。",
+      "运费、会员福利和最终付款金额会在结账页面确认。",
     oneMerchant:
       "每一张订单只可以包含同一位商家的商品。",
     points: "预计获得积分",
@@ -82,10 +88,13 @@ const copyMap = {
     remove: "Buang",
     subtotal: "Jumlah Kecil",
     totalItems: "Jumlah Item",
-    orderTotal: "Jumlah Pesanan",
+    orderTotal: "Subjumlah Produk",
+    shipping: "Caj Penghantaran",
+    shippingAtCheckout: "Dikira semasa checkout",
+    estimatedTotal: "Jumlah akhir termasuk caj penghantaran selepas kaedah penghantaran dipilih.",
     checkout: "Teruskan ke Pembayaran",
     checkoutNotice:
-      "Pembayaran terus kepada peniaga akan disambungkan dalam langkah seterusnya.",
+      "Caj penghantaran, manfaat ahli dan jumlah bayaran akhir akan disahkan semasa checkout.",
     oneMerchant:
       "Setiap pesanan hanya boleh mengandungi produk daripada seorang peniaga.",
     points: "Anggaran Mata",
@@ -416,6 +425,11 @@ export default function MemberCartPage() {
                     )} pts`}
                   />
 
+                  <SummaryRow
+                    label={copy.shipping}
+                    value={copy.shippingAtCheckout}
+                  />
+
                   <div className="border-t border-white/10 pt-4">
                     <SummaryRow
                       label={copy.orderTotal}
@@ -424,6 +438,10 @@ export default function MemberCartPage() {
                       )}`}
                       large
                     />
+
+                    <p className="mt-2 text-[10px] font-bold leading-4 text-slate-400">
+                      {copy.estimatedTotal}
+                    </p>
                   </div>
                 </div>
 

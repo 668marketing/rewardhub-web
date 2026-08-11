@@ -71,6 +71,11 @@ type ProductDetail = {
   pointsEarned?: number | string;
   points?: number | string;
 
+  shippingType?: string;
+  shippingFee?: number | string;
+  requiresShipping?: boolean;
+  isFreeShipping?: boolean;
+
   stock?: number | string;
   status?: string;
   isActive?: boolean;
@@ -499,6 +504,25 @@ export default function ProductDetailPage() {
         price
     );
 
+  const shippingType =
+    String(
+      product.shippingType ||
+        (
+          product.requiresShipping === false
+            ? "NONE"
+            : "FREE"
+        )
+    )
+      .trim()
+      .toUpperCase();
+
+  const shippingFee =
+    shippingType === "FIXED"
+      ? Number(
+          product.shippingFee || 0
+        )
+      : 0;
+
   const productStatus =
     getProductStatus(
       product,
@@ -818,6 +842,43 @@ export default function ProductDetailPage() {
                       value={t("memberProductDetail.rewardHubPay")}
                     />
                   </div>
+                </div>
+
+                {/* Shipping */}
+                <div className="mt-5 rounded-[22px] border border-slate-200 bg-slate-50 p-4 sm:p-5">
+                  <div className="flex items-center justify-between gap-4">
+                    <div>
+                      <p className="text-[10px] font-black uppercase tracking-[0.14em] text-slate-400">
+                        Shipping
+                      </p>
+
+                      <p className="mt-1 text-sm font-black text-slate-950">
+                        {shippingType === "NONE"
+                          ? "No shipping required"
+                          : shippingType === "FIXED"
+                            ? `Fixed Shipping RM${money(shippingFee)}`
+                            : "Free Shipping"}
+                      </p>
+                    </div>
+
+                    <span
+                      className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-black ${
+                        shippingType === "FIXED"
+                          ? "bg-blue-50 text-blue-700 ring-1 ring-inset ring-blue-200"
+                          : "bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-200"
+                      }`}
+                    >
+                      {shippingType === "FIXED"
+                        ? `RM${money(shippingFee)}`
+                        : "RM0.00"}
+                    </span>
+                  </div>
+
+                  {shippingType === "FIXED" ? (
+                    <p className="mt-2 text-xs font-semibold leading-5 text-slate-500">
+                      Shipping is charged once per order for this merchant. Self pickup is RM0.00.
+                    </p>
+                  ) : null}
                 </div>
 
                 {/* Quantity and cart actions */}

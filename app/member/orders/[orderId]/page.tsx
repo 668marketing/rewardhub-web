@@ -45,6 +45,9 @@ type OrderDetail = {
   merchantId: string;
   transactionId: string;
   orderAmount: number;
+  subtotal: number;
+  shippingFee: number;
+  totalAmount: number;
   cashback: number;
   rewardCreditsUsed: number;
   payAmount: number;
@@ -88,6 +91,8 @@ type OrderItem = {
   quantity: number;
   unitPrice: number;
   subtotal: number;
+  shippingType: string;
+  shippingFee: number;
 };
 
 const LANGUAGE_STORAGE_KEY = "rewardhub-language";
@@ -98,6 +103,9 @@ const copy = {
     title: "Order Detail",
     refresh: "Refresh",
     orderAmount: "Order Amount",
+    subtotal: "Product Subtotal",
+    shippingFee: "Shipping Fee",
+    totalAmount: "Order Total",
     cashback: "Cashback",
     rewardCredits: "Reward Credits",
     payMerchant: "Pay Merchant",
@@ -157,6 +165,9 @@ const copy = {
     title: "订单详情",
     refresh: "刷新",
     orderAmount: "订单金额",
+    subtotal: "商品小计",
+    shippingFee: "运费",
+    totalAmount: "订单总额",
     cashback: "Cashback",
     rewardCredits: "Reward Credits",
     payMerchant: "支付商家",
@@ -216,6 +227,9 @@ const copy = {
     title: "Butiran Pesanan",
     refresh: "Muat semula",
     orderAmount: "Jumlah Pesanan",
+    subtotal: "Subjumlah Produk",
+    shippingFee: "Caj Penghantaran",
+    totalAmount: "Jumlah Keseluruhan",
     cashback: "Cashback",
     rewardCredits: "Reward Credits",
     payMerchant: "Bayar Peniaga",
@@ -362,6 +376,35 @@ function normalizeOrder(value: unknown): OrderDetail {
     merchantId: text(row, "merchantId", "MERCHANT_ID"),
     transactionId: text(row, "transactionId", "TRANSACTION_ID"),
     orderAmount: number(row, "orderAmount", "ORDER_AMOUNT"),
+    subtotal: number(
+      row,
+      "subtotal",
+      "orderAmount",
+      "ORDER_AMOUNT"
+    ),
+    shippingFee: number(
+      row,
+      "shippingFee",
+      "SHIPPING_FEE"
+    ),
+    totalAmount:
+      number(
+        row,
+        "totalAmount",
+        "TOTAL_AMOUNT"
+      ) ||
+      (
+        number(
+          row,
+          "orderAmount",
+          "ORDER_AMOUNT"
+        ) +
+        number(
+          row,
+          "shippingFee",
+          "SHIPPING_FEE"
+        )
+      ),
     cashback: number(row, "cashback", "CASHBACK"),
     rewardCreditsUsed: number(
       row,
@@ -466,6 +509,16 @@ function normalizeItem(value: unknown): OrderItem {
     quantity: number(row, "quantity", "QUANTITY"),
     unitPrice: number(row, "unitPrice", "UNIT_PRICE"),
     subtotal: number(row, "subtotal", "SUBTOTAL"),
+    shippingType: text(
+      row,
+      "shippingType",
+      "SHIPPING_TYPE"
+    ),
+    shippingFee: number(
+      row,
+      "shippingFee",
+      "SHIPPING_FEE"
+    ),
   };
 }
 
@@ -931,11 +984,25 @@ export default function MemberOrderDetailPage() {
               </div>
             </div>
 
-            <div className="mt-7 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            <div className="mt-7 grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-6">
               <DarkInfo
-                label={t.orderAmount}
+                label={t.subtotal}
                 value={`RM${money(
-                  order.orderAmount
+                  order.subtotal
+                )}`}
+              />
+
+              <DarkInfo
+                label={t.shippingFee}
+                value={`RM${money(
+                  order.shippingFee
+                )}`}
+              />
+
+              <DarkInfo
+                label={t.totalAmount}
+                value={`RM${money(
+                  order.totalAmount
                 )}`}
               />
 

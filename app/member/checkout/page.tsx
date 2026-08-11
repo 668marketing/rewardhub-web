@@ -49,6 +49,8 @@ type CheckoutPreviewItem = {
   unitPrice: number;
   quantity: number;
   subtotal: number;
+  shippingType?: string;
+  shippingFee?: number;
   pointsPerUnit?: number;
   totalPoints?: number;
 };
@@ -85,6 +87,9 @@ type CheckoutPreview = {
   items: CheckoutPreviewItem[];
   itemCount: number;
   orderAmount: number;
+  subtotal: number;
+  shippingFee: number;
+  totalAmount: number;
   cashback: number;
   rewardCreditsUsed: number;
   payAmount: number;
@@ -112,7 +117,10 @@ const textMap = {
     orderItems: "Order Items",
     quantity: "Qty",
     orderSummary: "Order Summary",
-    subtotal: "Order Amount",
+    subtotal: "Product Subtotal",
+    shippingFee: "Shipping Fee",
+    freeShipping: "Free Shipping",
+    totalAmount: "Order Total",
     cashback: "Member Cashback",
     rewardCredits: "Reward Credits",
     availableCredits: "Available",
@@ -167,7 +175,10 @@ const textMap = {
     orderItems: "订单商品",
     quantity: "数量",
     orderSummary: "订单结算",
-    subtotal: "商品总额",
+    subtotal: "商品小计",
+    shippingFee: "运费",
+    freeShipping: "包邮",
+    totalAmount: "订单总额",
     cashback: "会员现金回扣",
     rewardCredits: "Reward Credits",
     availableCredits: "可用余额",
@@ -222,7 +233,10 @@ const textMap = {
     orderItems: "Item Pesanan",
     quantity: "Kuantiti",
     orderSummary: "Ringkasan Pesanan",
-    subtotal: "Jumlah Produk",
+    subtotal: "Subjumlah Produk",
+    shippingFee: "Caj Penghantaran",
+    freeShipping: "Penghantaran Percuma",
+    totalAmount: "Jumlah Pesanan",
     cashback: "Pulangan Tunai Ahli",
     rewardCredits: "Reward Credits",
     availableCredits: "Baki Tersedia",
@@ -710,12 +724,31 @@ export default function MemberCheckoutPage() {
                             {item.quantity}
                           </p>
 
-                          <p className="mt-2 text-sm font-black">
-                            RM
-                            {money(
-                              item.subtotal
-                            )}
-                          </p>
+                          <div className="mt-2 flex flex-wrap items-center gap-2">
+                            <p className="text-sm font-black">
+                              RM
+                              {money(
+                                item.subtotal
+                              )}
+                            </p>
+
+                            {String(
+                              item.shippingType || ""
+                            ).toUpperCase() === "FIXED" ? (
+                              <span className="rounded-full bg-blue-50 px-2.5 py-1 text-[10px] font-black text-blue-700 ring-1 ring-inset ring-blue-200">
+                                {copy.shippingFee}: RM
+                                {money(
+                                  item.shippingFee
+                                )}
+                              </span>
+                            ) : String(
+                                item.shippingType || ""
+                              ).toUpperCase() === "FREE" ? (
+                              <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-[10px] font-black text-emerald-700 ring-1 ring-inset ring-emerald-200">
+                                {copy.freeShipping}
+                              </span>
+                            ) : null}
+                          </div>
                         </div>
                       </article>
                     )
@@ -951,17 +984,50 @@ export default function MemberCheckoutPage() {
                 <SummaryRow
                   label={copy.subtotal}
                   value={`RM${money(
-                    preview.orderAmount
+                    preview.subtotal ??
+                      preview.orderAmount
                   )}`}
                 />
 
                 <SummaryRow
-                  label={copy.cashback}
-                  value={`- RM${money(
-                    preview.cashback
-                  )}`}
-                  accent
+                  label={copy.shippingFee}
+                  value={
+                    preview.shippingFee > 0
+                      ? `RM${money(
+                          preview.shippingFee
+                        )}`
+                      : copy.freeShipping
+                  }
                 />
+
+                <SummaryRow
+                  label={copy.totalAmount}
+                  value={`RM${money(
+                    preview.totalAmount ??
+                      (
+                        Number(
+                          preview.orderAmount || 0
+                        ) +
+                        Number(
+                          preview.shippingFee || 0
+                        )
+                      )
+                  )}`}
+                />
+
+                <div className="border-t border-white/10 pt-4">
+                  <p className="mb-3 text-[10px] font-black uppercase tracking-[0.12em] text-slate-500">
+                    RewardHub Benefits
+                  </p>
+
+                  <SummaryRow
+                    label={copy.cashback}
+                    value={`- RM${money(
+                      preview.cashback
+                    )}`}
+                    accent
+                  />
+                </div>
 
                 <div className="rounded-2xl bg-white/5 p-4">
                   <label className="text-xs font-black text-slate-300">

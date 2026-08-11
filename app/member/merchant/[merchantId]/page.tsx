@@ -398,15 +398,26 @@ export default function MemberMerchantDetailPage() {
           </div>
 
           <section className="mt-5 rounded-[1.5rem] bg-white p-4 shadow-sm sm:mt-6 sm:rounded-[2rem] sm:p-6">
-            <h2 className="text-xl font-black text-slate-950 sm:text-2xl">
-              {t("memberMerchantDetail.aboutMerchant")}
-            </h2>
+            <div className="flex items-center justify-between gap-4">
+              <div className="min-w-0">
+                <h2 className="text-xl font-black text-slate-950 sm:text-2xl">
+                  {t("memberMerchantDetail.aboutMerchant")}
+                </h2>
 
-            <p className="mt-2 text-[11px] font-bold leading-6 text-slate-500 sm:mt-3 sm:text-sm sm:leading-7">
-              {merchant?.description ||
-                merchant?.DESCRIPTION ||
-                `${name} ${t("memberMerchantDetail.defaultMerchantDescription")}`}
-            </p>
+                <p className="mt-2 text-[11px] font-bold leading-6 text-slate-500 sm:mt-3 sm:text-sm sm:leading-7">
+                  {merchant?.description ||
+                    merchant?.DESCRIPTION ||
+                    `${name} ${t("memberMerchantDetail.defaultMerchantDescription")}`}
+                </p>
+              </div>
+
+              <Link
+                href={`/member/merchant/${merchantId}/reviews`}
+                className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-slate-950 px-3.5 py-2.5 text-[10px] font-black text-white no-underline shadow-sm transition hover:bg-slate-800 sm:rounded-2xl sm:px-5 sm:py-3 sm:text-sm"
+              >
+                ⭐ {t("memberMerchantDetail.memberReviews")}
+              </Link>
+            </div>
           </section>
 
           <div className="mt-5 grid gap-5 sm:mt-6 sm:gap-6 lg:grid-cols-3">
@@ -627,47 +638,6 @@ export default function MemberMerchantDetailPage() {
             </section>
           )}
 
-          <section className="mt-5 rounded-[1.5rem] bg-white p-4 shadow-sm sm:mt-6 sm:rounded-[2rem] sm:p-6">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <h2 className="text-xl font-black text-slate-950 sm:text-2xl">
-                  {t("memberMerchantDetail.memberReviews")}
-                </h2>
-
-                <p className="mt-1 text-[11px] font-bold text-slate-500 sm:mt-2 sm:text-sm">
-                  {t("memberMerchantDetail.verifiedFeedback")}
-                </p>
-              </div>
-
-              <span className="shrink-0 rounded-full bg-slate-50 px-3 py-1.5 text-[10px] font-black text-slate-500 sm:px-4 sm:py-2 sm:text-xs">
-                {reviews.length} {t("memberMerchantDetail.reviews")}
-              </span>
-            </div>
-
-            <div className="mt-4 space-y-3 sm:mt-5 sm:space-y-4">
-              {reviews.length > 0 ? (
-                reviews.map(
-                  (
-                    review: any,
-                    index: number
-                  ) => (
-                    <ReviewCard
-                      key={
-                        review?.reviewId ||
-                        review?.id ||
-                        index
-                      }
-                      review={review}
-                    />
-                  )
-                )
-              ) : (
-                <div className="rounded-2xl bg-slate-50 p-6 text-center text-xs font-bold text-slate-500 sm:rounded-3xl sm:p-8 sm:text-sm">
-                  {t("memberMerchantDetail.noReviewsYet")}
-                </div>
-              )}
-            </div>
-          </section>
         </section>
       </main>
     </MemberLayout>
@@ -757,112 +727,6 @@ function Badge({
     <span className="rounded-full bg-slate-50 px-3 py-1.5 text-[9px] font-black text-slate-700 sm:px-4 sm:py-2 sm:text-xs">
       {text}
     </span>
-  );
-}
-
-function ReviewCard({
-  review,
-}: {
-  review: any;
-}) {
-  const { t } = useLanguage();
-
-  const rating = Math.max(
-    0,
-    Math.min(
-      5,
-      Number(
-        review?.rating ||
-          review?.RATING ||
-          0
-      )
-    )
-  );
-
-  const merchantReply = String(
-    review?.merchantReply ||
-      review?.MERCHANT_REPLY ||
-      ""
-  ).trim();
-
-  const memberName =
-    review?.memberName ||
-    review?.MEMBER_NAME ||
-    t("memberMerchantDetail.member");
-
-  const createdAt =
-    review?.createdAt ||
-    review?.CREATED_AT ||
-    "";
-
-  const updatedAt =
-    review?.updatedAt ||
-    review?.UPDATED_AT ||
-    "";
-
-    const isPinned =
-  review?.isPinned === true ||
-  review?.IS_PINNED === true ||
-  String(review?.isPinned).toUpperCase() === "TRUE" ||
-  String(review?.IS_PINNED).toUpperCase() === "TRUE";
-
-  return (
-    <article className="rounded-[1.5rem] border border-slate-100 bg-slate-50 p-4 shadow-sm sm:rounded-[2rem] sm:p-5">
-      <div className="flex items-start justify-between gap-4">
-        <div className="min-w-0">
-          <p className="text-sm font-black text-amber-500 sm:text-base">
-            {"★".repeat(rating)}
-            {"☆".repeat(5 - rating)}
-          </p>
-
-          <p className="mt-2 break-words text-sm font-black text-slate-950 sm:text-base">
-  {memberName}
-</p>
-
-{isPinned && (
-  <div className="mt-2 inline-flex items-center rounded-full border border-amber-300 bg-amber-100 px-3 py-1 text-[10px] font-black text-amber-800 sm:text-xs">
-    📌 {t("memberMerchantDetail.pinnedReview")}
-  </div>
-)}
-
-<p className="mt-2 text-[10px] font-black text-emerald-700 sm:text-xs">
-  {t("memberMerchantDetail.verifiedPurchase")}
-</p>
-        </div>
-
-        <p className="shrink-0 text-right text-[9px] font-bold leading-4 text-slate-400 sm:text-xs">
-          {formatReviewDate(createdAt)}
-        </p>
-      </div>
-
-      <div className="mt-4 rounded-2xl bg-white p-4 sm:p-5">
-        <p className="text-[11px] font-bold leading-5 text-slate-600 sm:text-sm sm:leading-6">
-          {review?.comment ||
-            review?.COMMENT ||
-            t("memberMerchantDetail.noCommentAdded")}
-        </p>
-      </div>
-
-      {merchantReply && (
-        <div className="mt-4 rounded-2xl border border-emerald-100 bg-emerald-50 p-4 sm:p-5">
-          <div className="flex items-center justify-between gap-4">
-            <p className="text-[10px] font-black uppercase tracking-[0.14em] text-emerald-700 sm:text-xs">
-              {t("memberMerchantDetail.merchantReply")}
-            </p>
-
-            {updatedAt && (
-              <p className="text-right text-[9px] font-bold text-emerald-700/60 sm:text-xs">
-                {formatReviewDate(updatedAt)}
-              </p>
-            )}
-          </div>
-
-          <p className="mt-2 text-[11px] font-bold leading-5 text-emerald-950 sm:text-sm sm:leading-6">
-            {merchantReply}
-          </p>
-        </div>
-      )}
-    </article>
   );
 }
 

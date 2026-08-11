@@ -110,6 +110,18 @@ const productTranslations = {
     fullPlaceholder: "Describe the product, service, package or voucher",
     pricingInventory: "Pricing and Inventory",
     pricingDescription: "Configure price, points and stock",
+    deliveryShipping: "Delivery & Shipping",
+    deliveryShippingDescription:
+      "Choose whether this physical product includes free shipping or a fixed shipping fee.",
+    shippingType: "Shipping Type",
+    freeShipping: "Free Shipping",
+    fixedShipping: "Fixed Shipping Fee",
+    shippingFee: "Shipping Fee",
+    shippingFeePlaceholder: "0.00",
+    shippingFeeRequired:
+      "Shipping fee must be greater than zero when Fixed Shipping Fee is selected.",
+    noShippingNeeded:
+      "Shipping settings apply to physical products only. Services, packages and vouchers do not require shipping.",
     originalPrice: "Original Price",
     salePrice: "Sale Price",
     optional: "Optional",
@@ -215,6 +227,18 @@ const productTranslations = {
     fullPlaceholder: "说明这个产品、服务、配套或礼券",
     pricingInventory: "价格与库存",
     pricingDescription: "设置价格、积分和库存",
+    deliveryShipping: "配送与运费",
+    deliveryShippingDescription:
+      "为实体商品设置包邮或固定运费。",
+    shippingType: "运费方式",
+    freeShipping: "包邮",
+    fixedShipping: "固定运费",
+    shippingFee: "运费",
+    shippingFeePlaceholder: "0.00",
+    shippingFeeRequired:
+      "选择固定运费时，运费必须大于 0。",
+    noShippingNeeded:
+      "只有实体商品需要设置运费。服务、配套和礼券不需要配送。",
     originalPrice: "原价",
     salePrice: "促销价",
     optional: "选填",
@@ -320,6 +344,18 @@ const productTranslations = {
     fullPlaceholder: "Terangkan produk, perkhidmatan, pakej atau baucar",
     pricingInventory: "Harga dan Inventori",
     pricingDescription: "Tetapkan harga, mata dan stok",
+    deliveryShipping: "Penghantaran & Caj",
+    deliveryShippingDescription:
+      "Pilih penghantaran percuma atau caj penghantaran tetap untuk produk fizikal.",
+    shippingType: "Jenis Penghantaran",
+    freeShipping: "Penghantaran Percuma",
+    fixedShipping: "Caj Penghantaran Tetap",
+    shippingFee: "Caj Penghantaran",
+    shippingFeePlaceholder: "0.00",
+    shippingFeeRequired:
+      "Caj penghantaran mesti lebih daripada 0 apabila Caj Penghantaran Tetap dipilih.",
+    noShippingNeeded:
+      "Tetapan penghantaran hanya untuk produk fizikal. Perkhidmatan, pakej dan baucar tidak memerlukan penghantaran.",
     originalPrice: "Harga Asal",
     salePrice: "Harga Jualan",
     optional: "Pilihan",
@@ -414,6 +450,11 @@ type ProductStatus =
   | "ACTIVE"
   | "INACTIVE";
 
+type ShippingType =
+  | "FREE"
+  | "FIXED"
+  | "NONE";
+
 type MerchantProduct = {
   productId: string;
   merchantId: string;
@@ -429,6 +470,11 @@ type MerchantProduct = {
   salePrice: number;
   effectivePrice: number;
   hasSale: boolean;
+
+  shippingType: ShippingType;
+  shippingFee: number;
+  requiresShipping: boolean;
+  isFreeShipping: boolean;
 
   imageUrl: string;
   gallery: string[];
@@ -463,6 +509,9 @@ type ProductFormState = {
   price: string;
   salePrice: string;
 
+  shippingType: ShippingType;
+  shippingFee: string;
+
   imageUrl: string;
   gallery: string[];
 
@@ -492,6 +541,9 @@ const EMPTY_FORM: ProductFormState = {
 
   price: "",
   salePrice: "",
+
+  shippingType: "FREE",
+  shippingFee: "",
 
   imageUrl: "",
   gallery: [],
@@ -911,6 +963,19 @@ export default function MerchantProductsPage() {
             )
           : "",
 
+      shippingType:
+        product.productType === "PRODUCT"
+          ? product.shippingType === "FIXED"
+            ? "FIXED"
+            : "FREE"
+          : "NONE",
+
+      shippingFee:
+        product.shippingType === "FIXED" &&
+        product.shippingFee > 0
+          ? String(product.shippingFee)
+          : "",
+
       imageUrl:
         product.imageUrl,
 
@@ -1027,6 +1092,21 @@ export default function MerchantProductsPage() {
         normalizeMoney(
           form.salePrice
         ),
+
+      shippingType:
+        form.productType === "PRODUCT"
+          ? form.shippingType === "FIXED"
+            ? "FIXED"
+            : "FREE"
+          : "NONE",
+
+      shippingFee:
+        form.productType === "PRODUCT" &&
+        form.shippingType === "FIXED"
+          ? normalizeMoney(
+              form.shippingFee
+            )
+          : 0,
 
       imageUrl:
         form.imageUrl.trim(),
@@ -1983,12 +2063,38 @@ function ProductDrawer({
                   value={
                     form.productType
                   }
-                  onChange={(value) =>
+                  onChange={(value) => {
+                    const nextType =
+                      value as ProductType;
+
                     onChange(
                       "productType",
-                      value as ProductType
-                    )
-                  }
+                      nextType
+                    );
+
+                    if (
+                      nextType === "PRODUCT"
+                    ) {
+                      if (
+                        form.shippingType ===
+                        "NONE"
+                      ) {
+                        onChange(
+                          "shippingType",
+                          "FREE"
+                        );
+                      }
+                    } else {
+                      onChange(
+                        "shippingType",
+                        "NONE"
+                      );
+                      onChange(
+                        "shippingFee",
+                        ""
+                      );
+                    }
+                  }}
                 >
                   <option value="PRODUCT">
                     {t.product}
@@ -2146,6 +2252,121 @@ function ProductDrawer({
                   }
                 />
               </div>
+            </FormSection>
+
+            <FormSection
+              title={t.deliveryShipping}
+              description={t.deliveryShippingDescription}
+            >
+              {form.productType === "PRODUCT" ? (
+                <>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <label
+                      className={[
+                        "cursor-pointer rounded-2xl border p-4 transition",
+                        form.shippingType === "FREE"
+                          ? "border-emerald-300 bg-emerald-50"
+                          : "border-slate-200 bg-white hover:border-slate-300",
+                      ].join(" ")}
+                    >
+                      <div className="flex items-start gap-3">
+                        <input
+                          type="radio"
+                          name="shippingType"
+                          value="FREE"
+                          checked={
+                            form.shippingType === "FREE"
+                          }
+                          onChange={() => {
+                            onChange(
+                              "shippingType",
+                              "FREE"
+                            );
+                            onChange(
+                              "shippingFee",
+                              ""
+                            );
+                          }}
+                          className="mt-1 h-4 w-4 accent-slate-950"
+                        />
+
+                        <div>
+                          <p className="text-sm font-black text-slate-950">
+                            {t.freeShipping}
+                          </p>
+
+                          <p className="mt-1 text-xs font-bold leading-5 text-slate-500">
+                            RM0.00
+                          </p>
+                        </div>
+                      </div>
+                    </label>
+
+                    <label
+                      className={[
+                        "cursor-pointer rounded-2xl border p-4 transition",
+                        form.shippingType === "FIXED"
+                          ? "border-blue-300 bg-blue-50"
+                          : "border-slate-200 bg-white hover:border-slate-300",
+                      ].join(" ")}
+                    >
+                      <div className="flex items-start gap-3">
+                        <input
+                          type="radio"
+                          name="shippingType"
+                          value="FIXED"
+                          checked={
+                            form.shippingType === "FIXED"
+                          }
+                          onChange={() =>
+                            onChange(
+                              "shippingType",
+                              "FIXED"
+                            )
+                          }
+                          className="mt-1 h-4 w-4 accent-slate-950"
+                        />
+
+                        <div>
+                          <p className="text-sm font-black text-slate-950">
+                            {t.fixedShipping}
+                          </p>
+
+                          <p className="mt-1 text-xs font-bold leading-5 text-slate-500">
+                            {t.shippingFee}
+                          </p>
+                        </div>
+                      </div>
+                    </label>
+                  </div>
+
+                  {form.shippingType === "FIXED" ? (
+                    <div className="mt-4">
+                      <FormInput
+                        label={t.shippingFee}
+                        type="number"
+                        min="0.01"
+                        step="0.01"
+                        prefix="RM"
+                        value={form.shippingFee}
+                        placeholder={t.shippingFeePlaceholder}
+                        onChange={(value) =>
+                          onChange(
+                            "shippingFee",
+                            value
+                          )
+                        }
+                      />
+                    </div>
+                  ) : null}
+                </>
+              ) : (
+                <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                  <p className="text-sm font-bold leading-6 text-slate-500">
+                    {t.noShippingNeeded}
+                  </p>
+                </div>
+              )}
             </FormSection>
 
             <FormSection
@@ -3388,6 +3609,42 @@ function normalizeProduct(
         )
       ),
 
+    shippingType:
+      normalizeShippingType(
+        source?.shippingType,
+        normalizeProductType(
+          source?.productType
+        )
+      ),
+
+    shippingFee:
+      normalizeMoney(
+        source?.shippingFee
+      ),
+
+    requiresShipping:
+      source?.requiresShipping !==
+        undefined
+        ? normalizeBoolean(
+            source.requiresShipping
+          )
+        : normalizeProductType(
+            source?.productType
+          ) === "PRODUCT",
+
+    isFreeShipping:
+      source?.isFreeShipping !==
+        undefined
+        ? normalizeBoolean(
+            source.isFreeShipping
+          )
+        : normalizeShippingType(
+            source?.shippingType,
+            normalizeProductType(
+              source?.productType
+            )
+          ) === "FREE",
+
     imageUrl:
       String(
         source?.imageUrl || ""
@@ -3541,6 +3798,25 @@ function validateProductForm(
     return t.pointsInvalid;
   }
 
+  if (
+    form.productType === "PRODUCT" &&
+    form.shippingType === "FIXED"
+  ) {
+    const shippingFee =
+      parseNumericInput(
+        form.shippingFee
+      );
+
+    if (
+      !Number.isFinite(
+        shippingFee
+      ) ||
+      shippingFee <= 0
+    ) {
+      return t.shippingFeeRequired;
+    }
+  }
+
   return "";
 }
 
@@ -3669,6 +3945,29 @@ function normalizeProductType(
 
   return "PRODUCT";
 }
+
+function normalizeShippingType(
+  value: unknown,
+  productType: ProductType
+): ShippingType {
+  if (
+    productType !== "PRODUCT"
+  ) {
+    return "NONE";
+  }
+
+  const type =
+    String(value || "")
+      .trim()
+      .toUpperCase();
+
+  if (type === "FIXED") {
+    return "FIXED";
+  }
+
+  return "FREE";
+}
+
 
 function normalizeProductStatus(
   value: unknown
