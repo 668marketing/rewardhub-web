@@ -1061,7 +1061,13 @@ supportModal: {
 
   frequentlyAskedQuestions: "Soalan Lazim",
   faqIntro:
-    "Pilih soalan di bawah untuk melihat jawapan. Topik yang dipaparkan disesuaikan dengan jenis akaun semasa anda.",
+    "Cari atau tapis topik di bawah. Jawapan disesuaikan dengan jenis akaun semasa anda.",
+  searchPlaceholder: "Cari soalan, jawapan atau kategori...",
+  allCategories: "Semua",
+  noFaqFound: "Tiada topik bantuan yang sepadan.",
+  clearSearch: "Kosongkan carian",
+  showingTopics: "Memaparkan {{count}} daripada {{total}} topik",
+  popularCategories: "Cari mengikut kategori",
   supportTopics: "{{count}} topik sokongan",
   stillNeedHelp: "Masih Perlukan Bantuan? Mulakan Sembang Langsung",
 
@@ -1221,6 +1227,157 @@ supportModal: {
         answer:
           "Semak butiran transaksi terlebih dahulu, kemudian hubungi Sokongan RewardHub dengan segera bersama ID transaksi, tarikh dan jumlah. Anda juga disarankan menukar kata laluan untuk melindungi akaun.",
       },
+    
+      item25: {
+        category: "Cashback",
+        question: "Bolehkah Cashback dikeluarkan sebagai tunai?",
+        answer: "Tidak. Cashback RewardHub ialah diskaun segera untuk pembayaran layak dan bukan dompet tunai yang boleh dikeluarkan.",
+      },
+      item26: {
+        category: "Reward Credits",
+        question: "Apakah perbezaan Reward Credits dan Mata?",
+        answer: "Reward Credits ialah kredit ganjaran rujukan untuk mengurangkan bayaran peniaga yang layak. Mata ialah mata kesetiaan untuk menebus ganjaran rasmi RewardHub.",
+      },
+      item27: {
+        category: "Reward Credits",
+        question: "Mengapa saya tidak boleh menggunakan semua Reward Credits dalam satu bayaran?",
+        answer: "Peniaga boleh menetapkan had peratus penebusan. Jumlah digunakan juga tidak boleh melebihi baki Reward Credits atau jumlah bayaran yang layak.",
+      },
+      item28: {
+        category: "Reward Credits",
+        question: "Mengapa sesetengah peniaga tidak menerima Reward Credits?",
+        answer: "Penerimaan Reward Credits ditentukan oleh setiap peniaga. Jika fungsi dimatikan, Reward Credits tidak boleh digunakan di situ.",
+      },
+      item29: {
+        category: "Mata",
+        question: "Mengapa Mata tidak dikemas kini selepas pembelian selesai?",
+        answer: "Muat semula halaman Mata dan pastikan transaksi berstatus Completed. Jika transaksi selesai tetapi mata masih hilang, hubungi Sokongan dengan Transaction ID.",
+      },
+      item30: {
+        category: "Ganjaran & Baucar",
+        question: "Di mana saya boleh melihat baucar selepas menebusnya?",
+        answer: "Buka sejarah penebusan atau butiran penebusan. Kod Baucar dan status akan dipaparkan apabila tersedia.",
+      },
+      item31: {
+        category: "Ganjaran & Baucar",
+        question: "Bagaimana menggunakan baucar di peniaga?",
+        answer: "Apabila peniaga mengenal pasti ahli dalam Collect, baucar layak boleh dipaparkan. Peniaga perlu mengesahkan dengan ahli sebelum menggunakannya.",
+      },
+      item32: {
+        category: "Ganjaran & Baucar",
+        question: "Bolehkah Baucar dan Reward Credits digunakan bersama?",
+        answer: "Jika layak, kedua-duanya boleh digunakan dalam transaksi yang sama. Sistem akan mengira baucar, Reward Credits, Cashback dan bayaran akhir.",
+      },
+      item33: {
+        category: "Ganjaran & Baucar",
+        question: "Mengapa baucar saya tidak tersedia semasa pembayaran?",
+        answer: "Baucar mungkin tamat tempoh, telah digunakan, tidak sah untuk peniaga itu, belum aktif atau tidak layak untuk transaksi semasa.",
+      },
+      item34: {
+        category: "Marketplace",
+        question: "Bagaimana menambah atau membuang peniaga kegemaran?",
+        answer: "Gunakan butang kegemaran di Marketplace atau halaman peniaga. Peniaga disimpan akan muncul dalam halaman Kegemaran.",
+      },
+      item35: {
+        category: "Marketplace",
+        question: "Mengapa peniaga, produk atau imej tidak dimuatkan?",
+        answer: "Muat semula halaman dan semak internet. Item mungkin tidak aktif atau telah dibuang. Jika berterusan, hantar tangkap layar serta Merchant ID atau Product ID kepada Sokongan.",
+      },
+      item36: {
+        category: "Pesanan",
+        question: "Bagaimana membeli produk peniaga secara dalam talian?",
+        answer: "Buka produk yang layak, tambah ke troli atau checkout, pilih Delivery atau Self Pickup, semak jumlah akhir, cipta pesanan dan ikut arahan pembayaran peniaga.",
+      },
+      item37: {
+        category: "Pesanan",
+        question: "Apakah perbezaan Delivery dan Self Pickup?",
+        answer: "Delivery menggunakan tetapan penghantaran peniaga dan mungkin mempunyai caj. Self Pickup tiada caj penghantaran dan perlu diambil di peniaga.",
+      },
+      item38: {
+        category: "Pesanan",
+        question: "Bagaimana caj penghantaran dikira?",
+        answer: "Free Shipping ialah RM0. Fixed Shipping menggunakan caj yang ditetapkan peniaga. Checkout menunjukkan caj sebelum pesanan dibuat.",
+      },
+      item39: {
+        category: "Pesanan",
+        question: "Mengapa checkout menunjukkan caj penghantaran?",
+        answer: "Peniaga telah menetapkan Fixed Shipping untuk produk fizikal tersebut. Pilih Self Pickup jika tersedia dan sesuai.",
+      },
+      item40: {
+        category: "Pesanan",
+        question: "Apakah maksud Pending Payment, Payment Review, Processing dan Completed?",
+        answer: "Pending Payment bermaksud bayaran atau bukti masih diperlukan. Payment Review bermaksud peniaga menyemak bukti. Processing bermaksud pesanan sedang disediakan. Completed bermaksud pesanan selesai.",
+      },
+      item41: {
+        category: "Pesanan",
+        question: "Saya sudah bayar. Mengapa pesanan masih menunggu?",
+        answer: "Pastikan bukti bayaran telah dimuat naik jika diperlukan. Peniaga mungkin masih menyemaknya. Jika lama tiada perubahan, hubungi peniaga atau Sokongan dengan Order ID.",
+      },
+      item42: {
+        category: "Pesanan",
+        question: "Apa perlu dibuat jika muat naik resit gagal?",
+        answer: "Gunakan imej yang disokong, semak saiz fail dan internet, kemudian cuba semula pada pesanan yang sama. Jangan cipta pesanan pendua.",
+      },
+      item43: {
+        category: "Pesanan",
+        question: "Apa berlaku jika bukti bayaran ditolak?",
+        answer: "Buka butiran pesanan dan semak nota peniaga. Muat naik bukti yang betul jika dibenarkan atau hubungi peniaga atau Sokongan sebelum membayar lagi.",
+      },
+      item44: {
+        category: "Pesanan",
+        question: "Bolehkah pesanan dalam talian dibatalkan?",
+        answer: "Pembatalan bergantung pada status pesanan dan tindakan yang tersedia. Jika pesanan sudah Processing, hubungi peniaga atau Sokongan.",
+      },
+      item45: {
+        category: "Ulasan",
+        question: "Mengapa saya tidak boleh meninggalkan ulasan?",
+        answer: "Transaksi mungkin belum Completed, sudah dinilai atau tidak layak. Semak status transaksi dahulu.",
+      },
+      item46: {
+        category: "Ulasan",
+        question: "Di mana saya boleh membaca semua ulasan peniaga?",
+        answer: "Buka profil peniaga dan tekan Reviews pada kad Tentang Peniaga untuk membuka halaman ulasan khusus.",
+      },
+      item47: {
+        category: "Rujukan",
+        question: "Bagaimana saya memperkenalkan peniaga kepada RewardHub?",
+        answer: "Buka Pusat Rujukan dan kongsi Merchant Referral Link. Peniaga perlu mendaftar melalui pautan itu supaya ID Ahli anda direkodkan.",
+      },
+      item48: {
+        category: "Rujukan",
+        question: "Apakah ganjaran rujukan peniaga kekal 1%?",
+        answer: "Ahli layak yang berjaya memperkenalkan peniaga boleh menerima ganjaran kekal 1% daripada transaksi layak peniaga yang dirujuk.",
+      },
+      item49: {
+        category: "Rujukan",
+        question: "Mengapa ahli atau peniaga rujukan saya tidak muncul?",
+        answer: "Pendaftaran mungkin tidak menggunakan pautan anda atau Referral ID tidak direkodkan. Hubungi Sokongan dengan kedua-dua ID jika perlu.",
+      },
+      item50: {
+        category: "Kad Fizikal",
+        question: "Bagaimana memohon kad RewardHub fizikal?",
+        answer: "Buka Kad Fizikal, lengkapkan maklumat penerima dan penghantaran lalu hantar. Kad fizikal pertama percuma mengikut polisi semasa.",
+      },
+      item51: {
+        category: "Kad Fizikal",
+        question: "Apa jika kad fizikal hilang, dicuri atau rosak?",
+        answer: "Gunakan aliran kad gantian. Bayaran semasa ialah RM8 dan kad lama mesti dibekukan sebelum penggantian.",
+      },
+      item52: {
+        category: "Notifikasi",
+        question: "Mengapa loceng notifikasi menunjukkan nombor merah?",
+        answer: "Ia ialah jumlah notifikasi belum dibaca. Buka Notifikasi untuk membaca atau tandakan sebagai dibaca.",
+      },
+      item53: {
+        category: "Aplikasi / PWA",
+        question: "Aplikasi RewardHub mana yang patut dipasang oleh ahli?",
+        answer: "Pasang Member Portal, bukan laman awam RewardHub dan bukan Merchant Portal.",
+      },
+      item54: {
+        category: "Sokongan",
+        question: "Maklumat apa perlu dihantar kepada Sokongan apabila melaporkan masalah?",
+        answer: "Berikan ID Ahli serta Transaction ID, Order ID, Redemption ID atau Merchant ID yang berkaitan, bersama penerangan ringkas dan tangkap layar. Jangan beri kata laluan.",
+      },
     },
 
     merchant: {
@@ -1374,6 +1531,237 @@ supportModal: {
         answer:
           "Berikan ID Peniaga anda serta ID transaksi, ID penyelesaian, tangkapan skrin, tarikh, jumlah atau mesej ralat yang berkaitan supaya pasukan sokongan boleh menyiasat dengan lebih cepat.",
       },
+    
+      item26: {
+        category: "Akaun Peniaga",
+        question: "Mengapa akaun peniaga saya masih Pending?",
+        answer: "Pendaftaran peniaga baharu mungkin kekal Pending sehingga RewardHub menyemak maklumat perniagaan yang dihantar. Akses penuh memerlukan kelulusan.",
+      },
+      item27: {
+        category: "Akaun Peniaga",
+        question: "Mengapa saya tidak boleh menggunakan fungsi peniaga selepas mendaftar?",
+        answer: "Semak status peniaga. Pending, Inactive, Suspended atau Rejected mungkin mengehadkan akses biasa.",
+      },
+      item28: {
+        category: "Profil Peniaga",
+        question: "Bagaimana menukar waktu operasi dan hari rehat?",
+        answer: "Buka profil atau tetapan perniagaan, ubah Open Time, Close Time dan Rest Day kemudian simpan.",
+      },
+      item29: {
+        category: "Profil Peniaga",
+        question: "Bagaimana mengemas kini butiran bank Settlement?",
+        answer: "Buka Profil Peniaga, ubah Bank Name, Account Name dan Account Number kemudian simpan.",
+      },
+      item30: {
+        category: "Profil Peniaga",
+        question: "Bagaimana memuat naik atau mengganti QR bank?",
+        answer: "Buka Profil Peniaga, pilih imej QR dan gunakan Muat Naik atau Ganti. Pastikan mesej berjaya dan QR dipaparkan dengan betul.",
+      },
+      item31: {
+        category: "Profil Peniaga",
+        question: "Mengapa Settlement lama masih menunjukkan bank atau QR lama?",
+        answer: "Settlement mungkin menyimpan snapshot semasa ia dicipta. Mengubah profil semasa tidak semestinya mengubah rekod sejarah.",
+      },
+      item32: {
+        category: "Marketing Budget",
+        question: "Apakah Marketing Budget minimum?",
+        answer: "Marketing Budget minimum semasa ialah 5%. Peniaga boleh memilih peratus lebih tinggi.",
+      },
+      item33: {
+        category: "Marketing Budget",
+        question: "Adakah menukar Marketing Budget mengubah transaksi lama?",
+        answer: "Tidak sepatutnya. Transaksi dan Settlement selesai perlu menggunakan snapshot Marketing Budget yang disimpan pada transaksi.",
+      },
+      item34: {
+        category: "Marketing Budget",
+        question: "Apakah peningkatan Marketing Budget sementara?",
+        answer: "Ia ialah bajet promosi lebih tinggi untuk tempoh tertentu. Transaksi layak menggunakan bajet yang aktif ketika transaksi direkodkan.",
+      },
+      item35: {
+        category: "Collect",
+        question: "Mengapa pengimbas tidak dapat membaca QR ahli?",
+        answer: "Benarkan kamera, gunakan kamera belakang, tambah pencahayaan dan minta ahli meningkatkan kecerahan skrin. Cuba semula atau guna kaedah pengenalan lain.",
+      },
+      item36: {
+        category: "Collect",
+        question: "Mengapa ahli tidak ditemui selepas imbasan?",
+        answer: "QR atau kad mungkin tidak sah atau akaun ahli tidak aktif. Semak Member ID dan hubungi Sokongan jika akaun sah masih tidak ditemui.",
+      },
+      item37: {
+        category: "Collect",
+        question: "Bagaimana Baucar digunakan semasa Collect?",
+        answer: "Selepas ahli dikenal pasti, baucar layak boleh dipaparkan. Sahkan dengan ahli sebelum digunakan; nilai baucar masuk dalam pengiraan transaksi dan Settlement.",
+      },
+      item38: {
+        category: "Collect",
+        question: "Bolehkah Baucar dan Reward Credits digunakan bersama?",
+        answer: "Jika layak, kedua-duanya boleh digunakan dalam transaksi yang sama dan sistem mengira semula jumlah akhir.",
+      },
+      item39: {
+        category: "Collect",
+        question: "Apa perlu dibuat jika saya tersalah masukkan jumlah bayaran?",
+        answer: "Jika transaksi belum direkodkan, betulkan dahulu. Jika sudah direkodkan, jangan cipta transaksi kedua; hubungi Sokongan dengan Transaction ID.",
+      },
+      item40: {
+        category: "Transaksi",
+        question: "Di mana saya boleh melihat semua transaksi peniaga?",
+        answer: "Buka Merchant Transactions. Rekod sejarah disimpan dan boleh ditapis mengikut tarikh serta kriteria tersedia.",
+      },
+      item41: {
+        category: "Transaksi",
+        question: "Bagaimana mencari transaksi lama?",
+        answer: "Gunakan penapis tarikh dan carian dalam Merchant Transactions. Simpan Transaction ID untuk semakan.",
+      },
+      item42: {
+        category: "Produk",
+        question: "Mengapa produk saya tidak kelihatan kepada ahli?",
+        answer: "Semak Product Status, Merchant Status, maklumat wajib dan stok. Produk Draft atau Inactive tidak sepatutnya dipaparkan sebagai aktif.",
+      },
+      item43: {
+        category: "Produk",
+        question: "Apa berlaku apabila stok menjadi 0?",
+        answer: "Produk tanpa stok tidak sepatutnya boleh dibeli. Kemas kini stok apabila inventori tersedia.",
+      },
+      item44: {
+        category: "Penghantaran",
+        question: "Bagaimana menetapkan Free Shipping?",
+        answer: "Edit produk fizikal dan pilih Free Shipping. Caj Delivery akan menjadi RM0.",
+      },
+      item45: {
+        category: "Penghantaran",
+        question: "Bagaimana menetapkan Fixed Shipping?",
+        answer: "Edit produk fizikal, pilih Fixed Shipping, masukkan caj dan simpan. Checkout akan menunjukkan caj tersebut untuk Delivery.",
+      },
+      item46: {
+        category: "Penghantaran",
+        question: "Adakah Self Pickup dikenakan caj penghantaran?",
+        answer: "Tidak. Self Pickup tidak menambah caj Delivery produk.",
+      },
+      item47: {
+        category: "Penghantaran",
+        question: "Bagaimana caj penghantaran dikira untuk beberapa produk?",
+        answer: "Checkout menggunakan logik penghantaran pesanan yang dilaksanakan dan menunjukkan caj akhir sebelum pesanan dibuat. Pesanan kemudian menyimpan snapshot caj.",
+      },
+      item48: {
+        category: "Pesanan",
+        question: "Apakah maksud Pending Payment?",
+        answer: "Ahli telah mencipta pesanan tetapi bayaran atau bukti belum masuk ke peringkat semakan.",
+      },
+      item49: {
+        category: "Pesanan",
+        question: "Apakah maksud Payment Review?",
+        answer: "Ahli telah menghantar bukti bayaran dan peniaga perlu menyemaknya sebelum Processing.",
+      },
+      item50: {
+        category: "Pesanan",
+        question: "Apa perlu disemak sebelum Approve bukti pembayaran?",
+        answer: "Bandingkan jumlah pesanan, maklumat bayaran dan bukti dimuat naik. Approve hanya jika sepadan; Reject jika tidak sah.",
+      },
+      item51: {
+        category: "Pesanan",
+        question: "Apakah maksud Processing?",
+        answer: "Bayaran telah diterima dan peniaga sedang menyediakan pesanan untuk Delivery atau Self Pickup.",
+      },
+      item52: {
+        category: "Pesanan",
+        question: "Bagaimana mengurus pesanan Delivery?",
+        answer: "Semak penerima dan alamat, sediakan item, urus penghantaran dan lengkapkan pesanan selepas penghantaran selesai.",
+      },
+      item53: {
+        category: "Pesanan",
+        question: "Bagaimana mengurus pesanan Self Pickup?",
+        answer: "Sediakan item dan serahkan kepada ahli semasa pengambilan. Self Pickup tiada caj penghantaran. Lengkapkan selepas diambil.",
+      },
+      item54: {
+        category: "Pesanan",
+        question: "Apa perlu dibuat jika ahli memuat naik resit yang salah?",
+        answer: "Reject bukti tidak sah dan minta ahli memuat naik bukti yang betul. Jangan Approve bayaran yang tidak dapat disahkan.",
+      },
+      item55: {
+        category: "Pesanan",
+        question: "Adakah perubahan harga atau penghantaran kemudian mengubah pesanan lama?",
+        answer: "Tidak sepatutnya. Pesanan lama perlu mengekalkan snapshot harga, penghantaran dan pengiraan semasa ia dibuat.",
+      },
+      item56: {
+        category: "Ulasan",
+        question: "Di mana saya boleh melihat semua Merchant Reviews?",
+        answer: "Buka halaman Merchant Reviews khusus. Ulasan dipisahkan daripada Products supaya lebih mudah diurus.",
+      },
+      item57: {
+        category: "Ulasan",
+        question: "Bolehkah balasan peniaga diedit?",
+        answer: "Jika Edit Reply tersedia dalam Merchant Reviews, ubah balasan di situ dan simpan semula.",
+      },
+      item58: {
+        category: "Settlement",
+        question: "Mengapa Settlement mengira Reward Credits dan Baucar?",
+        answer: "Manfaat ini mempengaruhi hasil kewangan transaksi, jadi Settlement menggunakan jumlah sebenar yang direkodkan.",
+      },
+      item59: {
+        category: "Settlement",
+        question: "Mengapa jumlah Settlement berbeza daripada jumlah jualan?",
+        answer: "Settlement dikira daripada Marketing Budget, Cashback, Reward Credits, Baucar dan komponen berkaitan, bukan terus sama dengan jumlah jualan.",
+      },
+      item60: {
+        category: "Settlement",
+        question: "Apakah Merchant Pay RewardHub dan RewardHub Pay Merchant?",
+        answer: "Arah bayaran bergantung pada hasil settlement bersih. Rekod Settlement menunjukkan pihak yang perlu membayar dan jumlahnya.",
+      },
+      item61: {
+        category: "Settlement",
+        question: "Mengapa Settlement menunjukkan RM0 atau Settled?",
+        answer: "Selepas komponen diimbangi, mungkin tiada jumlah perlu dibayar. Settled bermaksud rekod selesai mengikut status.",
+      },
+      item62: {
+        category: "Settlement",
+        question: "Mengapa butiran bank saya muncul dalam Settlement?",
+        answer: "RewardHub menggunakan butiran penerimaan peniaga apabila arah Settlement memerlukan RewardHub membayar peniaga.",
+      },
+      item63: {
+        category: "Settlement",
+        question: "Bagaimana mengetahui Settlement telah dibayar?",
+        answer: "Buka Settlement dan semak Status, masa pembayaran serta butiran atau Receipt apabila tersedia.",
+      },
+      item64: {
+        category: "Settlement",
+        question: "Apa perlu dibuat jika jumlah Settlement kelihatan salah?",
+        answer: "Jangan ubah transaksi sejarah secara manual. Hubungi Sokongan dengan Settlement ID dan tempoh berkaitan.",
+      },
+      item65: {
+        category: "Terminal",
+        question: "Bagaimana memohon Terminal RewardHub?",
+        answer: "Gunakan fungsi permohonan Terminal dalam Merchant Portal, lengkapkan maklumat dan hantar untuk semakan Admin.",
+      },
+      item66: {
+        category: "Terminal",
+        question: "Di mana menyemak status permohonan Terminal?",
+        answer: "Buka bahagian permohonan Terminal dan semak Status semasa atau kemas kini Admin apabila tersedia.",
+      },
+      item67: {
+        category: "Notifikasi",
+        question: "Mengapa saya tidak menerima notifikasi pesanan atau Settlement?",
+        answer: "Semak Notifikasi dalam aplikasi, status akaun dan kebenaran peranti atau pelayar. Jika rekod wujud tetapi notifikasi tiada, beri ID berkaitan kepada Sokongan.",
+      },
+      item68: {
+        category: "Aplikasi / PWA",
+        question: "Aplikasi RewardHub mana perlu dipasang oleh peniaga?",
+        answer: "Pasang Merchant Portal sahaja. Jangan pasang laman awam RewardHub sebagai aplikasi operasi peniaga.",
+      },
+      item69: {
+        category: "Aplikasi / PWA",
+        question: "Bagaimana memasang Merchant Portal?",
+        answer: "Buka Merchant Portal dalam pelayar disokong dan gunakan Add to Home Screen atau pilihan pemasangan. Halaman selepas pendaftaran turut menyediakan panduan.",
+      },
+      item70: {
+        category: "Aplikasi / PWA",
+        question: "Mengapa Merchant App yang dipasang sedikit berbeza daripada Safari atau Chrome?",
+        answer: "PWA berjalan dalam mod standalone dan mungkin mempunyai navigasi atau widget sokongan berbeza, tetapi akaun dan data backend adalah sama.",
+      },
+      item71: {
+        category: "Sokongan",
+        question: "Apa perlu dihantar kepada Sokongan apabila melaporkan masalah peniaga?",
+        answer: "Berikan Merchant ID serta Transaction ID, Order ID, Settlement ID, Product ID atau maklumat Terminal yang berkaitan, dengan penerangan dan tangkap layar. Jangan beri kata laluan.",
+      },
     },
 
     guest: {
@@ -1424,6 +1812,57 @@ supportModal: {
         question: "Bagaimana saya menghubungi Sokongan RewardHub?",
         answer:
           "Buka Pusat Sokongan ini dan pilih Mulakan Sembang Langsung. Anda juga boleh menyemak topik FAQ sebelum memulakan perbualan.",
+      },
+    
+      item09: {
+        category: "Pembayaran",
+        question: "Adakah RewardHub memegang wang pembelian pelanggan?",
+        answer: "Tidak. Dalam model semasa, pembayaran pelanggan dibuat terus kepada peniaga. RewardHub merekod transaksi, manfaat dan Settlement.",
+      },
+      item10: {
+        category: "Cashback",
+        question: "Adakah Cashback RewardHub sebuah dompet tunai?",
+        answer: "Tidak. Cashback ialah diskaun segera untuk pembayaran layak dan bukan baki dompet yang boleh dikeluarkan.",
+      },
+      item11: {
+        category: "Reward Credits",
+        question: "Apakah Reward Credits?",
+        answer: "Reward Credits ialah kredit ganjaran rujukan yang boleh digunakan ahli layak untuk mengurangkan pembayaran peniaga yang disokong.",
+      },
+      item12: {
+        category: "Mata",
+        question: "Bolehkah Mata RewardHub dikeluarkan sebagai tunai?",
+        answer: "Tidak. Mata ialah mata kesetiaan untuk penebusan ganjaran RewardHub dan bukan tunai.",
+      },
+      item13: {
+        category: "Aplikasi / PWA",
+        question: "Patutkah saya memasang laman awam RewardHub sebagai aplikasi?",
+        answer: "Tidak. Selepas mendaftar, pasang Member Portal atau Merchant Portal yang betul.",
+      },
+      item14: {
+        category: "Keselamatan",
+        question: "Perlukah saya memberi kata laluan RewardHub kepada peniaga atau Sokongan?",
+        answer: "Tidak. Jangan kongsi kata laluan. Sokongan mungkin meminta ID akaun atau transaksi tetapi tidak memerlukan kata laluan.",
+      },
+      item15: {
+        category: "Sokongan",
+        question: "Bagaimana menghubungi Sokongan RewardHub?",
+        answer: "Buka Khidmat Pelanggan dan pilih Mulakan Sembang Langsung. Anda juga boleh mencari jawapan dalam FAQ terlebih dahulu.",
+      },
+      item16: {
+        category: "Sokongan",
+        question: "Maklumat apa membantu Sokongan menjawab lebih cepat?",
+        answer: "Berikan nama atau nama perniagaan, ID Ahli atau ID Peniaga jika ada, rujukan pesanan atau transaksi dan penerangan yang jelas.",
+      },
+      item17: {
+        category: "Privasi",
+        question: "Mengapa Sokongan menunjukkan maklumat akaun selepas saya log masuk?",
+        answer: "Pusat Sokongan boleh menyambungkan identiti akaun RewardHub supaya semakan lebih tepat. Pengunjung menerima sokongan umum.",
+      },
+      item18: {
+        category: "Marketplace",
+        question: "Adakah saya perlu log masuk hanya untuk melihat peniaga?",
+        answer: "Public Marketplace menyokong pelayaran asas peniaga dan produk tanpa log masuk Member Portal.",
       },
     },
   },

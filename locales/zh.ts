@@ -1023,7 +1023,13 @@ supportModal: {
 
   frequentlyAskedQuestions: "常见问题",
   faqIntro:
-    "点击下方问题查看答案。系统会根据你当前的账户类型显示相关内容。",
+    "可以搜索或按照分类筛选问题，系统会根据你当前的账户类型显示相关内容。",
+  searchPlaceholder: "搜索问题、答案或分类……",
+  allCategories: "全部",
+  noFaqFound: "找不到符合条件的客服问题。",
+  clearSearch: "清除搜索",
+  showingTopics: "显示 {{total}} 个问题中的 {{count}} 个",
+  popularCategories: "按照分类查找",
   supportTopics: "{{count}} 个客服主题",
   stillNeedHelp: "仍需要帮助？开始在线聊天",
 
@@ -1183,6 +1189,157 @@ supportModal: {
         answer:
           "先查看交易详情，然后立即联系 RewardHub 客服，并提供交易编号、日期及金额。同时建议更改密码以保护账户。",
       },
+    
+      item25: {
+        category: "现金回扣",
+        question: "Cashback 可以提现吗？",
+        answer: "不可以。RewardHub Cashback 是符合条件付款时直接扣减的即时优惠，不是可以提现的现金钱包。",
+      },
+      item26: {
+        category: "Reward Credits",
+        question: "Reward Credits 和积分有什么不同？",
+        answer: "Reward Credits 是推荐奖励，可用于抵扣符合条件的商家付款；积分是会员忠诚积分，用于兑换 RewardHub 官方奖励。",
+      },
+      item27: {
+        category: "Reward Credits",
+        question: "为什么一次付款不能使用全部 Reward Credits？",
+        answer: "商家可以设置最高抵扣百分比，实际使用金额也不能超过会员可用 Reward Credits 或该笔交易允许抵扣的金额。",
+      },
+      item28: {
+        category: "Reward Credits",
+        question: "为什么有些商家不接受 Reward Credits？",
+        answer: "Reward Credits 是否接受由商家自行设置。如果该商家关闭了功能，这一笔付款就不能使用。",
+      },
+      item29: {
+        category: "积分",
+        question: "为什么交易完成后积分没有更新？",
+        answer: "刷新积分页面并确认交易是 Completed。如果交易已完成但积分仍然没有增加，请把 Transaction ID 提供给客服。",
+      },
+      item30: {
+        category: "奖励与 Voucher",
+        question: "兑换 Voucher 后在哪里查看？",
+        answer: "打开奖励兑换记录或兑换详情。有可用 Voucher 时，Voucher Code 和当前状态会显示在里面。",
+      },
+      item31: {
+        category: "奖励与 Voucher",
+        question: "在商家消费时怎样使用 Voucher？",
+        answer: "商家通过 Collect 识别会员后，系统会显示符合条件的 Voucher。商家应先向会员确认，再把 Voucher 应用到交易。",
+      },
+      item32: {
+        category: "奖励与 Voucher",
+        question: "Voucher 和 Reward Credits 可以一起使用吗？",
+        answer: "符合条件时可以同一笔一起使用。系统会一起计算 Voucher 抵扣、Reward Credits、Cashback 和最终应付金额。",
+      },
+      item33: {
+        category: "奖励与 Voucher",
+        question: "为什么付款时看不到我的 Voucher？",
+        answer: "Voucher 可能已过期、已使用、不适用于该商家、还没生效或不符合当前交易条件。",
+      },
+      item34: {
+        category: "商家市场",
+        question: "怎样收藏或取消收藏商家？",
+        answer: "在 Marketplace 或商家页面使用收藏按钮。已收藏商家会显示在「收藏商家」页面。",
+      },
+      item35: {
+        category: "商家市场",
+        question: "为什么商家、商品或图片加载不到？",
+        answer: "刷新页面并检查网络。商家或商品可能已停用或被移除。如果持续出现，请把截图及 Merchant ID 或 Product ID 发给客服。",
+      },
+      item36: {
+        category: "订单",
+        question: "怎样在线购买商家商品？",
+        answer: "打开可购买商品，加入购物车或进入结账，选择 Delivery 或 Self Pickup，确认最终金额后创建订单并按照商家付款资料完成付款。",
+      },
+      item37: {
+        category: "订单",
+        question: "Delivery 和 Self Pickup 有什么不同？",
+        answer: "Delivery 会按照商家的配送设置加入运费；Self Pickup 不会加入运费，需要会员自行到商家领取。",
+      },
+      item38: {
+        category: "订单",
+        question: "运费是怎样计算的？",
+        answer: "Free Shipping 为 RM0；Fixed Shipping 使用商家设置的固定金额。会员创建订单前，Checkout 会显示实际运费。",
+      },
+      item39: {
+        category: "订单",
+        question: "为什么结账会显示运费？",
+        answer: "因为商家为该实体商品设置了固定运费。如果提供 Self Pickup 且适合您，可以选择自行取货。",
+      },
+      item40: {
+        category: "订单",
+        question: "Pending Payment、Payment Review、Processing、Completed 是什么意思？",
+        answer: "Pending Payment 表示还需付款或付款证明；Payment Review 表示商家审核证明；Processing 表示正在准备订单；Completed 表示订单已完成。",
+      },
+      item41: {
+        category: "订单",
+        question: "我已经付款了，为什么订单还没更新？",
+        answer: "先确认需要的付款证明已经上传。商家可能仍在审核。如果长时间没有变化，请把 Order ID 提供给商家或客服。",
+      },
+      item42: {
+        category: "订单",
+        question: "上传付款收据失败怎么办？",
+        answer: "使用系统支持的图片，检查文件大小和网络后，在原本订单里重试。不要因为上传失败而重复创建订单。",
+      },
+      item43: {
+        category: "订单",
+        question: "付款证明被拒绝怎么办？",
+        answer: "打开订单详情查看状态或商家备注。如果允许，请上传正确证明；不确定时先联系商家或客服，不要直接重复付款。",
+      },
+      item44: {
+        category: "订单",
+        question: "在线订单可以取消吗？",
+        answer: "是否可以取消取决于订单阶段和 Order Details 提供的操作。如果已经 Processing，请联系商家或客服。",
+      },
+      item45: {
+        category: "评价",
+        question: "为什么我不能留下评价？",
+        answer: "交易可能还没有 Completed、已经评价过，或该交易暂时不符合评价条件。请先检查交易状态。",
+      },
+      item46: {
+        category: "评价",
+        question: "在哪里看商家的全部评价？",
+        answer: "打开商家详情，在「关于商家」Card 点击 Reviews，就可以进入独立的 Reviews 页面。",
+      },
+      item47: {
+        category: "推荐中心",
+        question: "怎样介绍商家加入 RewardHub？",
+        answer: "打开推荐中心并分享 Merchant Referral Link。商家应通过该链接注册，系统才能记录您的 Member ID。",
+      },
+      item48: {
+        category: "推荐中心",
+        question: "永久 1% 商家推荐奖励是什么？",
+        answer: "符合条件的会员成功介绍商家后，可从该商家符合条件的交易中获得系统设置的永久 1% 推荐奖励。",
+      },
+      item49: {
+        category: "推荐中心",
+        question: "为什么我介绍的会员或商家没有显示？",
+        answer: "可能注册时没有使用您的推荐链接，或 Referral ID 没有记录。需要时请把双方账户 ID 提供给客服。",
+      },
+      item50: {
+        category: "实体会员卡",
+        question: "怎样申请 RewardHub 实体会员卡？",
+        answer: "打开实体会员卡页面，填写收件人和配送资料后提交。根据目前政策，第一张实体会员卡免费。",
+      },
+      item51: {
+        category: "实体会员卡",
+        question: "会员卡遗失、被盗或损坏怎么办？",
+        answer: "使用补发流程。目前补发费用为 RM8，而且旧卡必须先冻结。",
+      },
+      item52: {
+        category: "通知",
+        question: "为什么通知铃铛有红色数字？",
+        answer: "红色数字代表未读通知数量。打开 Notifications 查看，或使用页面提供的已读功能。",
+      },
+      item53: {
+        category: "App / PWA",
+        question: "会员应该安装哪个 RewardHub App？",
+        answer: "会员应该安装 Member Portal，不要安装 RewardHub Public Website，也不要安装 Merchant Portal。",
+      },
+      item54: {
+        category: "客户服务",
+        question: "遇到问题时应该提供什么资料给客服？",
+        answer: "提供 Member ID，以及相关 Transaction ID、Order ID、Redemption ID 或 Merchant ID，并附上问题说明和截图。不要提供密码。",
+      },
     },
 
     merchant: {
@@ -1336,6 +1493,237 @@ supportModal: {
         answer:
           "请提供商家编号，以及相关交易编号、结算编号、截图、日期、金额或错误信息，方便客服团队更快调查。",
       },
+    
+      item26: {
+        category: "商家账户",
+        question: "为什么商家账户一直显示 Pending？",
+        answer: "新商家注册后需要 RewardHub 审核提交的商业资料，所以可能保持 Pending。完整商家功能需要审核通过。",
+      },
+      item27: {
+        category: "商家账户",
+        question: "为什么注册后还是不能使用商家功能？",
+        answer: "先检查 Merchant Status。Pending、Inactive、Suspended 或 Rejected 可能无法正常进入全部功能。",
+      },
+      item28: {
+        category: "商家资料",
+        question: "怎样修改营业时间和休息日？",
+        answer: "打开商家资料或营业设置，修改 Open Time、Close Time 和 Rest Day 后保存。",
+      },
+      item29: {
+        category: "商家资料",
+        question: "怎样更新 Settlement 银行资料？",
+        answer: "打开 Merchant Profile，修改 Bank Name、Account Name 和 Account Number，然后保存。",
+      },
+      item30: {
+        category: "商家资料",
+        question: "怎样上传或更换银行 QR Code？",
+        answer: "打开 Merchant Profile，选择 QR 图片并点击上传或更换，看到成功提示后确认 QR 正常显示。",
+      },
+      item31: {
+        category: "商家资料",
+        question: "为什么旧 Settlement 还是以前的银行或 QR？",
+        answer: "Settlement 可能保存创建当时的资料快照。修改现在的 Merchant Profile 不一定会改写旧记录。",
+      },
+      item32: {
+        category: "Marketing Budget",
+        question: "最低 Marketing Budget 是多少？",
+        answer: "目前最低 Marketing Budget 是 5%，商家可以设置更高比例。",
+      },
+      item33: {
+        category: "Marketing Budget",
+        question: "修改 Marketing Budget 会影响旧交易吗？",
+        answer: "不应该。已完成交易和 Settlement 应使用交易保存的 Marketing Budget 快照。",
+      },
+      item34: {
+        category: "Marketing Budget",
+        question: "临时提高 Marketing Budget 是什么？",
+        answer: "这是指定期间使用的更高促销预算。符合条件的交易会使用交易当时有效的预算。",
+      },
+      item35: {
+        category: "收款 Collect",
+        question: "为什么扫描不到会员 QR？",
+        answer: "确认已允许 Camera、使用后置摄像头、环境光线足够，并让会员提高屏幕亮度。也可以重试或使用其他支持的识别方式。",
+      },
+      item36: {
+        category: "收款 Collect",
+        question: "为什么扫描后找不到会员？",
+        answer: "QR 或会员卡可能无效，或会员账户不是 Active。确认 Member ID，如果有效会员仍找不到，请联系客户服务。",
+      },
+      item37: {
+        category: "收款 Collect",
+        question: "Collect 时 Voucher 怎样使用？",
+        answer: "识别会员后会显示符合条件的 Voucher。使用前应先向会员确认，Voucher 金额会进入交易和 Settlement 计算。",
+      },
+      item38: {
+        category: "收款 Collect",
+        question: "Voucher 和 Reward Credits 可以一起使用吗？",
+        answer: "符合条件时可以同一笔一起使用，系统会重新计算最终付款金额。",
+      },
+      item39: {
+        category: "收款 Collect",
+        question: "输入错付款金额怎么办？",
+        answer: "如果还没记录交易，先改正确再确认。如果已经成功记录，不要再创建第二笔，请把 Transaction ID 提供给客服。",
+      },
+      item40: {
+        category: "交易记录",
+        question: "在哪里查看全部商家交易？",
+        answer: "打开 Merchant Transactions。历史交易会保留，并可按日期和页面提供的其他条件筛选。",
+      },
+      item41: {
+        category: "交易记录",
+        question: "怎样找以前的交易？",
+        answer: "使用 Merchant Transactions 的日期筛选和搜索。调查某一笔时请保留 Transaction ID。",
+      },
+      item42: {
+        category: "商品",
+        question: "为什么商品没有显示给会员？",
+        answer: "检查 Product Status、Merchant Status、必填资料和 Stock。Draft 或 Inactive 商品不应该作为 Active 商品显示。",
+      },
+      item43: {
+        category: "商品",
+        question: "库存变成 0 会怎样？",
+        answer: "库存为 0 的商品不应该继续让会员购买。有新库存后再更新 Stock。",
+      },
+      item44: {
+        category: "运费",
+        question: "怎样设置包邮？",
+        answer: "编辑实体商品并选择 Free Shipping，会员选择 Delivery 时运费为 RM0。",
+      },
+      item45: {
+        category: "运费",
+        question: "怎样设置固定运费？",
+        answer: "编辑实体商品，选择 Fixed Shipping，填写金额后保存。Checkout 会在 Delivery 时显示该运费。",
+      },
+      item46: {
+        category: "运费",
+        question: "Self Pickup 会收运费吗？",
+        answer: "不会。Self Pickup 不会加入商品的 Delivery 运费。",
+      },
+      item47: {
+        category: "运费",
+        question: "一个订单有多个商品时运费怎样处理？",
+        answer: "Checkout 会按照当前已实现的订单运费逻辑显示最终运费，订单创建后会保存运费快照。",
+      },
+      item48: {
+        category: "订单",
+        question: "Pending Payment 是什么意思？",
+        answer: "会员已经创建订单，但付款或付款证明还没有进入审核阶段。",
+      },
+      item49: {
+        category: "订单",
+        question: "Payment Review 是什么意思？",
+        answer: "会员已经提交付款证明，需要商家审核后才能进入 Processing。",
+      },
+      item50: {
+        category: "订单",
+        question: "Approve 付款证明前应该检查什么？",
+        answer: "核对订单金额、付款资料和上传证明。确认一致才 Approve；无效证明应 Reject。",
+      },
+      item51: {
+        category: "订单",
+        question: "Processing 是什么意思？",
+        answer: "付款已经确认，商家正在准备 Delivery 或 Self Pickup 订单。",
+      },
+      item52: {
+        category: "订单",
+        question: "Delivery 订单应该怎样处理？",
+        answer: "查看收件人和地址，准备商品并安排配送，完成交付后再把订单标记完成。",
+      },
+      item53: {
+        category: "订单",
+        question: "Self Pickup 订单应该怎样处理？",
+        answer: "准备商品并安排会员自取。Self Pickup 没有运费，会员取走后再完成订单。",
+      },
+      item54: {
+        category: "订单",
+        question: "会员上传错误收据怎么办？",
+        answer: "Reject 无效证明，并让会员重新上传正确证明。无法确认的付款不要 Approve。",
+      },
+      item55: {
+        category: "订单",
+        question: "以后修改商品价格或运费会影响旧订单吗？",
+        answer: "不应该。旧订单应保留创建订单时的价格、运费和相关快照。",
+      },
+      item56: {
+        category: "评价",
+        question: "在哪里查看全部 Merchant Reviews？",
+        answer: "打开独立的 Merchant Reviews 页面。Reviews 已经和 Products 分开，更容易管理。",
+      },
+      item57: {
+        category: "评价",
+        question: "已经回复后可以修改吗？",
+        answer: "如果 Merchant Reviews 页面提供 Edit Reply，可以在那里修改并重新保存。",
+      },
+      item58: {
+        category: "结算 Settlement",
+        question: "为什么 Settlement 会计算 Reward Credits 和 Voucher？",
+        answer: "这些福利会影响交易财务结果，所以 Settlement 会使用交易里实际记录的使用金额。",
+      },
+      item59: {
+        category: "结算 Settlement",
+        question: "为什么 Settlement 金额和总销售额不同？",
+        answer: "Settlement 会按照 Marketing Budget、Cashback、Reward Credits、Voucher 等组成计算，并不是直接等于销售额。",
+      },
+      item60: {
+        category: "结算 Settlement",
+        question: "Merchant Pay RewardHub 和 RewardHub Pay Merchant 有什么不同？",
+        answer: "方向取决于净结算结果。Settlement Record 会显示哪一方需要付款以及金额。",
+      },
+      item61: {
+        category: "结算 Settlement",
+        question: "为什么 Settlement 显示 RM0 或 Settled？",
+        answer: "相关项目抵扣后可能没有金额需要支付。Settled 表示该 Settlement 已按状态完成。",
+      },
+      item62: {
+        category: "结算 Settlement",
+        question: "为什么 Settlement 会显示我的银行资料？",
+        answer: "当结算方向需要 RewardHub 付款给商家时，会使用记录里的商家收款资料。",
+      },
+      item63: {
+        category: "结算 Settlement",
+        question: "怎样知道 Settlement 已经付款？",
+        answer: "打开 Settlement 查看 Status、付款时间，以及有提供时的付款资料或 Receipt。",
+      },
+      item64: {
+        category: "结算 Settlement",
+        question: "如果觉得 Settlement 算错了怎么办？",
+        answer: "不要手动修改历史交易。请把 Settlement ID 和相关期间提供给客服检查。",
+      },
+      item65: {
+        category: "感应机 Terminal",
+        question: "怎样申请 RewardHub Terminal？",
+        answer: "使用 Merchant Portal 的 Terminal 申请功能，填写资料后提交给 Admin 审核。",
+      },
+      item66: {
+        category: "感应机 Terminal",
+        question: "在哪里查看 Terminal 申请状态？",
+        answer: "打开 Terminal 申请页面，查看当前 Status 和有提供时的 Admin 更新。",
+      },
+      item67: {
+        category: "通知",
+        question: "为什么收不到订单或 Settlement 通知？",
+        answer: "检查 App 内 Notifications、账户状态和设备/浏览器权限。如果记录存在但没有通知，请把相关 ID 给客服。",
+      },
+      item68: {
+        category: "App / PWA",
+        question: "商家应该安装哪个 RewardHub App？",
+        answer: "商家只应该安装 Merchant Portal，不要把 RewardHub Public Website 安装成经营 App。",
+      },
+      item69: {
+        category: "App / PWA",
+        question: "怎样安装 Merchant Portal？",
+        answer: "用支持的浏览器打开 Merchant Portal，再使用 Add to Home Screen 或安装功能。注册成功页面也有安装教学。",
+      },
+      item70: {
+        category: "App / PWA",
+        question: "为什么安装后的 Merchant App 和 Safari / Chrome 有一点不同？",
+        answer: "PWA 使用独立 App 模式，导航或客服 Widget 可能略有不同，但使用同一个商家账户和后端资料。",
+      },
+      item71: {
+        category: "客户服务",
+        question: "商家遇到问题时要提供什么给客服？",
+        answer: "提供 Merchant ID，以及相关 Transaction ID、Order ID、Settlement ID、Product ID 或 Terminal 申请资料，并附上说明和截图。不要提供密码。",
+      },
     },
 
     guest: {
@@ -1386,6 +1774,57 @@ supportModal: {
         question: "我要怎样联系 RewardHub 客服？",
         answer:
           "打开客服中心并选择“开始在线聊天”。开始聊天前也可以先查看常见问题。",
+      },
+    
+      item09: {
+        category: "付款",
+        question: "RewardHub 会持有客户的购买款项吗？",
+        answer: "不会。目前客户付款直接给商家，RewardHub 负责记录交易、会员福利和 Settlement 资料。",
+      },
+      item10: {
+        category: "现金回扣",
+        question: "RewardHub Cashback 是现金钱包吗？",
+        answer: "不是。Cashback 是符合条件付款时的即时折扣，不是可以提现的钱包余额。",
+      },
+      item11: {
+        category: "Reward Credits",
+        question: "Reward Credits 是什么？",
+        answer: "Reward Credits 是推荐奖励，符合条件会员可按照商家限制和平台规则用于抵扣支持的商家付款。",
+      },
+      item12: {
+        category: "积分",
+        question: "RewardHub 积分可以提现吗？",
+        answer: "不可以。积分用于兑换 RewardHub 奖励，不是现金余额。",
+      },
+      item13: {
+        category: "App / PWA",
+        question: "应该把 RewardHub Public Website 安装成 App 吗？",
+        answer: "不应该。注册后应安装对应的 Member Portal 或 Merchant Portal。",
+      },
+      item14: {
+        category: "安全",
+        question: "可以把 RewardHub 密码告诉商家或客服吗？",
+        answer: "不可以。任何人都不应该索取您的密码。客服可能需要账户 ID 或交易编号，但不需要密码。",
+      },
+      item15: {
+        category: "客户服务",
+        question: "怎样联系 RewardHub 客服？",
+        answer: "打开客户服务并选择「开始在线聊天」。也可以先在常见问题里搜索答案。",
+      },
+      item16: {
+        category: "客户服务",
+        question: "提供什么资料可以让客服处理更快？",
+        answer: "提供姓名或商家名称、有的话提供 Member ID / Merchant ID、相关订单或交易编号，并说明问题。",
+      },
+      item17: {
+        category: "隐私",
+        question: "为什么登录后客服页面会显示账户资料？",
+        answer: "客服中心会连接 RewardHub 账户身份，帮助客服更准确调查问题。访客则使用一般客服。",
+      },
+      item18: {
+        category: "商家市场",
+        question: "只是浏览商家也需要登录吗？",
+        answer: "Public Marketplace 支持访客进行基本商家和商品浏览，不需要 Member Portal 登录。",
       },
     },
   },

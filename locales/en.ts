@@ -1026,7 +1026,13 @@ supportModal: {
 
   frequentlyAskedQuestions: "Frequently Asked Questions",
   faqIntro:
-    "Select a question below to view the answer. The topics shown are matched to your current account type.",
+    "Search or filter the topics below. Answers are matched to your current account type.",
+  searchPlaceholder: "Search a question, answer or topic...",
+  allCategories: "All",
+  noFaqFound: "No matching help topic found.",
+  clearSearch: "Clear search",
+  showingTopics: "Showing {{count}} of {{total}} topics",
+  popularCategories: "Browse by category",
   supportTopics: "{{count}} support topics",
   stillNeedHelp: "Still Need Help? Start Live Chat",
 
@@ -1186,6 +1192,157 @@ supportModal: {
         answer:
           "Check the transaction details first, then contact RewardHub Support immediately with the transaction ID, date and amount. You should also secure your account by changing your password.",
       },
+    
+      item25: {
+        category: "Cashback",
+        question: "Can Cashback be withdrawn as cash?",
+        answer: "No. RewardHub Cashback is an instant discount applied to eligible payments and is not a cash wallet.",
+      },
+      item26: {
+        category: "Reward Credits",
+        question: "What is the difference between Reward Credits and Points?",
+        answer: "Reward Credits are referral reward credits used to offset eligible merchant payments. Points are loyalty points used to redeem RewardHub official rewards.",
+      },
+      item27: {
+        category: "Reward Credits",
+        question: "Why can I not use all my Reward Credits in one payment?",
+        answer: "The merchant may set a maximum redemption percentage, and the amount also cannot exceed your available Reward Credits or the eligible payment amount.",
+      },
+      item28: {
+        category: "Reward Credits",
+        question: "Why does a merchant not accept Reward Credits?",
+        answer: "Reward Credits acceptance is controlled by each merchant. If the feature is disabled, Reward Credits cannot be used there.",
+      },
+      item29: {
+        category: "Points",
+        question: "Why did my Points not update after a completed purchase?",
+        answer: "Refresh the Points page and confirm the transaction is Completed. If the transaction is completed but points are still missing, contact Support with the Transaction ID.",
+      },
+      item30: {
+        category: "Rewards & Vouchers",
+        question: "Where can I see a voucher after redeeming it?",
+        answer: "Open your reward redemption history or redemption details. The voucher code and status will be shown there when available.",
+      },
+      item31: {
+        category: "Rewards & Vouchers",
+        question: "How do I use a voucher at a merchant?",
+        answer: "When the merchant identifies you in Collect, eligible available vouchers can be shown. The merchant should confirm with you before applying one.",
+      },
+      item32: {
+        category: "Rewards & Vouchers",
+        question: "Can Voucher and Reward Credits be used together?",
+        answer: "Where eligible, both can be applied in the same transaction. The system calculates the voucher discount, Reward Credits, Cashback and final payment.",
+      },
+      item33: {
+        category: "Rewards & Vouchers",
+        question: "Why is my voucher not available during payment?",
+        answer: "It may be expired, already used, not valid for that merchant, not active yet or otherwise ineligible for the current transaction.",
+      },
+      item34: {
+        category: "Marketplace",
+        question: "How do I favourite or unfavourite a merchant?",
+        answer: "Use the favourite control on Marketplace or the merchant page. Saved merchants appear in My Favourite Stores.",
+      },
+      item35: {
+        category: "Marketplace",
+        question: "Why is a merchant, product or image not loading?",
+        answer: "Refresh and check your connection. The item may be inactive or removed. If it keeps happening, send Support a screenshot and the Merchant ID or Product ID.",
+      },
+      item36: {
+        category: "Orders",
+        question: "How do I buy a merchant product online?",
+        answer: "Open an eligible product, add it to cart or checkout, choose Delivery or Self Pickup, review the final amount, then create the order and follow the merchant payment instructions.",
+      },
+      item37: {
+        category: "Orders",
+        question: "What is the difference between Delivery and Self Pickup?",
+        answer: "Delivery uses the merchant's shipping settings and may add a fee. Self Pickup adds no shipping fee and requires collection from the merchant.",
+      },
+      item38: {
+        category: "Orders",
+        question: "How is shipping calculated?",
+        answer: "Free Shipping adds RM0. Fixed Shipping uses the fee configured by the merchant. Checkout shows the shipping amount before the order is created.",
+      },
+      item39: {
+        category: "Orders",
+        question: "Why does checkout show a shipping fee?",
+        answer: "The merchant configured a fixed shipping fee for that physical product. You can choose Self Pickup if it is available and suitable.",
+      },
+      item40: {
+        category: "Orders",
+        question: "What do Pending Payment, Payment Review, Processing and Completed mean?",
+        answer: "Pending Payment means payment or proof is still needed. Payment Review means the merchant is checking proof. Processing means the order is being prepared. Completed means fulfilment is finished.",
+      },
+      item41: {
+        category: "Orders",
+        question: "I already paid. Why is my order still waiting?",
+        answer: "Make sure payment proof was uploaded when required. The merchant may still need to review it. Contact the merchant or Support with the Order ID if it remains unchanged.",
+      },
+      item42: {
+        category: "Orders",
+        question: "What should I do if receipt upload fails?",
+        answer: "Use a supported image, check the file size and connection, then retry on the same order. Do not create a duplicate order only because the upload failed.",
+      },
+      item43: {
+        category: "Orders",
+        question: "What happens if my payment proof is rejected?",
+        answer: "Open the order details and review the merchant note. Upload a correct proof if allowed, or contact the merchant or Support before paying again.",
+      },
+      item44: {
+        category: "Orders",
+        question: "Can I cancel an online order?",
+        answer: "Cancellation depends on the order stage and the actions available in Order Details. If it is already being processed, contact the merchant or Support.",
+      },
+      item45: {
+        category: "Reviews",
+        question: "Why can I not leave a review?",
+        answer: "The transaction may not be Completed, may already have a review, or may not be eligible. Check the transaction status first.",
+      },
+      item46: {
+        category: "Reviews",
+        question: "Where can I read all reviews for a merchant?",
+        answer: "Open the merchant profile and tap Reviews in the About Merchant card to open the dedicated reviews page.",
+      },
+      item47: {
+        category: "Referrals",
+        question: "How do I introduce a merchant to RewardHub?",
+        answer: "Open Referral Center and share the Merchant Referral Link. The merchant should register through that link so your Member ID can be recorded.",
+      },
+      item48: {
+        category: "Referrals",
+        question: "What is the permanent 1% merchant referral reward?",
+        answer: "An eligible member who successfully introduces a merchant can receive the configured permanent 1% reward from qualifying transactions at that referred merchant.",
+      },
+      item49: {
+        category: "Referrals",
+        question: "Why is my referred member or merchant missing?",
+        answer: "The registration may not have used your referral link or the referral ID was not captured. Contact Support with both account IDs if needed.",
+      },
+      item50: {
+        category: "Physical Card",
+        question: "How do I apply for a physical RewardHub card?",
+        answer: "Open Physical Card, complete the required recipient and delivery details and submit. The first physical card is free under the current policy.",
+      },
+      item51: {
+        category: "Physical Card",
+        question: "What if my physical card is lost, stolen or damaged?",
+        answer: "Use the replacement flow. The current replacement fee is RM8 and the old card must be frozen before replacement.",
+      },
+      item52: {
+        category: "Notifications",
+        question: "Why do I see a red number on the notification bell?",
+        answer: "It is the unread notification count. Open Notifications to read the items or mark them as read.",
+      },
+      item53: {
+        category: "App & PWA",
+        question: "Which RewardHub app should a member install?",
+        answer: "Install the Member Portal, not the RewardHub public website and not the Merchant Portal.",
+      },
+      item54: {
+        category: "Support",
+        question: "What information should I send Support when reporting a problem?",
+        answer: "Send your Member ID and the relevant Transaction ID, Order ID, Redemption ID or Merchant ID, plus a short description and screenshot. Never send your password.",
+      },
     },
 
     merchant: {
@@ -1339,6 +1496,237 @@ supportModal: {
         answer:
           "Provide your Merchant ID and any relevant transaction ID, settlement ID, screenshot, date, amount or error message. This helps the support team investigate more quickly.",
       },
+    
+      item26: {
+        category: "Merchant Account",
+        question: "Why is my merchant account still Pending?",
+        answer: "New merchant registrations may remain Pending until RewardHub reviews the submitted business information. Full merchant access depends on approval.",
+      },
+      item27: {
+        category: "Merchant Account",
+        question: "Why can I not access merchant features after registration?",
+        answer: "Check the merchant status. Pending, Inactive, Suspended or Rejected accounts may not have normal access. Contact Support with the Merchant ID if needed.",
+      },
+      item28: {
+        category: "Merchant Profile",
+        question: "How do I change my opening hours and rest day?",
+        answer: "Open the merchant profile or business settings, update opening time, closing time and rest day, then save.",
+      },
+      item29: {
+        category: "Merchant Profile",
+        question: "How do I update settlement bank details?",
+        answer: "Open Merchant Profile, edit Bank Name, Account Name and Account Number, then save.",
+      },
+      item30: {
+        category: "Merchant Profile",
+        question: "How do I upload or replace my bank QR code?",
+        answer: "Open Merchant Profile, choose the QR image and use Upload or Replace. Confirm the success message and that the QR displays correctly.",
+      },
+      item31: {
+        category: "Merchant Profile",
+        question: "Why does an old settlement still show my previous bank or QR details?",
+        answer: "Settlement records may use a snapshot captured when the settlement was created. Updating the current profile does not necessarily rewrite historical settlements.",
+      },
+      item32: {
+        category: "Marketing Budget",
+        question: "What is the minimum Marketing Budget?",
+        answer: "The current minimum Marketing Budget is 5%. Merchants can choose a higher percentage.",
+      },
+      item33: {
+        category: "Marketing Budget",
+        question: "Will changing my Marketing Budget change old transactions?",
+        answer: "It should not. Completed transactions and settlements should use the transaction's stored Marketing Budget snapshot.",
+      },
+      item34: {
+        category: "Marketing Budget",
+        question: "What is a temporary Marketing Budget boost?",
+        answer: "It is a higher promotional budget used for a defined period. Eligible transactions use the budget that is active when the transaction is recorded.",
+      },
+      item35: {
+        category: "Collect",
+        question: "Why can the scanner not read a member QR?",
+        answer: "Allow camera permission, use the rear camera, improve lighting and ask the member to increase screen brightness. Retry or use another supported identification method.",
+      },
+      item36: {
+        category: "Collect",
+        question: "Why is the member not found after scanning?",
+        answer: "The QR or card may be invalid or the member account may not be active. Verify the Member ID and contact Support if a valid account cannot be found.",
+      },
+      item37: {
+        category: "Collect",
+        question: "How do vouchers work during Collect?",
+        answer: "After the member is identified, eligible vouchers can be shown. Confirm with the member before applying one; the voucher value is included in transaction and settlement calculations.",
+      },
+      item38: {
+        category: "Collect",
+        question: "Can Voucher and Reward Credits be used together?",
+        answer: "Where eligible, both can be applied in the same transaction and the system recalculates the final amount.",
+      },
+      item39: {
+        category: "Collect",
+        question: "What should I do if I entered the wrong payment amount?",
+        answer: "Correct it before confirming if the transaction is not yet recorded. If already recorded, do not create another transaction; contact Support with the Transaction ID.",
+      },
+      item40: {
+        category: "Transactions",
+        question: "Where can I see all merchant transactions?",
+        answer: "Open Merchant Transactions. Historical records are retained and can be filtered by date and other available criteria.",
+      },
+      item41: {
+        category: "Transactions",
+        question: "How do I find an older transaction?",
+        answer: "Use the date filters and search in Merchant Transactions. Keep the Transaction ID for investigation.",
+      },
+      item42: {
+        category: "Products",
+        question: "Why is my product not visible to members?",
+        answer: "Check the product status, merchant status, required information and stock. Draft or inactive products are not expected to appear as active products.",
+      },
+      item43: {
+        category: "Products",
+        question: "What happens when stock reaches zero?",
+        answer: "A product with no available stock should not be purchasable. Update the stock when inventory becomes available.",
+      },
+      item44: {
+        category: "Shipping",
+        question: "How do I set Free Shipping?",
+        answer: "Edit the physical product and choose Free Shipping. Delivery shipping will be RM0.",
+      },
+      item45: {
+        category: "Shipping",
+        question: "How do I set a fixed shipping fee?",
+        answer: "Edit the physical product, choose Fixed Shipping, enter the fee and save. Checkout shows that fee for Delivery.",
+      },
+      item46: {
+        category: "Shipping",
+        question: "Does Self Pickup charge shipping?",
+        answer: "No. Self Pickup does not add the product delivery fee.",
+      },
+      item47: {
+        category: "Shipping",
+        question: "How is shipping handled for an order with multiple products?",
+        answer: "Checkout uses the implemented order shipping logic and shows the final shipping amount before order creation. The order then stores that shipping snapshot.",
+      },
+      item48: {
+        category: "Orders",
+        question: "What does Pending Payment mean?",
+        answer: "The member created the order but the required payment or proof has not yet reached the review stage.",
+      },
+      item49: {
+        category: "Orders",
+        question: "What does Payment Review mean?",
+        answer: "The member submitted payment proof and the merchant needs to verify it before processing the order.",
+      },
+      item50: {
+        category: "Orders",
+        question: "What should I check before approving payment proof?",
+        answer: "Compare the order amount, payment information and uploaded proof. Approve only when they match; reject invalid proof.",
+      },
+      item51: {
+        category: "Orders",
+        question: "What does Processing mean?",
+        answer: "Payment has been accepted and the merchant is preparing the order for delivery or pickup.",
+      },
+      item52: {
+        category: "Orders",
+        question: "How do I handle a Delivery order?",
+        answer: "Review the recipient and address, prepare the items, arrange fulfilment and complete the order after delivery is finished.",
+      },
+      item53: {
+        category: "Orders",
+        question: "How do I handle a Self Pickup order?",
+        answer: "Prepare the items and hand them to the member at pickup. Self Pickup has no shipping fee. Complete the order after collection.",
+      },
+      item54: {
+        category: "Orders",
+        question: "What should I do if a member uploads the wrong receipt?",
+        answer: "Reject invalid proof and ask the member to upload the correct one. Do not approve a payment you cannot verify.",
+      },
+      item55: {
+        category: "Orders",
+        question: "Can an old order change if I later edit the product price or shipping?",
+        answer: "It should not. Old orders should keep the price, shipping and other snapshots captured when the order was created.",
+      },
+      item56: {
+        category: "Reviews",
+        question: "Where can I see all merchant reviews?",
+        answer: "Open the dedicated Merchant Reviews page. Reviews are separated from Products so they remain easy to manage.",
+      },
+      item57: {
+        category: "Reviews",
+        question: "Can I edit a merchant reply?",
+        answer: "If Edit Reply is available on Merchant Reviews, update the reply there and save.",
+      },
+      item58: {
+        category: "Settlement",
+        question: "Why does Settlement include Reward Credits and vouchers?",
+        answer: "These benefits affect the financial result of the transaction, so settlement uses the stored amounts actually applied.",
+      },
+      item59: {
+        category: "Settlement",
+        question: "Why is the settlement amount different from total sales?",
+        answer: "Settlement is calculated from the relevant Marketing Budget and benefit components such as Cashback, Reward Credits and voucher discounts.",
+      },
+      item60: {
+        category: "Settlement",
+        question: "What is Merchant Pay RewardHub vs RewardHub Pay Merchant?",
+        answer: "The direction depends on the net settlement result. The settlement record shows which party must pay and the amount.",
+      },
+      item61: {
+        category: "Settlement",
+        question: "Why does a settlement show RM0 or Settled?",
+        answer: "After the components are offset, there may be no amount payable. Settled means the record has been completed according to its status.",
+      },
+      item62: {
+        category: "Settlement",
+        question: "Why are my bank details shown in Settlement?",
+        answer: "RewardHub uses the stored merchant receiving details when the settlement direction requires RewardHub to pay the merchant.",
+      },
+      item63: {
+        category: "Settlement",
+        question: "How do I know whether a settlement has been paid?",
+        answer: "Open Settlement and check the status, payment time and receipt or payment details when available.",
+      },
+      item64: {
+        category: "Settlement",
+        question: "What should I do if the settlement amount looks wrong?",
+        answer: "Do not manually change historical transaction rows. Contact Support with the Settlement ID and the relevant period.",
+      },
+      item65: {
+        category: "Terminal",
+        question: "How do I apply for a RewardHub terminal?",
+        answer: "Use the Merchant Portal terminal application feature, complete the required information and submit it for Admin review.",
+      },
+      item66: {
+        category: "Terminal",
+        question: "Where can I check the terminal application status?",
+        answer: "Open the Terminal application area and review the current status or Admin update when available.",
+      },
+      item67: {
+        category: "Notifications",
+        question: "Why am I not receiving order or settlement notifications?",
+        answer: "Check in-app Notifications, account status and device or browser permission. If the record exists but no notification appears, send the related ID to Support.",
+      },
+      item68: {
+        category: "App & PWA",
+        question: "Which RewardHub app should a merchant install?",
+        answer: "Install the Merchant Portal only. Do not install the RewardHub public website as the merchant operational app.",
+      },
+      item69: {
+        category: "App & PWA",
+        question: "How do I install the Merchant Portal?",
+        answer: "Open the Merchant Portal in a supported browser and use Add to Home Screen or the install option. The registration success page also provides guidance.",
+      },
+      item70: {
+        category: "App & PWA",
+        question: "Why does the installed Merchant App look different from Safari or Chrome?",
+        answer: "The PWA runs in standalone mode and may use a different navigation or support widget, while the merchant account and backend data stay the same.",
+      },
+      item71: {
+        category: "Support",
+        question: "What should I send Support when reporting a merchant issue?",
+        answer: "Send your Merchant ID plus the relevant Transaction ID, Order ID, Settlement ID, Product ID or terminal application information, with a description and screenshot. Never send your password.",
+      },
     },
 
     guest: {
@@ -1389,6 +1777,57 @@ supportModal: {
         question: "How do I contact RewardHub Support?",
         answer:
           "Open this Support Center and select Start Live Chat. You can also review the FAQ topics before starting a conversation.",
+      },
+    
+      item09: {
+        category: "Payments",
+        question: "Does RewardHub hold the customer's purchase money?",
+        answer: "No. In the current model, customer payments go directly to the merchant. RewardHub records the transaction, benefits and settlement information.",
+      },
+      item10: {
+        category: "Cashback",
+        question: "Is RewardHub Cashback a cash wallet?",
+        answer: "No. Cashback is an instant discount on eligible payments and is not a withdrawable wallet balance.",
+      },
+      item11: {
+        category: "Reward Credits",
+        question: "What are Reward Credits?",
+        answer: "Reward Credits are referral reward credits that eligible members may use to offset supported merchant payments subject to merchant limits and platform rules.",
+      },
+      item12: {
+        category: "Points",
+        question: "Can RewardHub Points be withdrawn as cash?",
+        answer: "No. Points are loyalty points used for RewardHub reward redemption and are not cash.",
+      },
+      item13: {
+        category: "App & PWA",
+        question: "Should I install the RewardHub public website as an app?",
+        answer: "No. After registration, install the correct Member Portal or Merchant Portal. The public website is not the operational app.",
+      },
+      item14: {
+        category: "Security",
+        question: "Should I give my RewardHub password to a merchant or Support?",
+        answer: "No. Never share your password. Support may request account or transaction IDs but does not need your password.",
+      },
+      item15: {
+        category: "Support",
+        question: "How do I contact RewardHub Support?",
+        answer: "Open Customer Support and choose Start Live Chat. You can also search this FAQ first.",
+      },
+      item16: {
+        category: "Support",
+        question: "What information helps Support answer faster?",
+        answer: "Provide your name or business name, Member or Merchant ID if available, the affected order or transaction reference, and a clear description.",
+      },
+      item17: {
+        category: "Privacy",
+        question: "Why does Support show my account information after I log in?",
+        answer: "The Support Center can connect your RewardHub account identity to help the team investigate more accurately. Guests receive general support.",
+      },
+      item18: {
+        category: "Marketplace",
+        question: "Do I need to log in just to browse merchants?",
+        answer: "The public Marketplace supports basic merchant and product discovery without a Member Portal login.",
       },
     },
   },

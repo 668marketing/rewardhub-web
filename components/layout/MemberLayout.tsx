@@ -346,16 +346,19 @@ export default function MemberLayout({
       <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur-xl">
         <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between gap-3 px-3 sm:h-20 sm:px-6 lg:h-24 lg:px-8 xl:px-12">
           <Link
-            href="/member/dashboard"
-            aria-label="RewardHub Member"
-            className="flex min-w-0 shrink items-center no-underline"
-          >
-            <img
-              src="/logo/rewardhub-member.png"
-              alt="RewardHub Member"
-              className="block h-9 w-auto max-w-[145px] object-contain sm:h-12 sm:max-w-[210px] lg:h-16 lg:max-w-[280px]"
-            />
-          </Link>
+  href="/member/dashboard"
+  aria-label="RewardHub Member"
+  className="flex min-w-0 shrink items-center no-underline"
+>
+  <div className="flex items-center overflow-hidden">
+    <img
+      src="/logo/rewardhub-member.png?v=2"
+      alt="RewardHub Member"
+      draggable={false}
+      className="block h-9 w-auto max-w-[145px] object-contain sm:h-12 sm:max-w-[190px] lg:h-14 lg:max-w-[230px]"
+    />
+  </div>
+</Link>
 
           <div className="flex shrink-0 items-center gap-1.5 sm:gap-3">
             <LanguageSwitcher

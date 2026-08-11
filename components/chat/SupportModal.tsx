@@ -12,6 +12,7 @@ import {
   LoaderCircle,
   LockKeyhole,
   MessageCircleMore,
+  Search,
   ShieldCheck,
   Sparkles,
   Store,
@@ -23,6 +24,7 @@ import { useLanguage } from "@/hooks/useLanguage";
 import {
   useCallback,
   useEffect,
+  useMemo,
   useRef,
   useState,
 } from "react";
@@ -1257,299 +1259,47 @@ type FaqTranslationItem = {
  * ============================================================
  */
 
-const MEMBER_FAQ_KEYS: FaqTranslationItem[] = [
-  {
-    categoryKey: "supportModal.faq.member.item01.category",
-    questionKey: "supportModal.faq.member.item01.question",
-    answerKey: "supportModal.faq.member.item01.answer",
-  },
-  {
-    categoryKey: "supportModal.faq.member.item02.category",
-    questionKey: "supportModal.faq.member.item02.question",
-    answerKey: "supportModal.faq.member.item02.answer",
-  },
-  {
-    categoryKey: "supportModal.faq.member.item03.category",
-    questionKey: "supportModal.faq.member.item03.question",
-    answerKey: "supportModal.faq.member.item03.answer",
-  },
-  {
-    categoryKey: "supportModal.faq.member.item04.category",
-    questionKey: "supportModal.faq.member.item04.question",
-    answerKey: "supportModal.faq.member.item04.answer",
-  },
-  {
-    categoryKey: "supportModal.faq.member.item05.category",
-    questionKey: "supportModal.faq.member.item05.question",
-    answerKey: "supportModal.faq.member.item05.answer",
-  },
-  {
-    categoryKey: "supportModal.faq.member.item06.category",
-    questionKey: "supportModal.faq.member.item06.question",
-    answerKey: "supportModal.faq.member.item06.answer",
-  },
-  {
-    categoryKey: "supportModal.faq.member.item07.category",
-    questionKey: "supportModal.faq.member.item07.question",
-    answerKey: "supportModal.faq.member.item07.answer",
-  },
-  {
-    categoryKey: "supportModal.faq.member.item08.category",
-    questionKey: "supportModal.faq.member.item08.question",
-    answerKey: "supportModal.faq.member.item08.answer",
-  },
-  {
-    categoryKey: "supportModal.faq.member.item09.category",
-    questionKey: "supportModal.faq.member.item09.question",
-    answerKey: "supportModal.faq.member.item09.answer",
-  },
-  {
-    categoryKey: "supportModal.faq.member.item10.category",
-    questionKey: "supportModal.faq.member.item10.question",
-    answerKey: "supportModal.faq.member.item10.answer",
-  },
-  {
-    categoryKey: "supportModal.faq.member.item11.category",
-    questionKey: "supportModal.faq.member.item11.question",
-    answerKey: "supportModal.faq.member.item11.answer",
-  },
-  {
-    categoryKey: "supportModal.faq.member.item12.category",
-    questionKey: "supportModal.faq.member.item12.question",
-    answerKey: "supportModal.faq.member.item12.answer",
-  },
-  {
-    categoryKey: "supportModal.faq.member.item13.category",
-    questionKey: "supportModal.faq.member.item13.question",
-    answerKey: "supportModal.faq.member.item13.answer",
-  },
-  {
-    categoryKey: "supportModal.faq.member.item14.category",
-    questionKey: "supportModal.faq.member.item14.question",
-    answerKey: "supportModal.faq.member.item14.answer",
-  },
-  {
-    categoryKey: "supportModal.faq.member.item15.category",
-    questionKey: "supportModal.faq.member.item15.question",
-    answerKey: "supportModal.faq.member.item15.answer",
-  },
-  {
-    categoryKey: "supportModal.faq.member.item16.category",
-    questionKey: "supportModal.faq.member.item16.question",
-    answerKey: "supportModal.faq.member.item16.answer",
-  },
-  {
-    categoryKey: "supportModal.faq.member.item17.category",
-    questionKey: "supportModal.faq.member.item17.question",
-    answerKey: "supportModal.faq.member.item17.answer",
-  },
-  {
-    categoryKey: "supportModal.faq.member.item18.category",
-    questionKey: "supportModal.faq.member.item18.question",
-    answerKey: "supportModal.faq.member.item18.answer",
-  },
-  {
-    categoryKey: "supportModal.faq.member.item19.category",
-    questionKey: "supportModal.faq.member.item19.question",
-    answerKey: "supportModal.faq.member.item19.answer",
-  },
-  {
-    categoryKey: "supportModal.faq.member.item20.category",
-    questionKey: "supportModal.faq.member.item20.question",
-    answerKey: "supportModal.faq.member.item20.answer",
-  },
-  {
-    categoryKey: "supportModal.faq.member.item21.category",
-    questionKey: "supportModal.faq.member.item21.question",
-    answerKey: "supportModal.faq.member.item21.answer",
-  },
-  {
-    categoryKey: "supportModal.faq.member.item22.category",
-    questionKey: "supportModal.faq.member.item22.question",
-    answerKey: "supportModal.faq.member.item22.answer",
-  },
-  {
-    categoryKey: "supportModal.faq.member.item23.category",
-    questionKey: "supportModal.faq.member.item23.question",
-    answerKey: "supportModal.faq.member.item23.answer",
-  },
-  {
-    categoryKey: "supportModal.faq.member.item24.category",
-    questionKey: "supportModal.faq.member.item24.question",
-    answerKey: "supportModal.faq.member.item24.answer",
-  },
-];
+function createFaqTranslationItems(
+  role: "member" | "merchant" | "guest",
+  count: number
+): FaqTranslationItem[] {
+  return Array.from(
+    { length: count },
+    (_, index) => {
+      const item =
+        `item${String(
+          index + 1
+        ).padStart(2, "0")}`;
 
-const MERCHANT_FAQ_KEYS: FaqTranslationItem[] = [
-  {
-    categoryKey: "supportModal.faq.merchant.item01.category",
-    questionKey: "supportModal.faq.merchant.item01.question",
-    answerKey: "supportModal.faq.merchant.item01.answer",
-  },
-  {
-    categoryKey: "supportModal.faq.merchant.item02.category",
-    questionKey: "supportModal.faq.merchant.item02.question",
-    answerKey: "supportModal.faq.merchant.item02.answer",
-  },
-  {
-    categoryKey: "supportModal.faq.merchant.item03.category",
-    questionKey: "supportModal.faq.merchant.item03.question",
-    answerKey: "supportModal.faq.merchant.item03.answer",
-  },
-  {
-    categoryKey: "supportModal.faq.merchant.item04.category",
-    questionKey: "supportModal.faq.merchant.item04.question",
-    answerKey: "supportModal.faq.merchant.item04.answer",
-  },
-  {
-    categoryKey: "supportModal.faq.merchant.item05.category",
-    questionKey: "supportModal.faq.merchant.item05.question",
-    answerKey: "supportModal.faq.merchant.item05.answer",
-  },
-  {
-    categoryKey: "supportModal.faq.merchant.item06.category",
-    questionKey: "supportModal.faq.merchant.item06.question",
-    answerKey: "supportModal.faq.merchant.item06.answer",
-  },
-  {
-    categoryKey: "supportModal.faq.merchant.item07.category",
-    questionKey: "supportModal.faq.merchant.item07.question",
-    answerKey: "supportModal.faq.merchant.item07.answer",
-  },
-  {
-    categoryKey: "supportModal.faq.merchant.item08.category",
-    questionKey: "supportModal.faq.merchant.item08.question",
-    answerKey: "supportModal.faq.merchant.item08.answer",
-  },
-  {
-    categoryKey: "supportModal.faq.merchant.item09.category",
-    questionKey: "supportModal.faq.merchant.item09.question",
-    answerKey: "supportModal.faq.merchant.item09.answer",
-  },
-  {
-    categoryKey: "supportModal.faq.merchant.item10.category",
-    questionKey: "supportModal.faq.merchant.item10.question",
-    answerKey: "supportModal.faq.merchant.item10.answer",
-  },
-  {
-    categoryKey: "supportModal.faq.merchant.item11.category",
-    questionKey: "supportModal.faq.merchant.item11.question",
-    answerKey: "supportModal.faq.merchant.item11.answer",
-  },
-  {
-    categoryKey: "supportModal.faq.merchant.item12.category",
-    questionKey: "supportModal.faq.merchant.item12.question",
-    answerKey: "supportModal.faq.merchant.item12.answer",
-  },
-  {
-    categoryKey: "supportModal.faq.merchant.item13.category",
-    questionKey: "supportModal.faq.merchant.item13.question",
-    answerKey: "supportModal.faq.merchant.item13.answer",
-  },
-  {
-    categoryKey: "supportModal.faq.merchant.item14.category",
-    questionKey: "supportModal.faq.merchant.item14.question",
-    answerKey: "supportModal.faq.merchant.item14.answer",
-  },
-  {
-    categoryKey: "supportModal.faq.merchant.item15.category",
-    questionKey: "supportModal.faq.merchant.item15.question",
-    answerKey: "supportModal.faq.merchant.item15.answer",
-  },
-  {
-    categoryKey: "supportModal.faq.merchant.item16.category",
-    questionKey: "supportModal.faq.merchant.item16.question",
-    answerKey: "supportModal.faq.merchant.item16.answer",
-  },
-  {
-    categoryKey: "supportModal.faq.merchant.item17.category",
-    questionKey: "supportModal.faq.merchant.item17.question",
-    answerKey: "supportModal.faq.merchant.item17.answer",
-  },
-  {
-    categoryKey: "supportModal.faq.merchant.item18.category",
-    questionKey: "supportModal.faq.merchant.item18.question",
-    answerKey: "supportModal.faq.merchant.item18.answer",
-  },
-  {
-    categoryKey: "supportModal.faq.merchant.item19.category",
-    questionKey: "supportModal.faq.merchant.item19.question",
-    answerKey: "supportModal.faq.merchant.item19.answer",
-  },
-  {
-    categoryKey: "supportModal.faq.merchant.item20.category",
-    questionKey: "supportModal.faq.merchant.item20.question",
-    answerKey: "supportModal.faq.merchant.item20.answer",
-  },
-  {
-    categoryKey: "supportModal.faq.merchant.item21.category",
-    questionKey: "supportModal.faq.merchant.item21.question",
-    answerKey: "supportModal.faq.merchant.item21.answer",
-  },
-  {
-    categoryKey: "supportModal.faq.merchant.item22.category",
-    questionKey: "supportModal.faq.merchant.item22.question",
-    answerKey: "supportModal.faq.merchant.item22.answer",
-  },
-  {
-    categoryKey: "supportModal.faq.merchant.item23.category",
-    questionKey: "supportModal.faq.merchant.item23.question",
-    answerKey: "supportModal.faq.merchant.item23.answer",
-  },
-  {
-    categoryKey: "supportModal.faq.merchant.item24.category",
-    questionKey: "supportModal.faq.merchant.item24.question",
-    answerKey: "supportModal.faq.merchant.item24.answer",
-  },
-  {
-    categoryKey: "supportModal.faq.merchant.item25.category",
-    questionKey: "supportModal.faq.merchant.item25.question",
-    answerKey: "supportModal.faq.merchant.item25.answer",
-  },
-];
+      return {
+        categoryKey:
+          `supportModal.faq.${role}.${item}.category`,
+        questionKey:
+          `supportModal.faq.${role}.${item}.question`,
+        answerKey:
+          `supportModal.faq.${role}.${item}.answer`,
+      };
+    }
+  );
+}
 
-const GUEST_FAQ_KEYS: FaqTranslationItem[] = [
-  {
-    categoryKey: "supportModal.faq.guest.item01.category",
-    questionKey: "supportModal.faq.guest.item01.question",
-    answerKey: "supportModal.faq.guest.item01.answer",
-  },
-  {
-    categoryKey: "supportModal.faq.guest.item02.category",
-    questionKey: "supportModal.faq.guest.item02.question",
-    answerKey: "supportModal.faq.guest.item02.answer",
-  },
-  {
-    categoryKey: "supportModal.faq.guest.item03.category",
-    questionKey: "supportModal.faq.guest.item03.question",
-    answerKey: "supportModal.faq.guest.item03.answer",
-  },
-  {
-    categoryKey: "supportModal.faq.guest.item04.category",
-    questionKey: "supportModal.faq.guest.item04.question",
-    answerKey: "supportModal.faq.guest.item04.answer",
-  },
-  {
-    categoryKey: "supportModal.faq.guest.item05.category",
-    questionKey: "supportModal.faq.guest.item05.question",
-    answerKey: "supportModal.faq.guest.item05.answer",
-  },
-  {
-    categoryKey: "supportModal.faq.guest.item06.category",
-    questionKey: "supportModal.faq.guest.item06.question",
-    answerKey: "supportModal.faq.guest.item06.answer",
-  },
-  {
-    categoryKey: "supportModal.faq.guest.item07.category",
-    questionKey: "supportModal.faq.guest.item07.question",
-    answerKey: "supportModal.faq.guest.item07.answer",
-  },
-  {
-    categoryKey: "supportModal.faq.guest.item08.category",
-    questionKey: "supportModal.faq.guest.item08.question",
-    answerKey: "supportModal.faq.guest.item08.answer",
-  },
-];
+const MEMBER_FAQ_KEYS =
+  createFaqTranslationItems(
+    "member",
+    54
+  );
+
+const MERCHANT_FAQ_KEYS =
+  createFaqTranslationItems(
+    "merchant",
+    71
+  );
+
+const GUEST_FAQ_KEYS =
+  createFaqTranslationItems(
+    "guest",
+    18
+  );
 
 function translateFaqItems(
   items: FaqTranslationItem[],
@@ -1746,6 +1496,18 @@ export default function SupportModal() {
     );
 
   const [
+    faqSearch,
+    setFaqSearch,
+  ] =
+    useState("");
+
+  const [
+    faqCategory,
+    setFaqCategory,
+  ] =
+    useState("ALL");
+
+  const [
     copyNotice,
     setCopyNotice,
   ] =
@@ -1797,6 +1559,11 @@ export default function SupportModal() {
   const loadedWidgetKeyRef =
     useRef("");
 
+  const tawkLoadTimeoutRef =
+    useRef<number | null>(
+      null
+    );
+
   const pendingWidgetSelectionRef =
     useRef(
       getTawkWidgetSelection(
@@ -1836,13 +1603,10 @@ export default function SupportModal() {
       );
 
       /*
-       * The installed PWA uses a separate Tawk widget with a required
-       * pre-chat form. Do not call Tawk Secure Login or setAttributes
-       * here, otherwise Tawk may reconnect the visitor and bypass or
-       * interfere with the PWA identification form.
+       * IMPORTANT:
        *
-       * Normal Safari/Chrome browser sessions continue using the
-       * original widget and RewardHub secure identity sync.
+       * PWA / PUBLIC widgets use their own identification flow.
+       * Do not run RewardHub Secure Login against those widgets.
        */
       const widgetMode =
         getTawkWidgetMode(
@@ -1871,6 +1635,10 @@ export default function SupportModal() {
           TAWK_IDENTITY_KEY
         ) || "";
 
+      /*
+       * Guest:
+       * clear a previous authenticated Tawk identity when needed.
+       */
       if (
         currentIdentity.accountType ===
           "GUEST" ||
@@ -1894,6 +1662,22 @@ export default function SupportModal() {
         return;
       }
 
+      /*
+       * The current RewardHub identity is already attached to
+       * this browser session.
+       *
+       * Do NOT call login() again every time the modal opens.
+       * Tawk login() reconnects the visitor session and repeated
+       * calls can leave the embedded chat blank or stuck on
+       * "reconnecting".
+       */
+      if (
+        previousIdentityKey ===
+        currentIdentityKey
+      ) {
+        return;
+      }
+
       const auth =
         await getTawkSecureAuth(
           currentIdentity
@@ -1912,12 +1696,11 @@ export default function SupportModal() {
         return;
       }
 
-      const identityChanged =
-        previousIdentityKey !==
-        currentIdentityKey;
-
+      /*
+       * A different RewardHub account must not reuse the
+       * previous authenticated Tawk session.
+       */
       if (
-        identityChanged &&
         previousIdentityKey &&
         previousIdentityKey !==
           "GUEST"
@@ -1928,71 +1711,24 @@ export default function SupportModal() {
       }
 
       try {
-        if (identityChanged) {
-          await callTawkLogin(
-            tawk,
-            currentIdentity,
-            {
-              userId:
-                auth.userId,
-              hash:
-                auth.hash,
-            }
-          );
-        }
-
-        const secureIdentity = {
-          userId:
-            auth.userId,
-          hash:
-            auth.hash,
-        };
-
-        await callTawkSetAttributes(
+        /*
+         * IMPORTANT:
+         *
+         * Keep the RewardHub identity data inside login().
+         * Do not immediately call setAttributes() afterwards.
+         * Tawk refreshes the visitor session during secure login,
+         * and sending attributes at the same time can force
+         * repeated reconnects in the embedded widget.
+         */
+        await callTawkLogin(
           tawk,
           currentIdentity,
-          secureIdentity
-        );
-
-        /*
-         * Tawk login refreshes and reconnects the visitor session.
-         * Re-send attributes after short delays so the new authenticated
-         * session receives them even when login propagation is asynchronous.
-         */
-        window.setTimeout(
-          () => {
-            void callTawkSetAttributes(
-              tawk,
-              getCurrentIdentity(),
-              secureIdentity
-            ).catch(
-              (error) => {
-                console.error(
-                  "[RewardHub Tawk] Delayed attribute sync failed (1s):",
-                  error
-                );
-              }
-            );
-          },
-          1000
-        );
-
-        window.setTimeout(
-          () => {
-            void callTawkSetAttributes(
-              tawk,
-              getCurrentIdentity(),
-              secureIdentity
-            ).catch(
-              (error) => {
-                console.error(
-                  "[RewardHub Tawk] Delayed attribute sync failed (3s):",
-                  error
-                );
-              }
-            );
-          },
-          3000
+          {
+            userId:
+              auth.userId,
+            hash:
+              auth.hash,
+          }
         );
 
         window.sessionStorage.setItem(
@@ -2001,7 +1737,7 @@ export default function SupportModal() {
         );
 
         console.log(
-          "[RewardHub Tawk] Identity and attributes connected:",
+          "[RewardHub Tawk] Secure identity connected:",
           {
             accountType:
               currentIdentity
@@ -2028,7 +1764,7 @@ export default function SupportModal() {
         );
       } catch (error) {
         console.error(
-          "[RewardHub Tawk] Identity sync failed:",
+          "[RewardHub Tawk] Secure login failed:",
           error
         );
       }
@@ -2098,6 +1834,18 @@ export default function SupportModal() {
 
   const resetTawkWidget =
     useCallback(() => {
+      if (
+        tawkLoadTimeoutRef.current !==
+        null
+      ) {
+        window.clearTimeout(
+          tawkLoadTimeoutRef.current
+        );
+
+        tawkLoadTimeoutRef.current =
+          null;
+      }
+
       try {
         window.Tawk_API
           ?.shutdown?.();
@@ -2157,6 +1905,8 @@ export default function SupportModal() {
       setLoadError("");
       setCopyNotice("");
       setOpenFaqIndex(null);
+      setFaqSearch("");
+      setFaqCategory("ALL");
       setActiveView("HOME");
       setIsOpen(true);
     }, []);
@@ -2164,6 +1914,8 @@ export default function SupportModal() {
   const closeSupport =
     useCallback(() => {
       setIsOpen(false);
+      setActiveView("HOME");
+      setOpenFaqIndex(null);
     }, []);
 
   const openLiveChat =
@@ -2262,6 +2014,15 @@ export default function SupportModal() {
       ) {
         window.clearTimeout(
           copyNoticeTimerRef.current
+        );
+      }
+
+      if (
+        tawkLoadTimeoutRef.current !==
+        null
+      ) {
+        window.clearTimeout(
+          tawkLoadTimeoutRef.current
         );
       }
     };
@@ -2413,6 +2174,18 @@ export default function SupportModal() {
 
     window.Tawk_API.onLoad =
       () => {
+        if (
+          tawkLoadTimeoutRef.current !==
+          null
+        ) {
+          window.clearTimeout(
+            tawkLoadTimeoutRef.current
+          );
+
+          tawkLoadTimeoutRef.current =
+            null;
+        }
+
         widgetLoadedRef.current =
           true;
 
@@ -2473,14 +2246,133 @@ export default function SupportModal() {
     script.crossOrigin =
       "anonymous";
 
+    script.onload =
+      () => {
+        /*
+         * The Tawk embed script itself has loaded.
+         * Some browsers / cached Tawk sessions do not always fire
+         * Tawk_API.onLoad immediately. Keep waiting briefly for the
+         * widget iframe, but do not leave the RewardHub loader forever.
+         */
+        window.setTimeout(
+          () => {
+            const container =
+              document.getElementById(
+                TAWK_CONTAINER_ID
+              );
+
+            const hasRenderedWidget =
+              Boolean(
+                container &&
+                (
+                  container.querySelector(
+                    "iframe"
+                  ) ||
+                  container.childElementCount >
+                    0
+                )
+              );
+
+            if (
+              hasRenderedWidget
+            ) {
+              widgetLoadedRef.current =
+                true;
+
+              loadedWidgetKeyRef.current =
+                widgetSelection.key;
+
+              setIsLoading(false);
+              setLoadError("");
+            }
+          },
+          1200
+        );
+      };
+
     script.onerror =
       () => {
+        if (
+          tawkLoadTimeoutRef.current !==
+          null
+        ) {
+          window.clearTimeout(
+            tawkLoadTimeoutRef.current
+          );
+
+          tawkLoadTimeoutRef.current =
+            null;
+        }
+
         setIsLoading(false);
 
         setLoadError(
           t("supportModal.loadError")
         );
       };
+
+    /*
+     * Never keep the user on an endless loading screen.
+     * If Tawk has not rendered after 10 seconds, show Retry instead.
+     */
+    if (
+      tawkLoadTimeoutRef.current !==
+      null
+    ) {
+      window.clearTimeout(
+        tawkLoadTimeoutRef.current
+      );
+    }
+
+    tawkLoadTimeoutRef.current =
+      window.setTimeout(
+        () => {
+          if (
+            widgetLoadedRef.current
+          ) {
+            return;
+          }
+
+          const container =
+            document.getElementById(
+              TAWK_CONTAINER_ID
+            );
+
+          const hasRenderedWidget =
+            Boolean(
+              container &&
+              (
+                container.querySelector(
+                  "iframe"
+                ) ||
+                container.childElementCount >
+                  0
+              )
+            );
+
+          if (
+            hasRenderedWidget
+          ) {
+            widgetLoadedRef.current =
+              true;
+
+            loadedWidgetKeyRef.current =
+              widgetSelection.key;
+
+            setIsLoading(false);
+            setLoadError("");
+
+            return;
+          }
+
+          setIsLoading(false);
+
+          setLoadError(
+            t("supportModal.loadError")
+          );
+        },
+        10000
+      );
 
     document.head.appendChild(
       script
@@ -2496,6 +2388,88 @@ export default function SupportModal() {
     getFaqItems(
       identity,
       t
+    );
+
+  const faqCategories =
+    useMemo<string[]>(
+      () => {
+        return Array.from(
+          new Set(
+            faqItems
+              .map((item) =>
+                String(
+                  item.category ||
+                    ""
+                ).trim()
+              )
+              .filter(
+                (
+                  category
+                ): category is string =>
+                  Boolean(
+                    category
+                  )
+              )
+          )
+        );
+      },
+      [faqItems]
+    );
+
+  const filteredFaqItems =
+    useMemo(
+      () => {
+        const keyword =
+          faqSearch
+            .trim()
+            .toLowerCase();
+
+        return faqItems
+          .map(
+            (
+              item,
+              originalIndex
+            ) => ({
+              ...item,
+              originalIndex,
+            })
+          )
+          .filter((item) => {
+            const categoryMatch =
+              faqCategory ===
+                "ALL" ||
+              item.category ===
+                faqCategory;
+
+            if (
+              !categoryMatch
+            ) {
+              return false;
+            }
+
+            if (!keyword) {
+              return true;
+            }
+
+            const searchableText =
+              [
+                item.category,
+                item.question,
+                item.answer,
+              ]
+                .join(" ")
+                .toLowerCase();
+
+            return searchableText.includes(
+              keyword
+            );
+          });
+      },
+      [
+        faqItems,
+        faqSearch,
+        faqCategory,
+      ]
     );
 
   /* ==========================================================
@@ -3008,160 +2982,254 @@ export default function SupportModal() {
             className={[
               "absolute inset-0",
               "overflow-y-auto",
-              "px-5 py-5",
+              "px-4 py-4 sm:px-5 sm:py-5",
               "transition-all duration-200",
-
               activeView ===
               "FAQ"
                 ? "z-20 translate-x-0 opacity-100"
                 : "z-0 translate-x-5 pointer-events-none opacity-0",
             ].join(" ")}
           >
-            <div
-              className="
-                rounded-[24px]
-                border border-slate-200
-                bg-white p-5
-                shadow-sm
-              "
-            >
+            <div className="rounded-[24px] border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
               <div className="flex items-start gap-3">
-                <div
-                  className="
-                    flex h-11 w-11
-                    shrink-0 items-center justify-center
-                    rounded-2xl
-                    bg-blue-50
-                    text-blue-600
-                  "
-                >
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-blue-50 text-blue-600">
                   <CircleHelp className="h-5 w-5" />
                 </div>
 
-                <div>
+                <div className="min-w-0 flex-1">
                   <h3 className="text-lg font-black text-slate-950">
-                    {t("supportModal.frequentlyAskedQuestions")}
+                    {t(
+                      "supportModal.frequentlyAskedQuestions"
+                    )}
                   </h3>
 
                   <p className="mt-1 text-xs font-semibold leading-5 text-slate-500">
-                    {t("supportModal.faqIntro")}
+                    {t(
+                      "supportModal.faqIntro"
+                    )}
                   </p>
 
                   <div className="mt-3 inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1.5 text-[10px] font-black text-slate-600">
                     <BadgeCheck className="h-3.5 w-3.5 text-emerald-600" />
-                    {t("supportModal.supportTopics", { count: faqItems.length })}
+
+                    {t(
+                      "supportModal.supportTopics",
+                      {
+                        count:
+                          faqItems.length,
+                      }
+                    )}
                   </div>
                 </div>
               </div>
+
+              <div className="relative mt-4">
+                <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+
+                <input
+                  value={faqSearch}
+                  onChange={(event) => {
+                    setFaqSearch(
+                      event.target.value
+                    );
+                    setOpenFaqIndex(
+                      null
+                    );
+                  }}
+                  placeholder={t(
+                    "supportModal.searchPlaceholder"
+                  )}
+                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 py-3 pl-10 pr-4 text-xs font-bold text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-blue-300 focus:bg-white focus:ring-4 focus:ring-blue-50"
+                />
+              </div>
+
+              <div className="mt-4 -mx-1 flex gap-2 overflow-x-auto px-1 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setFaqCategory(
+                      "ALL"
+                    );
+                    setOpenFaqIndex(
+                      null
+                    );
+                  }}
+                  className={[
+                    "shrink-0 rounded-full px-3 py-2 text-[10px] font-black transition",
+                    faqCategory ===
+                    "ALL"
+                      ? "bg-slate-950 text-white"
+                      : "bg-slate-100 text-slate-600",
+                  ].join(" ")}
+                >
+                  {t(
+                    "supportModal.allCategories"
+                  )}
+                </button>
+
+                {faqCategories.map(
+                  (category) => (
+                    <button
+                      key={category}
+                      type="button"
+                      onClick={() => {
+                        setFaqCategory(
+                          category
+                        );
+                        setOpenFaqIndex(
+                          null
+                        );
+                      }}
+                      className={[
+                        "shrink-0 rounded-full px-3 py-2 text-[10px] font-black transition",
+                        faqCategory ===
+                        category
+                          ? "bg-blue-600 text-white"
+                          : "bg-blue-50 text-blue-700",
+                      ].join(" ")}
+                    >
+                      {category}
+                    </button>
+                  )
+                )}
+              </div>
+
+              <div className="mt-4 flex items-center justify-between gap-3">
+                <p className="text-[10px] font-black text-slate-400">
+                  {t(
+                    "supportModal.showingTopics",
+                    {
+                      count:
+                        filteredFaqItems.length,
+                      total:
+                        faqItems.length,
+                    }
+                  )}
+                </p>
+
+                {faqSearch ||
+                faqCategory !==
+                  "ALL" ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setFaqSearch("");
+                      setFaqCategory(
+                        "ALL"
+                      );
+                      setOpenFaqIndex(
+                        null
+                      );
+                    }}
+                    className="text-[10px] font-black text-blue-600"
+                  >
+                    {t(
+                      "supportModal.clearSearch"
+                    )}
+                  </button>
+                ) : null}
+              </div>
             </div>
 
-            <div className="mt-4 space-y-3">
-              {faqItems.map(
-                (
-                  item,
-                  index
-                ) => {
-                  const isExpanded =
-                    openFaqIndex ===
-                    index;
+            {filteredFaqItems.length ? (
+              <div className="mt-4 space-y-3">
+                {filteredFaqItems.map(
+                  (item) => {
+                    const isExpanded =
+                      openFaqIndex ===
+                      item.originalIndex;
 
-                  return (
-                    <div
-                      key={
-                        item.question
-                      }
-                      className="
-                        overflow-hidden
-                        rounded-[20px]
-                        border border-slate-200
-                        bg-white
-                        shadow-sm
-                      "
-                    >
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setOpenFaqIndex(
-                            isExpanded
-                              ? null
-                              : index
-                          )
-                        }
-                        className="
-                          flex w-full
-                          items-center
-                          justify-between gap-4
-                          px-4 py-4
-                          text-left
-                        "
-                      >
-                        <span className="min-w-0">
-                          <span className="block text-[9px] font-black uppercase tracking-[0.14em] text-blue-600">
-                            {item.category}
-                          </span>
-
-                          <span className="mt-1 block text-sm font-black leading-5 text-slate-900">
-                            {item.question}
-                          </span>
-                        </span>
-
-                        <ChevronRight
-                          className={[
-                            "h-5 w-5 shrink-0 text-slate-400 transition-transform duration-200",
-
-                            isExpanded
-                              ? "rotate-90"
-                              : "",
-                          ].join(
-                            " "
-                          )}
-                        />
-                      </button>
-
+                    return (
                       <div
-                        className={[
-                          "grid transition-all duration-200",
-
-                          isExpanded
-                            ? "grid-rows-[1fr]"
-                            : "grid-rows-[0fr]",
-                        ].join(
-                          " "
-                        )}
+                        key={`${item.originalIndex}-${item.question}`}
+                        className="overflow-hidden rounded-[20px] border border-slate-200 bg-white shadow-sm"
                       >
-                        <div className="overflow-hidden">
-                          <p className="border-t border-slate-100 px-4 py-4 text-xs font-semibold leading-6 text-slate-600">
-                            {item.answer}
-                          </p>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setOpenFaqIndex(
+                              isExpanded
+                                ? null
+                                : item.originalIndex
+                            )
+                          }
+                          className="flex w-full items-center justify-between gap-4 px-4 py-4 text-left"
+                        >
+                          <span className="min-w-0">
+                            <span className="block text-[9px] font-black uppercase tracking-[0.14em] text-blue-600">
+                              {item.category}
+                            </span>
+
+                            <span className="mt-1 block text-sm font-black leading-5 text-slate-900">
+                              {item.question}
+                            </span>
+                          </span>
+
+                          <ChevronRight
+                            className={[
+                              "h-5 w-5 shrink-0 text-slate-400 transition-transform duration-200",
+                              isExpanded
+                                ? "rotate-90"
+                                : "",
+                            ].join(" ")}
+                          />
+                        </button>
+
+                        <div
+                          className={[
+                            "grid transition-all duration-200",
+                            isExpanded
+                              ? "grid-rows-[1fr]"
+                              : "grid-rows-[0fr]",
+                          ].join(" ")}
+                        >
+                          <div className="overflow-hidden">
+                            <p className="border-t border-slate-100 px-4 py-4 text-xs font-semibold leading-6 text-slate-600">
+                              {item.answer}
+                            </p>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  );
-                }
-              )}
-            </div>
+                    );
+                  }
+                )}
+              </div>
+            ) : (
+              <div className="mt-4 rounded-[22px] border border-dashed border-slate-300 bg-white px-5 py-8 text-center">
+                <Search className="mx-auto h-6 w-6 text-slate-400" />
+
+                <p className="mt-3 text-sm font-black text-slate-900">
+                  {t(
+                    "supportModal.noFaqFound"
+                  )}
+                </p>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setFaqSearch("");
+                    setFaqCategory(
+                      "ALL"
+                    );
+                  }}
+                  className="mt-3 rounded-full bg-slate-950 px-4 py-2.5 text-[10px] font-black text-white"
+                >
+                  {t(
+                    "supportModal.clearSearch"
+                  )}
+                </button>
+              </div>
+            )}
 
             <button
               type="button"
-              onClick={
-                openLiveChat
-              }
-              className="
-                mt-5 inline-flex w-full
-                items-center justify-center gap-2
-                rounded-2xl
-                bg-slate-950
-                px-5 py-4
-                text-sm font-black
-                text-white
-                shadow-lg
-                transition
-                hover:bg-slate-800
-                active:scale-[0.99]
-              "
+              onClick={openLiveChat}
+              className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-slate-950 px-5 py-4 text-sm font-black text-white shadow-lg transition hover:bg-slate-800 active:scale-[0.99]"
             >
               <Headphones className="h-4 w-4" />
-              {t("supportModal.stillNeedHelp")}
+              {t(
+                "supportModal.stillNeedHelp"
+              )}
             </button>
           </div>
 
@@ -3326,4 +3394,5 @@ export default function SupportModal() {
       </section>
     </div>
   );
+
 }
