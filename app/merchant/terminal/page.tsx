@@ -1042,12 +1042,12 @@ export default function MerchantTerminalPage() {
     <>
       <MerchantNav />
 
-      <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,#e0f2fe,transparent_32%),#f8fafc] px-4 py-5 pb-32 sm:px-6 sm:py-8 md:px-8 xl:px-12">
+      <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,#e0f2fe,transparent_32%),#f8fafc] px-3 py-4 pb-32 sm:px-6 sm:py-8 md:px-8 xl:px-12">
       <section className="mx-auto w-full max-w-6xl">
-        <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center justify-between gap-2 sm:flex-wrap sm:gap-3">
           <Link
             href="/merchant/dashboard"
-            className="inline-flex rounded-full border border-slate-200 bg-white px-4 py-2.5 text-xs font-black text-slate-700 no-underline shadow-sm transition hover:bg-slate-50 sm:px-5 sm:py-3 sm:text-sm"
+            className="inline-flex rounded-full border border-slate-200 bg-white px-3.5 py-2.5 text-[11px] font-black text-slate-700 no-underline shadow-sm transition hover:bg-slate-50 sm:px-5 sm:py-3 sm:text-sm"
           >
             ← {copy.back}
           </Link>
@@ -1060,7 +1060,7 @@ export default function MerchantTerminalPage() {
               )
             }
             disabled={loading}
-            className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2.5 text-xs font-black text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:opacity-50 sm:px-5 sm:py-3 sm:text-sm"
+            className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3.5 py-2.5 text-[11px] font-black text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:opacity-50 sm:px-5 sm:py-3 sm:text-sm"
           >
             <RefreshCw
               className={`h-4 w-4 ${
@@ -1073,22 +1073,22 @@ export default function MerchantTerminalPage() {
           </button>
         </div>
 
-        <div className="mt-5 overflow-hidden rounded-[2rem] bg-slate-950 text-white shadow-2xl sm:mt-6 sm:rounded-[2.5rem]">
-          <div className="grid gap-7 p-6 sm:p-8 md:grid-cols-[1.4fr_0.8fr] md:p-10">
+        <div className="mt-4 overflow-hidden rounded-[1.6rem] bg-slate-950 text-white shadow-xl sm:mt-6 sm:rounded-[2.5rem] sm:shadow-2xl">
+          <div className="grid gap-5 p-5 sm:gap-7 sm:p-8 md:grid-cols-[1.4fr_0.8fr] md:p-10">
             <div>
               <p className="text-[10px] font-black uppercase tracking-[0.24em] text-cyan-300 sm:text-xs">
                 {copy.eyebrow}
               </p>
 
-              <h1 className="mt-3 text-3xl font-black tracking-tight sm:text-5xl">
+              <h1 className="mt-2 text-[2rem] font-black leading-tight tracking-tight sm:mt-3 sm:text-5xl">
                 {copy.title}
               </h1>
 
-              <p className="mt-4 max-w-2xl text-sm font-semibold leading-7 text-slate-300 sm:text-base">
+              <p className="mt-3 max-w-2xl text-[13px] font-semibold leading-6 text-slate-300 sm:mt-4 sm:text-base sm:leading-7">
                 {copy.description}
               </p>
 
-              <div className="mt-6 flex flex-wrap gap-2">
+              <div className="mt-4 flex flex-wrap gap-2 sm:mt-6">
                 <span className="rounded-full bg-white/10 px-4 py-2 text-xs font-black">
                   {isFirstTerminal
                     ? copy.firstTerminal
@@ -1103,14 +1103,14 @@ export default function MerchantTerminalPage() {
               </div>
             </div>
 
-            <div className="rounded-[1.75rem] border border-white/10 bg-white/10 p-5 backdrop-blur sm:p-6">
+            <div className="rounded-[1.35rem] border border-white/10 bg-white/[0.08] p-4 backdrop-blur sm:rounded-[1.75rem] sm:p-6">
               <p className="text-xs font-black uppercase tracking-[0.18em] text-slate-300">
                 {isFirstTerminal
                   ? copy.firstTerminal
                   : copy.replacementTerminal}
               </p>
 
-              <div className="mt-5 space-y-3">
+              <div className="mt-4 space-y-2.5 sm:mt-5 sm:space-y-3">
                 <PriceRow
                   label={copy.machine}
                   value={formatMoney(
@@ -1136,7 +1136,7 @@ export default function MerchantTerminalPage() {
                 </div>
               </div>
 
-              <p className="mt-5 text-xs font-semibold leading-5 text-slate-300">
+              <p className="mt-4 text-[11px] font-semibold leading-5 text-slate-300 sm:mt-5 sm:text-xs">
                 {isFirstTerminal
                   ? copy.firstTerminalDescription
                   : copy.replacementDescription}
@@ -1158,14 +1158,14 @@ export default function MerchantTerminalPage() {
         ) : null}
 
         {activeApplication ? (
-          <div className="mt-6 rounded-[2rem] border border-slate-200 bg-white p-5 shadow-sm sm:p-7">
+          <div className="mt-4 rounded-[1.5rem] border border-slate-200 bg-white p-4 shadow-sm sm:mt-6 sm:rounded-[2rem] sm:p-7">
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
                 <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
                   {copy.currentApplication}
                 </p>
 
-                <h2 className="mt-2 text-xl font-black text-slate-950 sm:text-2xl">
+                <h2 className="mt-2 break-all text-lg font-black leading-tight text-slate-950 sm:text-2xl">
                   {
                     activeApplication.applicationId
                   }
@@ -1189,7 +1189,7 @@ export default function MerchantTerminalPage() {
               </span>
             </div>
 
-            <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="mt-5 grid grid-cols-2 gap-2.5 sm:mt-6 sm:gap-4 lg:grid-cols-3">
               <InfoCard
                 label={
                   copy.applicationType
@@ -1261,7 +1261,7 @@ export default function MerchantTerminalPage() {
               }
             />
 
-            <div className="mt-5 rounded-2xl bg-slate-50 p-4 sm:p-5">
+            <div className="mt-4 rounded-[1.25rem] bg-slate-50 p-4 sm:mt-5 sm:rounded-2xl sm:p-5">
               <div className="flex items-center gap-3">
                 {String(
                   activeApplication.status
@@ -1345,12 +1345,12 @@ export default function MerchantTerminalPage() {
             ) : null}
           </div>
         ) : (
-          <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_0.72fr]">
+          <div className="mt-4 grid gap-4 sm:mt-6 sm:gap-6 lg:grid-cols-[1fr_0.72fr]">
             <form
               onSubmit={
                 handleSubmit
               }
-              className="rounded-[2rem] border border-slate-200 bg-white p-5 shadow-sm sm:p-7"
+              className="rounded-[1.5rem] border border-slate-200 bg-white p-4 shadow-sm sm:rounded-[2rem] sm:p-7"
             >
               <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
                 {
@@ -1370,7 +1370,7 @@ export default function MerchantTerminalPage() {
                 }
               </p>
 
-              <div className="mt-6 space-y-5">
+              <div className="mt-5 space-y-4 sm:mt-6 sm:space-y-5">
                 <Field
                   label={
                     copy.contactName
@@ -1388,7 +1388,7 @@ export default function MerchantTerminalPage() {
                     placeholder={
                       copy.contactNamePlaceholder
                     }
-                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3.5 text-sm font-bold text-slate-950 outline-none transition focus:border-slate-400 focus:bg-white"
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-3 text-sm font-bold text-slate-950 outline-none transition focus:border-slate-400 focus:bg-white sm:rounded-2xl sm:px-4 sm:py-3.5"
                   />
                 </Field>
 
@@ -1406,7 +1406,7 @@ export default function MerchantTerminalPage() {
                     placeholder={
                       copy.phonePlaceholder
                     }
-                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3.5 text-sm font-bold text-slate-950 outline-none transition focus:border-slate-400 focus:bg-white"
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-3 text-sm font-bold text-slate-950 outline-none transition focus:border-slate-400 focus:bg-white sm:rounded-2xl sm:px-4 sm:py-3.5"
                   />
                 </Field>
 
@@ -1428,7 +1428,7 @@ export default function MerchantTerminalPage() {
                     placeholder={
                       copy.shippingAddressPlaceholder
                     }
-                    className="w-full resize-none rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3.5 text-sm font-bold leading-6 text-slate-950 outline-none transition focus:border-slate-400 focus:bg-white"
+                    className="w-full resize-none rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-3 text-sm font-bold leading-6 text-slate-950 outline-none transition focus:border-slate-400 focus:bg-white sm:rounded-2xl sm:px-4 sm:py-3.5"
                   />
                 </Field>
 
@@ -1452,7 +1452,7 @@ export default function MerchantTerminalPage() {
                       placeholder={
                         copy.reasonPlaceholder
                       }
-                      className="w-full resize-none rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3.5 text-sm font-bold leading-6 text-slate-950 outline-none transition focus:border-slate-400 focus:bg-white"
+                      className="w-full resize-none rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-3 text-sm font-bold leading-6 text-slate-950 outline-none transition focus:border-slate-400 focus:bg-white sm:rounded-2xl sm:px-4 sm:py-3.5"
                     />
                   </Field>
                 ) : null}
@@ -1463,7 +1463,7 @@ export default function MerchantTerminalPage() {
                 disabled={
                   submitting
                 }
-                className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-slate-950 px-5 py-4 text-sm font-black text-white shadow-lg transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
+                className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-slate-950 px-5 py-3.5 text-sm font-black text-white shadow-lg transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50 sm:mt-6 sm:rounded-2xl sm:py-4"
               >
                 <CheckCircle2 className="h-5 w-5" />
                 {submitting
@@ -1472,7 +1472,7 @@ export default function MerchantTerminalPage() {
               </button>
             </form>
 
-            <div className="rounded-[2rem] border border-slate-200 bg-white p-5 shadow-sm sm:p-7">
+            <div className="rounded-[1.5rem] border border-slate-200 bg-white p-4 shadow-sm sm:rounded-[2rem] sm:p-7">
               <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-950 text-2xl text-white">
                 📟
               </div>
@@ -1520,7 +1520,7 @@ export default function MerchantTerminalPage() {
           </div>
         ) : null}
 
-        <div className="mt-6 rounded-[2rem] border border-slate-200 bg-white p-5 shadow-sm sm:p-7">
+        <div className="mt-4 rounded-[1.5rem] border border-slate-200 bg-white p-4 shadow-sm sm:mt-6 sm:rounded-[2rem] sm:p-7">
           <div className="flex items-center gap-3">
             <Clock3 className="h-5 w-5 text-slate-500" />
             <div>
@@ -1536,14 +1536,14 @@ export default function MerchantTerminalPage() {
           </div>
 
           {history.length ? (
-            <div className="mt-5 space-y-3">
+            <div className="mt-4 space-y-2.5 sm:mt-5 sm:space-y-3">
               {history.map(
                 (item) => (
                   <div
                     key={
                       item.applicationId
                     }
-                    className="rounded-2xl border border-slate-200 p-4 sm:p-5"
+                    className="rounded-[1.25rem] border border-slate-200 p-3.5 sm:rounded-2xl sm:p-5"
                   >
                     <div className="flex flex-wrap items-start justify-between gap-3">
                       <div>
@@ -1575,7 +1575,7 @@ export default function MerchantTerminalPage() {
                       </span>
                     </div>
 
-                    <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                    <div className="mt-3 grid grid-cols-3 gap-2 sm:mt-4 sm:gap-3">
                       <MiniValue
                         label={
                           copy.machine
@@ -1661,8 +1661,8 @@ function TerminalPaymentCard({
       "PAID";
 
   return (
-    <section className="mt-5 overflow-hidden rounded-[1.75rem] border border-amber-200 bg-amber-50 sm:rounded-[2rem]">
-      <div className="bg-slate-950 p-5 text-white sm:p-6">
+    <section className="mt-4 overflow-hidden rounded-[1.35rem] border border-amber-200 bg-amber-50 sm:mt-5 sm:rounded-[2rem]">
+      <div className="bg-slate-950 p-4 text-white sm:p-6">
         <p className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-300 sm:text-xs">
           {copy.paymentTitle}
         </p>
@@ -1673,7 +1673,7 @@ function TerminalPaymentCard({
               {copy.amountPayable}
             </p>
 
-            <p className="mt-1 text-4xl font-black">
+            <p className="mt-1 text-3xl font-black sm:text-4xl">
               {formatMoney(
                 application.totalAmount
               )}
@@ -1688,12 +1688,12 @@ function TerminalPaymentCard({
         </div>
       </div>
 
-      <div className="p-5 sm:p-6">
+      <div className="p-4 sm:p-6">
         <p className="text-sm font-bold leading-6 text-amber-900">
           {copy.paymentInstruction}
         </p>
 
-        <div className="mt-5 grid gap-4 sm:grid-cols-2">
+        <div className="mt-4 grid gap-3 sm:mt-5 sm:gap-4 sm:grid-cols-2">
           <div className="space-y-3">
             <PaymentInfo
               label={copy.bankName}
@@ -1735,7 +1735,7 @@ function TerminalPaymentCard({
             </button>
           </div>
 
-          <div className="rounded-[1.5rem] bg-white p-4 text-center">
+          <div className="rounded-[1.15rem] bg-white p-3 text-center sm:rounded-[1.5rem] sm:p-4">
             <p className="text-xs font-black text-slate-950">
               {copy.scanToPay}
             </p>
@@ -1745,12 +1745,12 @@ function TerminalPaymentCard({
                 terminalPayment.qrImageUrl
               }
               alt="RewardHub payment QR"
-              className="mx-auto mt-3 aspect-square w-full max-w-[220px] object-contain"
+              className="mx-auto mt-2 aspect-square w-full max-w-[180px] object-contain sm:mt-3 sm:max-w-[220px]"
             />
           </div>
         </div>
 
-        <div className="mt-5 rounded-[1.5rem] bg-white p-4 sm:p-5">
+        <div className="mt-4 rounded-[1.15rem] bg-white p-4 sm:mt-5 sm:rounded-[1.5rem] sm:p-5">
           {submitted ? (
             <div className="text-center">
               <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 text-xl text-emerald-700">
@@ -1936,7 +1936,7 @@ function InfoCard({
       className={
         compact
           ? "rounded-xl bg-white p-3"
-          : "rounded-2xl bg-slate-50 p-4"
+          : "rounded-xl bg-slate-50 p-3 sm:rounded-2xl sm:p-4"
       }
     >
       <p className="text-[10px] font-black uppercase tracking-[0.14em] text-slate-400">
