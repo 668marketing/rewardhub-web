@@ -1191,7 +1191,7 @@ export default function MerchantProfilePage() {
           >
             <div className="grid grid-cols-2 gap-3 sm:gap-4">
               <BrandingCard title={t.logo} description={t.logoDescription}>
-                <div className="flex h-24 w-24 items-center justify-center overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm sm:h-32 sm:w-32 sm:rounded-3xl">
+                <div className="inline-flex max-h-28 max-w-full items-center justify-center overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm sm:max-h-40 sm:rounded-3xl">
                   {logoPreview || merchant?.logoUrl || merchant?.LOGO_URL ? (
                     <SmartImage
                       src={
@@ -1203,7 +1203,7 @@ export default function MerchantProfilePage() {
                       alt={t.merchantLogo}
                       fallbackLabel="LOGO"
                       width={600}
-                      className="h-full w-full object-contain p-2"
+                      className="block h-auto max-h-28 w-auto max-w-full object-contain sm:max-h-40"
                       fallbackClassName="text-xl sm:text-3xl"
                     />
                   ) : (

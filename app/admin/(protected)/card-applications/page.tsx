@@ -163,6 +163,7 @@ export default function AdminCardApplicationsPage() {
         "Member ID",
         "Member Name",
         "Application Type",
+        "New Card ID",
         "Status",
         "Fee",
         "Payment Status",
@@ -178,6 +179,7 @@ export default function AdminCardApplicationsPage() {
         item.memberId,
         item.fullName,
         item.applicationType,
+        (item as any).newCardId || "",
         item.status,
         item.fee,
         item.paymentStatus,
@@ -574,6 +576,7 @@ function ApplicationDrawer({
   const [reason, setReason] = useState("");
   const [courier, setCourier] = useState("");
   const [trackingNumber, setTrackingNumber] = useState("");
+  const [cardId, setCardId] = useState("");
   const [saving, setSaving] = useState(false);
   const [actionError, setActionError] = useState("");
 
@@ -583,6 +586,7 @@ function ApplicationDrawer({
     setReason("");
     setCourier("");
     setTrackingNumber("");
+    setCardId("");
     setActionError("");
   }, [application?.applicationId]);
 
@@ -600,6 +604,20 @@ function ApplicationDrawer({
     ) {
       setActionError("Please enter a reason with at least 3 characters.");
       return;
+    }
+
+    if (action === "MARK_PROCESSING") {
+      const normalizedCardId = cardId.trim();
+
+      if (!normalizedCardId) {
+        setActionError("Card ID is required before marking this application as Processing.");
+        return;
+      }
+
+      if (!/^\d{10}$/.test(normalizedCardId)) {
+        setActionError("Card ID must contain exactly 10 digits, for example 0000000.");
+        return;
+      }
     }
 
     if (
@@ -622,7 +640,8 @@ function ApplicationDrawer({
           reason: reason.trim(),
           courier: courier.trim(),
           trackingNumber: trackingNumber.trim(),
-        }
+          cardId: cardId.trim(),
+        } as any
       );
 
       onUpdated(next);
@@ -631,6 +650,7 @@ function ApplicationDrawer({
       setReason("");
       setCourier("");
       setTrackingNumber("");
+      setCardId("");
     } catch (submitError) {
       setActionError(
         submitError instanceof Error
@@ -685,6 +705,10 @@ function ApplicationDrawer({
                   <Item label="Application ID" value={application.applicationId} />
                   <Item label="Status" value={application.status} />
                   <Item label="Application Type" value={formatType(application.applicationType)} />
+                  <Item
+                    label="Assigned Card ID"
+                    value={(application as any).newCardId || detail.member.cardId}
+                  />
                   <Item label="Submitted At" value={formatDateTime(application.createdAt)} />
                   <Item label="Updated At" value={formatDateTime(application.updatedAt)} />
                   <Item
@@ -740,6 +764,34 @@ function ApplicationDrawer({
               ) : null}
 
               <Panel title="Review & Fulfilment">
+                <div className="rounded-2xl border border-cyan-400/15 bg-cyan-400/[0.06] p-4">
+                  <div className="flex items-start gap-3">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-cyan-400/10 text-cyan-300">
+                      <IdCard className="h-5 w-5" />
+                    </div>
+
+                    <div className="min-w-0">
+                      <p className="text-xs font-semibold uppercase tracking-[0.12em] text-cyan-300">
+                        Physical Card Assignment
+                      </p>
+                      <p className="mt-1 text-sm text-slate-400">
+                        The card number assigned to this member is stored in tbl_members → CARD_ID.
+                      </p>
+
+                      <div className="mt-3 flex flex-wrap items-center gap-2">
+                        <span className="text-xs text-slate-500">
+                          Current Card ID
+                        </span>
+                        <span className="rounded-lg border border-white/[0.08] bg-slate-950/70 px-3 py-1.5 font-mono text-sm font-semibold text-white">
+                          {(application as any).newCardId ||
+                            detail.member.cardId ||
+                            "Not assigned"}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
                 <Grid>
                   <Item label="Payment Reviewed By" value={application.paymentReviewedBy} />
                   <Item label="Payment Reviewed At" value={formatDateTime(application.paymentReviewedAt)} />
@@ -781,6 +833,40 @@ function ApplicationDrawer({
 
           {!application || loading ? null : action ? (
             <div className="space-y-3">
+              {action === "MARK_PROCESSING" ? (
+                <div className="rounded-2xl border border-violet-400/20 bg-violet-400/[0.07] p-4">
+                  <label className="block">
+                    <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-violet-300">
+                      Card ID *
+                    </span>
+
+                    <p className="mt-1 text-xs leading-5 text-slate-500">
+                      Enter the 10-digit number printed / encoded on the physical card. Leading zeros will be preserved.
+                    </p>
+
+                    <input
+                      value={cardId}
+                      onChange={(event) => {
+                        const digits = event.target.value
+                          .replace(/\D/g, "")
+                          .slice(0, 10);
+                        setCardId(digits);
+                      }}
+                      inputMode="numeric"
+                      autoComplete="off"
+                      placeholder="0000000"
+                      maxLength={10}
+                      className={`${inputClass} mt-3 font-mono tracking-[0.12em]`}
+                      autoFocus
+                    />
+                  </label>
+
+                  <div className="mt-3 rounded-xl border border-amber-400/15 bg-amber-400/[0.06] px-3 py-2.5 text-xs leading-5 text-amber-200">
+                    Saving this action will write the Card ID directly into the member's CARD_ID field. The same Card ID cannot be assigned to another member.
+                  </div>
+                </div>
+              ) : null}
+
               {action === "SHIP" ? (
                 <div className="grid gap-3 sm:grid-cols-2">
                   <input

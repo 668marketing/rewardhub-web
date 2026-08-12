@@ -329,6 +329,9 @@ export default function MemberMerchantDetailPage() {
     merchant?.REST_DAY ||
     "";
 
+    const hasNoRestDay =
+  !String(restDay || "").trim();
+
   const isOpen = checkIsOpen(
     openTime,
     closeTime,
@@ -522,12 +525,13 @@ export default function MemberMerchantDetailPage() {
               />
 
               <Info
-                title={`🌴 ${t("memberMerchantDetail.restDay")}`}
-                value={
-                  restDay ||
-                  t("memberMerchantDetail.notSpecified")
-                }
-              />
+  title={`🌴 ${t("memberMerchantDetail.restDay")}`}
+  value={
+    hasNoRestDay
+      ? t("memberMerchantDetail.noRestDay")
+      : restDay
+  }
+/>
 
               <Info
                 title={t("memberMerchantDetail.status")}
@@ -664,12 +668,12 @@ function MerchantLogo({
     "";
 
   return (
-    <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-xl border-2 border-white bg-white text-sm font-black text-slate-950 shadow-xl sm:h-24 sm:w-24 sm:rounded-[2rem] sm:border-4 sm:text-2xl">
+    <div className="inline-flex shrink-0 items-center justify-center overflow-hidden rounded-xl border-2 border-white bg-white text-sm font-black text-slate-950 shadow-xl sm:rounded-[1.5rem] sm:border-4 sm:text-2xl">
       {logoUrl ? (
         <img
           src={getDisplayImageUrl(logoUrl)}
           alt={name}
-          className="h-full w-full object-contain p-1 sm:p-2"
+          className="block h-auto max-h-16 w-auto max-w-20 object-contain sm:max-h-28 sm:max-w-36"
         />
       ) : (
         name.slice(0, 2).toUpperCase()
