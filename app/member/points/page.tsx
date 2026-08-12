@@ -11,7 +11,6 @@ import MemberLayout from "@/components/layout/MemberLayout";
 import { useLanguage } from "@/hooks/useLanguage";
 import {
   getMemberWalletSummary,
-  getMemberPointsHistory,
   getMemberRewards,
   getRewardCategories,
   redeemMemberReward,
@@ -180,9 +179,6 @@ export default function PointsPage() {
     setRedemptionMessage,
   ] = useState("");
 
-  const [history, setHistory] =
-    useState<any[]>([]);
-
   const [rewards, setRewards] =
     useState<MemberRewardItem[]>([]);
 
@@ -241,17 +237,11 @@ export default function PointsPage() {
 
       const [
         walletRes,
-        historyRes,
         rewardsRes,
         categoriesRes,
       ] = await Promise.all([
         getMemberWalletSummary({
           memberId,
-        }),
-
-        getMemberPointsHistory({
-          memberId,
-          limit: 50,
         }),
 
         getMemberRewards({
@@ -269,9 +259,6 @@ export default function PointsPage() {
       const walletData =
         unwrapApiData(walletRes);
 
-      const historyData =
-        unwrapApiData(historyRes);
-
       const rewardsData =
         unwrapApiData(rewardsRes);
 
@@ -279,14 +266,6 @@ export default function PointsPage() {
         unwrapApiData(categoriesRes);
 
       setWallet(walletData || {});
-
-      setHistory(
-        Array.isArray(
-          historyData?.history
-        )
-          ? historyData.history
-          : []
-      );
 
       setRewards(
         Array.isArray(
@@ -315,7 +294,6 @@ export default function PointsPage() {
       );
 
       setWallet({});
-      setHistory([]);
       setRewards([]);
       setCategories([]);
     } finally {
@@ -605,13 +583,30 @@ setRedemptionMessage(
                 {t("memberPoints.rewardsWallet")}
               </p>
 
-              <h1 className="relative mt-3 text-3xl font-black leading-tight sm:text-4xl md:text-5xl">
-                {t("memberPoints.title")}
-              </h1>
+              <div className="relative mt-3 flex items-start justify-between gap-4">
+                <div className="min-w-0">
+                  <h1 className="text-3xl font-black leading-tight sm:text-4xl md:text-5xl">
+                    {t("memberPoints.title")}
+                  </h1>
 
-              <p className="relative mt-3 max-w-2xl text-xs font-bold leading-5 text-slate-400 sm:text-sm sm:leading-6">
-                {t("memberPoints.description")}
-              </p>
+                  <p className="mt-3 max-w-2xl text-xs font-bold leading-5 text-slate-400 sm:text-sm sm:leading-6">
+                    {t("memberPoints.description")}
+                  </p>
+                </div>
+
+                <Link
+                  href="/member/points/history"
+                  className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-2xl border border-white/15 bg-white/10 px-3 py-2.5 text-[10px] font-black text-white no-underline backdrop-blur transition hover:bg-white/15 sm:gap-2 sm:px-4 sm:py-3 sm:text-xs md:text-sm"
+                >
+                  <span className="hidden sm:inline">
+                    {t("memberPoints.pointsHistory")}
+                  </span>
+                  <span className="sm:hidden">
+                    {t("memberPoints.records")}
+                  </span>
+                  <span aria-hidden="true">→</span>
+                </Link>
+              </div>
 
               <div className="relative mt-6 grid grid-cols-2 gap-3 sm:mt-8 sm:gap-4 lg:grid-cols-4">
                 <StatCard
@@ -1007,87 +1002,6 @@ setRedemptionMessage(
             )}
           </section>
 
-          <section className="mt-5 rounded-[1.75rem] bg-white p-4 shadow-sm sm:mt-6 sm:rounded-[2.5rem] sm:p-7">
-            <div className="flex items-end justify-between gap-4">
-              <div>
-                <h2 className="text-xl font-black text-slate-950 sm:text-2xl">
-                  {t("memberPoints.pointsHistory")}
-                </h2>
-
-                <p className="mt-1 text-[11px] font-bold text-slate-500 sm:mt-2 sm:text-sm">
-                  {t("memberPoints.pointsHistoryDescription")}
-                </p>
-              </div>
-
-              <span className="rounded-full bg-slate-100 px-3 py-1.5 text-[10px] font-black text-slate-600 sm:px-4 sm:py-2 sm:text-xs">
-                {history.length} {t("memberPoints.records")}
-              </span>
-            </div>
-
-            <div className="mt-5 space-y-3 sm:mt-6 sm:space-y-4">
-              {history.map(
-                (item, index) => (
-                  <HistoryRow
-                    key={
-                      item.pointId ||
-                      item.pointsTxId ||
-                      item.id ||
-                      item.transactionId ||
-                      `points-history-${index}`
-                    }
-                    title={
-                      cleanUpper(
-                        item.type
-                      ) === "EARN"
-                        ? t("memberPoints.pointsEarned")
-                        : t("memberPoints.pointsRedeemed")
-                    }
-                    detail={
-                      item.description ||
-                      item.source ||
-                      "-"
-                    }
-                    points={`${Number(
-                      item.points
-                    ) > 0
-                      ? "+"
-                      : ""}${Number(
-                      item.points || 0
-                    )} ${t("memberPoints.pointsUnit")}`}
-                    negative={
-                      Number(
-                        item.points
-                      ) < 0
-                    }
-                    date={
-                      item.createdAt ||
-                      ""
-                    }
-                  />
-                )
-              )}
-
-              {!loading &&
-                history.length ===
-                  0 && (
-                  <div className="rounded-2xl bg-slate-50 p-6 text-center sm:rounded-3xl sm:p-8">
-                    <p className="text-base font-black text-slate-950 sm:text-lg">
-                      {t("memberPoints.noPointsHistory")}
-                    </p>
-
-                    <p className="mt-2 text-xs font-bold text-slate-500 sm:text-sm">
-                      {t("memberPoints.noPointsHistoryDescription")}
-                    </p>
-                  </div>
-                )}
-
-              {loading && (
-                <div className="rounded-2xl bg-slate-50 p-6 text-center text-xs font-bold text-slate-500 sm:rounded-3xl sm:p-8 sm:text-sm">
-                  {t("memberPoints.loadingPointsHistory")}
-                </div>
-              )}
-            </div>
-          </section>
         </section>
       </main>
 
@@ -1788,52 +1702,6 @@ function RewardBadge({
   );
 }
 
-function HistoryRow({
-  title,
-  detail,
-  points,
-  negative = false,
-  date = "",
-}: {
-  title: string;
-  detail: string;
-  points: string;
-  negative?: boolean;
-  date?: string;
-}) {
-  return (
-    <div className="flex items-center justify-between gap-3 rounded-2xl bg-slate-50 p-4 sm:rounded-3xl sm:p-5">
-      <div className="min-w-0">
-        <p className="truncate text-sm font-black text-slate-950 sm:text-base">
-          {title}
-        </p>
-
-        <p className="mt-1 truncate text-[10px] font-bold text-slate-500 sm:text-sm">
-          {detail}
-        </p>
-
-        {date && (
-          <p className="mt-1 text-[9px] font-bold text-slate-400 sm:text-xs">
-            {formatDisplayDate(
-              date
-            )}
-          </p>
-        )}
-      </div>
-
-      <p
-        className={`shrink-0 text-sm font-black sm:text-xl ${
-          negative
-            ? "text-red-600"
-            : "text-emerald-700"
-        }`}
-      >
-        {points}
-      </p>
-    </div>
-  );
-}
-
 function RewardSkeletonRow() {
   return (
     <div className="-mx-4 mt-5 flex gap-3 overflow-hidden px-4 sm:-mx-7 sm:px-7">
@@ -2039,33 +1907,7 @@ function parseDate(
     : timestamp;
 }
 
-function formatDisplayDate(
-  value: string
-) {
-  const timestamp =
-    parseDate(value);
 
-  if (!timestamp) {
-    return value;
-  }
-
-  return new Intl.DateTimeFormat(
-    "en-MY",
-    {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    }
-  ).format(new Date(timestamp));
-}
-
-function cleanUpper(value: any) {
-  return String(value || "")
-    .trim()
-    .toUpperCase();
-}
 
 function numberFormat(value: any) {
   return Number(
