@@ -92,7 +92,7 @@ const pageText = {
     searchPlaceholder:
       "搜索说明或来源……",
     refresh: "刷新",
-    records: "条记录",
+    records: "记录",
     pointsEarned: "获得积分",
     pointsRedeemed: "兑换积分",
     noRecords: "目前没有积分记录",
