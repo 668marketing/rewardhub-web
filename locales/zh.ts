@@ -235,7 +235,7 @@ memberPoints: {
   noRewardsFoundDescription: "请尝试其他类别或清除搜索条件。",
   pointsHistory: "积分记录",
   pointsHistoryDescription: "查看积分赚取和兑换活动。",
-  records: "条记录",
+  records: "记录",
   pointsEarned: "获得积分",
   pointsRedeemed: "兑换积分",
   noPointsHistory: "目前没有积分记录",
