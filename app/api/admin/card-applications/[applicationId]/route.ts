@@ -4,7 +4,8 @@ import {
 } from "next/server";
 
 export const runtime = "nodejs";
-export const dynamic = "force-dynamic";
+export const dynamic =
+  "force-dynamic";
 
 type RewardHubResponse<T> = {
   success?: boolean;
@@ -22,7 +23,8 @@ function clearAdminCookie(
     value: "",
     httpOnly: true,
     secure:
-      process.env.NODE_ENV === "production",
+      process.env.NODE_ENV ===
+      "production",
     sameSite: "lax",
     path: "/",
     expires: new Date(0),
@@ -48,9 +50,26 @@ async function callBackend(
         error:
           "Admin authentication required.",
       },
-      { status: 401 }
+      {
+        status: 401,
+      }
     );
   }
+
+  console.log(
+    "ADMIN CARD CALLING REWARDHUB:",
+    {
+      applicationId,
+      action:
+        extra.action,
+      cardAction:
+        extra.cardAction,
+      cardId:
+        extra.cardId,
+      time:
+        new Date().toISOString(),
+    }
+  );
 
   const response =
     await fetch(
@@ -68,10 +87,12 @@ async function callBackend(
         body: JSON.stringify({
           token,
           applicationId,
+
           userAgent:
             request.headers.get(
               "user-agent"
             ) || "",
+
           ipAddress:
             request.headers.get(
               "x-forwarded-for"
@@ -80,6 +101,7 @@ async function callBackend(
               "x-real-ip"
             ) ||
             "",
+
           ...extra,
         }),
       }
@@ -101,7 +123,9 @@ async function callBackend(
         error:
           "Card application backend returned an invalid response.",
       },
-      { status: 502 }
+      {
+        status: 502,
+      }
     );
   }
 
@@ -123,7 +147,8 @@ async function callBackend(
       NextResponse.json(
         {
           success: false,
-          error: errorMessage,
+          error:
+            errorMessage,
         },
         {
           status:
@@ -134,7 +159,9 @@ async function callBackend(
       );
 
     return isAuthError
-      ? clearAdminCookie(nextResponse)
+      ? clearAdminCookie(
+          nextResponse
+        )
       : nextResponse;
   }
 
@@ -159,7 +186,9 @@ export async function GET(
 
   return callBackend(
     request,
-    decodeURIComponent(applicationId),
+    decodeURIComponent(
+      applicationId
+    ),
     {
       action:
         "getAdminCardApplicationDetail",
@@ -191,13 +220,36 @@ export async function PATCH(
         error:
           "Invalid request body.",
       },
-      { status: 400 }
+      {
+        status: 400,
+      }
     );
   }
 
+  console.log(
+    "ADMIN CARD PATCH RECEIVED:",
+    {
+      applicationId:
+        decodeURIComponent(
+          applicationId
+        ),
+
+      cardAction:
+        body.cardAction,
+
+      cardId:
+        body.cardId,
+
+      time:
+        new Date().toISOString(),
+    }
+  );
+
   return callBackend(
     request,
-    decodeURIComponent(applicationId),
+    decodeURIComponent(
+      applicationId
+    ),
     {
       action:
         "updateAdminCardApplication",

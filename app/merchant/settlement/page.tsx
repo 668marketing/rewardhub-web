@@ -538,6 +538,50 @@ function normalizeDirection(
   return "NO_PAYMENT";
 }
 
+function unwrapSettlementResponse(
+  value: any
+) {
+  let current = value;
+
+  for (let depth = 0; depth < 8; depth += 1) {
+    if (
+      !current ||
+      typeof current !== "object"
+    ) {
+      return {};
+    }
+
+    const candidate = current as Record<string, any>;
+
+    const looksLikeSettlementPayload =
+      "currentMonth" in candidate ||
+      "totalSales" in candidate ||
+      "amountPayable" in candidate ||
+      "settlementDirection" in candidate ||
+      "settlementId" in candidate ||
+      Array.isArray(candidate.history);
+
+    if (looksLikeSettlementPayload) {
+      return candidate;
+    }
+
+    if (
+      candidate.data &&
+      typeof candidate.data === "object"
+    ) {
+      current = candidate.data;
+      continue;
+    }
+
+    return candidate;
+  }
+
+  return current &&
+    typeof current === "object"
+    ? current
+    : {};
+}
+
 export default function MerchantSettlementPage() {
   const [
     language,
@@ -684,9 +728,9 @@ export default function MerchantSettlementPage() {
         });
 
       const result =
-        res?.data?.data ||
-        res?.data ||
-        res;
+        unwrapSettlementResponse(
+          res
+        );
 
       setData(result);
     } catch (err) {
@@ -917,11 +961,21 @@ export default function MerchantSettlementPage() {
     );
 
   const todayDate =
-    new Date().getDate();
+  new Date().getDate();
 
-  const canPaySettlement =
+const isLocalDevelopment =
+  typeof window !== "undefined" &&
+  (
+    window.location.hostname === "localhost" ||
+    window.location.hostname === "127.0.0.1"
+  );
+
+const canPaySettlement =
+  isLocalDevelopment ||
+  (
     todayDate >= 1 &&
-    todayDate <= 10;
+    todayDate <= 10
+  );
 
   const pendingDirection =
     pendingSettlement
@@ -974,9 +1028,9 @@ export default function MerchantSettlementPage() {
         });
 
       const result =
-        res?.data?.data ||
-        res?.data ||
-        res;
+        unwrapSettlementResponse(
+          res
+        );
 
       const direction =
         normalizeDirection(

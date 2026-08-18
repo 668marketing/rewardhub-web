@@ -254,6 +254,7 @@ export async function updateAdminCardApplication(
     reason?: string;
     courier?: string;
     trackingNumber?: string;
+    cardId?: string;
   }
 ): Promise<AdminCardApplicationDetailData> {
   const response = await fetch(

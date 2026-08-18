@@ -591,8 +591,8 @@ function ApplicationDrawer({
   }, [application?.applicationId]);
 
   const availableActions = useMemo(
-    () => getAvailableCardActions(application?.status || ""),
-    [application?.status]
+    () => getAvailableCardActions(application),
+    [application]
   );
 
   async function submitAction() {
@@ -615,7 +615,7 @@ function ApplicationDrawer({
       }
 
       if (!/^\d{10}$/.test(normalizedCardId)) {
-        setActionError("Card ID must contain exactly 10 digits, for example 0000000.");
+        setActionError("Card ID must contain exactly 10 digits, for example 0000000001.");
         return;
       }
     }
@@ -634,14 +634,14 @@ function ApplicationDrawer({
 
       const next = await updateAdminCardApplication(
         application.applicationId,
-        {
-          cardAction: action,
-          note: note.trim(),
-          reason: reason.trim(),
-          courier: courier.trim(),
-          trackingNumber: trackingNumber.trim(),
-          cardId: cardId.trim(),
-        } as any
+       {
+  cardAction: action,
+  note: note.trim(),
+  reason: reason.trim(),
+  courier: courier.trim(),
+  trackingNumber: trackingNumber.trim(),
+  cardId: cardId.trim(),
+}
       );
 
       onUpdated(next);
@@ -706,7 +706,11 @@ function ApplicationDrawer({
                   <Item label="Status" value={application.status} />
                   <Item label="Application Type" value={formatType(application.applicationType)} />
                   <Item
-                    label="Assigned Card ID"
+                    label={
+                      (application as any).newCardId
+                        ? "Assigned New Card ID"
+                        : "Current Member Card ID"
+                    }
                     value={(application as any).newCardId || detail.member.cardId}
                   />
                   <Item label="Submitted At" value={formatDateTime(application.createdAt)} />
@@ -780,7 +784,9 @@ function ApplicationDrawer({
 
                       <div className="mt-3 flex flex-wrap items-center gap-2">
                         <span className="text-xs text-slate-500">
-                          Current Card ID
+                          {(application as any).newCardId
+                            ? "Assigned New Card ID"
+                            : "Current Member Card ID"}
                         </span>
                         <span className="rounded-lg border border-white/[0.08] bg-slate-950/70 px-3 py-1.5 font-mono text-sm font-semibold text-white">
                           {(application as any).newCardId ||
@@ -854,7 +860,7 @@ function ApplicationDrawer({
                       }}
                       inputMode="numeric"
                       autoComplete="off"
-                      placeholder="0000000"
+                      placeholder="0000000001"
                       maxLength={10}
                       className={`${inputClass} mt-3 font-mono tracking-[0.12em]`}
                       autoFocus
@@ -862,7 +868,7 @@ function ApplicationDrawer({
                   </label>
 
                   <div className="mt-3 rounded-xl border border-amber-400/15 bg-amber-400/[0.06] px-3 py-2.5 text-xs leading-5 text-amber-200">
-                    Saving this action will write the Card ID directly into the member's CARD_ID field. The same Card ID cannot be assigned to another member.
+                    Saving this action assigns the new physical Card ID for processing only. The member's current Card ID will remain unchanged until the card application is completed. The same Card ID cannot be assigned to another member.
                   </div>
                 </div>
               ) : null}
@@ -953,28 +959,98 @@ function ApplicationDrawer({
   );
 }
 
-function getAvailableCardActions(status: string): CardApplicationAction[] {
-  const normalized = String(status || "")
-    .trim()
-    .toUpperCase();
-
-  if (normalized === "PENDING_PAYMENT") {
-    return ["CONFIRM_PAYMENT", "REJECT_PAYMENT"];
+function getAvailableCardActions(
+  application?: AdminCardApplication | null
+): CardApplicationAction[] {
+  if (!application) {
+    return [];
   }
 
-  if (["PENDING", "PENDING_REVIEW", "SUBMITTED"].includes(normalized)) {
+  const normalizedStatus = String(application.status || "")
+    .trim()
+    .toUpperCase()
+    .replace(/[\s-]+/g, "_");
+
+  const normalizedPaymentStatus = String(application.paymentStatus || "")
+    .trim()
+    .toUpperCase()
+    .replace(/[\s-]+/g, "_");
+
+  const isReplacement =
+    formatType(application.applicationType) === "Replacement Card";
+
+  /*
+   * ==========================================================
+   * REPLACEMENT CARD PAYMENT WORKFLOW
+   * ==========================================================
+   *
+   * Pending Payment
+   *   -> member has not completed payment submission yet.
+   *
+   * Pending + Submitted
+   *   -> Admin must Confirm / Reject Payment.
+   *
+   * Pending + Paid
+   *   -> Admin may Approve / Reject Application.
+   *
+   * We intentionally do NOT depend on receiptUrl here because
+   * the current Admin detail payload may expose paymentStatus
+   * correctly while receiptUrl is mapped differently.
+   * The backend still validates that a receipt exists before
+   * CONFIRM_PAYMENT, so this does not weaken validation.
+   * ==========================================================
+   */
+
+  if (isReplacement) {
+    if (
+      normalizedPaymentStatus === "SUBMITTED" &&
+      ["PENDING_PAYMENT", "PENDING", "PENDING_REVIEW", "SUBMITTED"].includes(
+        normalizedStatus
+      )
+    ) {
+      return ["CONFIRM_PAYMENT", "REJECT_PAYMENT"];
+    }
+
+    if (
+      ["PENDING", "PENDING_REVIEW", "SUBMITTED"].includes(normalizedStatus) &&
+      normalizedPaymentStatus === "PAID"
+    ) {
+      return ["APPROVE", "REJECT"];
+    }
+
+    if (
+      normalizedStatus === "PENDING_PAYMENT" &&
+      normalizedPaymentStatus !== "PAID"
+    ) {
+      return [];
+    }
+
+    if (
+      ["PENDING", "PENDING_REVIEW", "SUBMITTED"].includes(normalizedStatus)
+    ) {
+      return [];
+    }
+  }
+
+  /*
+   * ==========================================================
+   * FIRST CARD / GENERAL APPLICATION REVIEW
+   * ==========================================================
+   */
+
+  if (["PENDING", "PENDING_REVIEW", "SUBMITTED"].includes(normalizedStatus)) {
     return ["APPROVE", "REJECT"];
   }
 
-  if (normalized === "APPROVED") {
+  if (normalizedStatus === "APPROVED") {
     return ["MARK_PROCESSING"];
   }
 
-  if (normalized === "PROCESSING") {
+  if (normalizedStatus === "PROCESSING") {
     return ["SHIP"];
   }
 
-  if (normalized === "SHIPPED") {
+  if (normalizedStatus === "SHIPPED") {
     return ["COMPLETE"];
   }
 
@@ -1085,7 +1161,11 @@ function Item({ label, value, full = false }: { label: string; value: string; fu
 }
 
 function StatusBadge({ status }: { status: string }) {
-  const normalized = String(status || "PENDING").trim().toUpperCase();
+  const normalized = String(status || "PENDING")
+    .trim()
+    .toUpperCase()
+    .replace(/[\s-]+/g, "_");
+
   const className =
     normalized === "COMPLETED"
       ? "border-emerald-400/20 bg-emerald-400/10 text-emerald-300"
@@ -1095,15 +1175,24 @@ function StatusBadge({ status }: { status: string }) {
           ? "border-violet-400/20 bg-violet-400/10 text-violet-300"
           : normalized === "SHIPPED"
             ? "border-cyan-400/20 bg-cyan-400/10 text-cyan-300"
-            : normalized === "PENDING"
+            : ["PENDING", "PENDING_PAYMENT", "PENDING_REVIEW", "SUBMITTED"].includes(
+                  normalized
+                )
               ? "border-amber-400/20 bg-amber-400/10 text-amber-300"
               : normalized === "CANCELLED"
                 ? "border-slate-400/20 bg-slate-400/10 text-slate-400"
                 : "border-red-400/20 bg-red-400/10 text-red-300";
 
+  const label = normalized
+    .split("_")
+    .map((part) => part.charAt(0) + part.slice(1).toLowerCase())
+    .join(" ");
+
   return (
-    <span className={`inline-flex rounded-full border px-2.5 py-1 text-[11px] font-semibold ${className}`}>
-      {normalized}
+    <span
+      className={`inline-flex rounded-full border px-2.5 py-1 text-[11px] font-semibold ${className}`}
+    >
+      {label}
     </span>
   );
 }

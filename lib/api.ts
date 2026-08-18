@@ -7,8 +7,9 @@ import type {
 } from "@/lib/webauthn";
 
 const API_URL =
-  "https://script.google.com/macros/s/AKfycbxE13CXpQyQ34by5GX3xUFb8tXL5imSWE2cyaTDHrxLaDOz5kuLLeYPqideoU2ROf8X/exec";
-
+  process.env.REWARDHUB_APPS_SCRIPT_URL ||
+  "";
+  
 export async function apiPost(
   action: string,
   data: any = {}
